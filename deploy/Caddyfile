@@ -1,0 +1,75 @@
+# Front door for kidapps. exe.dev's proxy terminates TLS at https://kidapps.exe.xyz and
+# forwards to :8000 here; Caddy adds limits and headers and hands off to the app on :8080.
+# Needs a Caddy build with github.com/mholt/caddy-ratelimit (deploy/deploy.sh installs one).
+{
+	admin localhost:2019
+	auto_https off
+	order rate_limit before reverse_proxy
+	servers {
+		# exe.dev's proxy connects from localhost and sends X-Forwarded-For; trust it for the client IP.
+		trusted_proxies static private_ranges
+		client_ip_headers X-Forwarded-For
+	}
+}
+
+:8000 {
+	log {
+		output stdout
+		format json
+	}
+
+	encode zstd gzip
+
+	# Saves are a few KB; the app itself refuses anything over 256 KB.
+	request_body {
+		max_size 300KB
+	}
+
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy same-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+	}
+
+	@unsafe not method GET HEAD POST PUT
+	respond @unsafe 405
+
+	# Limits are per client IP. One household shares an IP, so the general limit leaves room
+	# for a few devices saving after every answer.
+	rate_limit {
+		zone new_codes {
+			match {
+				method POST
+				path /*/api/codes
+			}
+			key {client_ip}
+			events 20
+			window 1h
+		}
+		# Looking up codes is how someone would guess at other families' saves.
+		zone code_lookups {
+			match {
+				path /*/api/codes/*
+			}
+			key {client_ip}
+			events 30
+			window 10m
+		}
+		zone api {
+			match {
+				path /*/api/*
+			}
+			key {client_ip}
+			events 300
+			window 1m
+		}
+	}
+
+	reverse_proxy 127.0.0.1:8080 {
+		# The app limits wrong-code guesses per client; this is the address it counts.
+		header_up X-Real-IP {client_ip}
+	}
+}

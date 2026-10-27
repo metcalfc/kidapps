@@ -1,0 +1,27 @@
+[Unit]
+Description=kidapps: the kids' web apps and their saves
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/kidapps serve -addr 127.0.0.1:8080 -data /var/lib/kidapps
+DynamicUser=yes
+StateDirectory=kidapps
+StateDirectoryMode=0750
+Restart=always
+RestartSec=2
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

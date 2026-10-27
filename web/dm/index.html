@@ -1,0 +1,2147 @@
+<!doctype html>
+<html lang="en" data-app="dm">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pinehurst DM Academy</title>
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ECEFE4">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111815">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DM Academy">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<!-- splash:start -->
+<link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-744x1133-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-744x1133-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-768x1024-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-768x1024-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-810x1080-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-810x1080-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-820x1180-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-820x1180-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1112-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1112-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1194-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1194-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1210-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1210-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-1024x1366-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-1024x1366-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-1032x1376-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-1032x1376-landscape.png">
+<!-- splash:end -->
+<link rel="stylesheet" href="/shared/fonts/fonts.css">
+<script src="/shared/save.js"></script>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Home-screen app polish for iPad and Mac: no long-press callouts or double-tap zoom on controls. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,img,.key,.card,.choice{-webkit-touch-callout:none;touch-action:manipulation}
+img{-webkit-user-drag:none}
+</style>
+</head>
+<body>
+<style>
+/* Layout: a DM screen. One column on phones; a grid of lesson cards in the Guild Hall; the active question is one focused panel. */
+:root{
+  --bg:#ECEFE4; --surface:#F8F9F3; --surface-2:#DEE3D3; --ink:#1A2622; --muted:#596860; --line:#C3CBBA;
+  --ember:#AE2F1C; --on-ember:#FFF6EE; --brass:#8F6610; --brass-soft:#EADBA9; --moss:#2E6B4E;
+  --good:#2E6B4E; --good-soft:#D9EADF; --bad:#A4321F; --bad-soft:#F3DBD5; --chart-a:#1A8A55; --chart-b:#AE2F1C;
+  --shadow:0 1px 2px rgba(20,30,25,.08),0 8px 24px rgba(20,30,25,.08);
+  --display:'Cinzel',Georgia,'Times New Roman',serif;
+  --body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111815; --surface:#1A221E; --surface-2:#242F29; --ink:#E7EADF; --muted:#9BA89F; --line:#34423B;
+    --ember:#E4573C; --on-ember:#1A0E0A; --brass:#E2B452; --brass-soft:#4A3A14; --moss:#5EAF88;
+    --good:#6FCB9C; --good-soft:#1F3A2D; --bad:#F38A77; --bad-soft:#452019; --chart-a:#2FA368; --chart-b:#E4573C;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111815; --surface:#1A221E; --surface-2:#242F29; --ink:#E7EADF; --muted:#9BA89F; --line:#34423B;
+  --ember:#E4573C; --on-ember:#1A0E0A; --brass:#E2B452; --brass-soft:#4A3A14; --moss:#5EAF88;
+  --good:#6FCB9C; --good-soft:#1F3A2D; --bad:#F38A77; --bad-soft:#452019; --chart-a:#2FA368; --chart-b:#E4573C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:0 48px;
+}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:10; background:var(--bg)}
+button{font:inherit; color:inherit; cursor:pointer}
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible{outline:3px solid var(--brass); outline-offset:2px}
+h1,h2,h3{font-family:var(--display); font-weight:700; line-height:1.15; text-wrap:balance; margin:0}
+.wrap{max-width:960px; margin:0 auto}
+
+/* Header */
+header{display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding-block:18px 10px; border-bottom:1px solid var(--line)}
+.brand{display:flex; align-items:center; gap:12px; margin-right:auto}
+.brand h1{font-size:1.25rem; letter-spacing:.02em}
+.brand small{display:block; font-family:var(--body); font-weight:400; color:var(--muted); font-size:.8rem; letter-spacing:.08em; text-transform:uppercase}
+.crest{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--brass); display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:.8rem; border:2px solid var(--brass); flex:none}
+.rank{display:grid; gap:4px; min-width:200px; flex:1 1 220px; max-width:360px}
+.rank .title{display:flex; justify-content:space-between; gap:8px; font-size:.85rem}
+.rank .title b{font-family:var(--display); font-weight:700; letter-spacing:.02em}
+.rank .title span{color:var(--muted); font-variant-numeric:tabular-nums}
+.bar{height:10px; background:var(--surface-2); border-radius:999px; overflow:hidden; border:1px solid var(--line)}
+.bar i{display:block; height:100%; width:0; background:linear-gradient(90deg, var(--brass), var(--ember)); transition:width .5s ease}
+nav{display:flex; gap:6px; flex-wrap:wrap}
+nav button{background:transparent; border:1px solid transparent; border-radius:8px; padding:6px 10px; color:var(--muted); font-weight:700; font-size:.9rem}
+nav button[aria-current="page"]{color:var(--ink); border-color:var(--line); background:var(--surface)}
+nav button:hover{color:var(--ink)}
+
+main{padding-block:22px}
+.greet{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; margin-bottom:18px}
+.greet h2{font-size:1.5rem}
+.greet p{margin:0; color:var(--muted)}
+
+/* Guild hall cards */
+.hall{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px}
+.hall-head{grid-column:1 / -1; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-top:10px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+.hall-head:first-child{margin-top:0}
+.hall-head h3{font-size:1.05rem; letter-spacing:.04em}
+.hall-head span{color:var(--muted); font-size:.88rem}
+.card{
+  display:grid; grid-template-columns:auto 1fr; gap:4px 14px; align-items:center; text-align:left;
+  background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow);
+  transition:transform .12s ease, border-color .12s ease;
+}
+.card:hover{transform:translateY(-2px); border-color:var(--brass)}
+.card .sigil{grid-row:span 3; width:54px; height:54px; border-radius:50%; background:var(--ink); color:var(--brass); border:2px solid var(--brass); display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:1.05rem; letter-spacing:.02em}
+.card h3{font-size:1.02rem}
+.card .tag{color:var(--muted); font-size:.9rem; line-height:1.3}
+.card .prog{display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--muted); font-variant-numeric:tabular-nums}
+.stars{color:var(--brass); letter-spacing:.1em; font-size:.85rem}
+.card.mixed .sigil{background:var(--ember); color:var(--on-ember); border-color:var(--ember)}
+
+/* Lesson / question panel */
+.panel{max-width:680px; margin:0 auto; display:grid; gap:16px}
+.panel-head{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.panel-head .sigil{width:46px; height:46px; border-radius:50%; background:var(--ink); color:var(--brass); border:2px solid var(--brass); display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:.9rem}
+.panel-head h2{font-size:1.4rem; margin-right:auto}
+.back{background:transparent; border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:.85rem; color:var(--muted)}
+.streak{font-size:.9rem; color:var(--muted); font-variant-numeric:tabular-nums}
+.streak b{color:var(--ember)}
+
+details.lesson{background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden}
+details.lesson summary{cursor:pointer; padding:12px 16px; font-family:var(--display); font-weight:700; font-size:.95rem; letter-spacing:.02em; list-style:none; display:flex; justify-content:space-between; align-items:center}
+details.lesson summary::-webkit-details-marker{display:none}
+details.lesson summary::after{content:"+"; color:var(--brass); font-size:1.3rem; font-family:var(--body)}
+details.lesson[open] summary::after{content:"−"}
+.lesson-body{padding:0 16px 16px; border-top:1px solid var(--line); font-size:.98rem}
+.lesson-body p{margin:12px 0 0; max-width:62ch}
+.lesson-body ul{margin:10px 0 0; padding-left:22px}
+.lesson-body li{margin:4px 0}
+.lesson-body table{border-collapse:collapse; margin-top:12px; font-size:.9rem; font-variant-numeric:tabular-nums}
+.lesson-body th,.lesson-body td{border:1px solid var(--line); padding:4px 10px; text-align:right}
+.lesson-body th:first-child,.lesson-body td:first-child{text-align:left}
+.lesson-body th{background:var(--surface-2); font-weight:700}
+.tablewrap{overflow-x:auto}
+.rule{display:inline-block; background:var(--brass-soft); border-radius:6px; padding:1px 8px; font-weight:700; white-space:nowrap}
+
+.quest{background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:18px 18px 16px; display:grid; gap:14px}
+.flavor{margin:0; padding-left:14px; border-left:3px solid var(--ember); color:var(--ink); font-style:italic; max-width:60ch}
+.challenge{display:inline-flex; align-items:center; gap:6px; font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; color:var(--brass); font-weight:700}
+.steps{display:grid; gap:10px}
+.step{display:grid; gap:10px}
+.step.done{color:var(--muted); font-size:.95rem}
+.step.done .q{display:flex; gap:8px; align-items:baseline}
+.step.done .q::before{content:"✓"; color:var(--good); font-weight:700}
+.step .q{margin:0; font-weight:700; font-size:1.08rem; max-width:60ch}
+.answer{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.answer input{
+  font:inherit; font-size:1.35rem; font-variant-numeric:tabular-nums; width:10ch; max-width:100%;
+  padding:8px 12px; border:2px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink);
+}
+.answer input.ok{border-color:var(--good)} .answer input.no{border-color:var(--bad)}
+.choices{display:flex; flex-wrap:wrap; gap:8px}
+.choices button{background:var(--bg); border:2px solid var(--line); border-radius:10px; padding:8px 14px; font-weight:700}
+.choices button[aria-pressed="true"]{border-color:var(--brass); background:var(--brass-soft)}
+.choices button.ok{border-color:var(--good); background:var(--good-soft)}
+.choices button.no{border-color:var(--bad); background:var(--bad-soft)}
+.btn{background:var(--ember); color:var(--on-ember); border:0; border-radius:10px; padding:10px 18px; font-weight:700; font-size:1rem}
+.btn:disabled{opacity:.5; cursor:default}
+.btn.ghost{background:transparent; color:var(--ink); border:2px solid var(--line)}
+.feedback{border-radius:10px; padding:10px 14px; font-size:.98rem; display:grid; gap:4px}
+.feedback.good{background:var(--good-soft); border-left:4px solid var(--good)}
+.feedback.hint{background:var(--brass-soft); border-left:4px solid var(--brass)}
+.feedback.bad{background:var(--bad-soft); border-left:4px solid var(--bad)}
+.feedback b{font-family:var(--display); font-size:.9rem; letter-spacing:.03em}
+.feedback .sol{font-variant-numeric:tabular-nums}
+.actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.xpgain{color:var(--brass); font-weight:700; font-size:.9rem}
+
+/* Artwork discs: an image over the text sigil; the text shows if the image is missing */
+.art{position:relative; overflow:hidden; flex:none}
+.art img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; border-radius:50%}
+.art.has-img{background:transparent !important; border-color:transparent !important}
+.art.has-img > span{visibility:hidden}
+.boss-card{grid-template-columns:auto 1fr; gap:2px 12px; align-items:center}
+.boss-card .sigil{grid-row:span 3; width:54px; height:54px; border-radius:50%; background:var(--ink); color:var(--brass); border:2px solid var(--brass); display:grid; place-items:center; font-family:var(--display); font-weight:700}
+.boss-card:disabled .sigil img{filter:grayscale(1)}
+.rank .who{display:flex; align-items:center; gap:7px; min-width:0}
+.rank-art{width:24px; height:24px; border-radius:50%; background:var(--ink); border:1px solid var(--brass); flex:none}
+
+/* Daily quest banner */
+.daily{display:grid; grid-template-columns:auto 1fr auto; gap:6px 14px; align-items:center; background:var(--ink); color:var(--bg); border:2px solid var(--brass); border-radius:14px; padding:14px 16px; margin-bottom:18px}
+.daily .sigil{grid-row:span 2; width:46px; height:46px; border-radius:50%; background:var(--brass); color:var(--ink); display:grid; place-items:center; font-family:var(--display); font-weight:700}
+.daily h3{color:var(--brass); font-size:1rem}
+.daily p{margin:0; font-size:.9rem; opacity:.85}
+.daily .btn{grid-row:span 2; background:var(--brass); color:var(--ink)}
+.daily .btn.done{background:transparent; color:var(--brass); border:2px solid var(--brass)}
+@media (max-width:520px){ .daily{grid-template-columns:auto 1fr} .daily .btn{grid-row:auto; grid-column:1 / -1} }
+.challenge.review{color:var(--moss)}
+
+/* Initiative tracker */
+.tracker{display:grid; gap:14px; max-width:720px; margin:0 auto}
+.trk-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-variant-numeric:tabular-nums}
+.trk-bar .round{font-family:var(--display); font-weight:700; margin-right:auto}
+.trk-list{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.trk-row{background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+.trk-row.current{border-color:var(--ember); box-shadow:0 0 0 2px var(--ember) inset}
+.trk-row.dead .trk-name{text-decoration:line-through; color:var(--muted)}
+.trk-main{display:grid; grid-template-columns:auto 1fr auto; gap:6px 12px; align-items:center; padding:10px 12px; width:100%; background:transparent; border:0; text-align:left}
+.trk-init{width:40px; height:40px; border-radius:50%; background:var(--ink); color:var(--brass); border:2px solid var(--brass); display:grid; place-items:center; font-family:var(--display); font-weight:700; font-variant-numeric:tabular-nums}
+.trk-row.monster .trk-init{color:var(--on-ember); border-color:var(--ember); background:var(--ember)}
+.trk-name{font-weight:700; min-width:0; overflow-wrap:anywhere}
+.trk-name small{font-weight:400; color:var(--muted); margin-left:6px}
+.trk-conds{display:flex; flex-wrap:wrap; gap:4px; grid-column:2 / span 2}
+.chip{font-size:.72rem; letter-spacing:.04em; text-transform:uppercase; font-weight:700; background:var(--brass-soft); color:var(--ink); border-radius:999px; padding:2px 8px}
+.chip.down{background:var(--bad-soft)}
+.trk-hp{display:grid; gap:3px; min-width:92px; text-align:right; font-variant-numeric:tabular-nums; font-size:.92rem}
+.trk-hp .bar{height:7px}
+.trk-hp .bar i{background:var(--moss)}
+.trk-hp.low .bar i{background:var(--ember)}
+.trk-hp small{color:var(--muted)}
+.trk-panel{border-top:1px solid var(--line); padding:12px; display:grid; gap:12px; background:var(--surface-2)}
+.trk-panel .answer input{font-size:1.1rem; width:7ch}
+.trk-panel .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.trk-panel label{font-size:.85rem; color:var(--muted); font-weight:700}
+.trk-panel .btn{padding:8px 14px; font-size:.95rem}
+.trk-panel .sm{background:var(--surface); border:2px solid var(--line); border-radius:999px; padding:4px 10px; font-size:.8rem; font-weight:700}
+.trk-panel .sm[aria-pressed="true"]{border-color:var(--brass); background:var(--brass-soft)}
+.trk-panel .sm.danger-btn{color:var(--bad); border-color:var(--bad)}
+.trk-panel .edit{font:inherit; padding:6px 8px; border:2px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); width:7ch}
+.ds{display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:.9rem}
+.ds b{display:inline-flex; gap:4px; margin:0 6px; vertical-align:middle}
+.ds i{width:14px; height:14px; border-radius:50%; border:2px solid var(--line); display:inline-block}
+.ds .ok i.on{background:var(--good); border-color:var(--good)} .ds .no i.on{background:var(--bad); border-color:var(--bad)}
+.ds button{background:transparent; border:1px solid var(--line); border-radius:6px; padding:2px 8px; font-size:.8rem}
+.trk-add{display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:8px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px}
+.trk-add input{font:inherit; padding:8px 10px; border:2px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); min-width:0; width:100%}
+.trk-add .btn{padding:9px 14px}
+.trk-add .lbl{grid-column:1 / -1; font-size:.85rem; color:var(--muted); font-weight:700}
+.trk-quick{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.trk-quick select{font:inherit; padding:8px 10px; border:2px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); max-width:100%}
+.trk-note{background:var(--brass-soft); border-left:4px solid var(--brass); border-radius:8px; padding:8px 12px; font-size:.92rem}
+.trk-note.bad{background:var(--bad-soft); border-color:var(--bad)}
+@media (max-width:560px){ .trk-add{grid-template-columns:1fr 1fr 1fr} .trk-add input:first-of-type{grid-column:1 / -1} .trk-add .btn{grid-column:1 / -1} }
+
+/* Boss fight */
+.boss-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:12px}
+.boss-card{display:grid; gap:4px; text-align:left; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; box-shadow:var(--shadow)}
+.boss-card:hover{border-color:var(--ember)}
+.boss-card h3{font-size:1rem}
+.boss-card .stat{font-size:.85rem; color:var(--muted); font-variant-numeric:tabular-nums}
+.boss-card .trophy{color:var(--brass); font-size:.85rem; font-weight:700}
+.boss-card:disabled{opacity:.55; cursor:not-allowed; box-shadow:none}
+.boss-card:disabled .trophy{color:var(--muted)}
+.hpbars{display:grid; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+.hpbar .title{display:flex; justify-content:space-between; gap:8px; font-size:.9rem; font-variant-numeric:tabular-nums}
+.hpbar .title b{font-family:var(--display)}
+.hpbar .bar{height:12px; margin-top:4px}
+.hpbar.boss .bar i{background:var(--ember)} .hpbar.you .bar i{background:var(--moss)}
+.boss-log{font-size:.92rem; color:var(--muted); display:grid; gap:2px; max-height:5.6em; overflow:auto}
+.boss-log div:first-child{color:var(--ink); font-weight:700}
+.boss-end{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; display:grid; gap:10px; text-align:center; justify-items:center}
+.boss-end h3{font-size:1.4rem}
+.boss-end.win{border-color:var(--brass)} .boss-end.lose{border-color:var(--bad)}
+
+/* Dice lab */
+.lab-controls{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:end}
+.lab-controls label{display:grid; gap:4px; font-size:.82rem; font-weight:700; color:var(--muted); letter-spacing:.04em; text-transform:uppercase}
+.lab-controls select,.lab-controls input{font:inherit; font-size:1rem; padding:8px 10px; border:2px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); width:8ch}
+.lab-expr{font-family:var(--display); font-weight:700; font-size:1.6rem; align-self:center}
+.presets{display:flex; flex-wrap:wrap; gap:6px; width:100%; align-items:center}
+.presets span{font-size:.85rem; color:var(--muted); margin-right:4px}
+.presets button{background:var(--surface); border:2px solid var(--line); border-radius:999px; padding:4px 12px; font-weight:700; font-size:.85rem}
+.presets button:hover{border-color:var(--brass)}
+.tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+.tile b{display:block; font-family:var(--display); font-size:1.3rem; font-variant-numeric:tabular-nums; overflow-wrap:anywhere}
+.tile b.text{font-size:.95rem; line-height:1.3}
+.tile span{font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em}
+.lab-chart-wrap{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; overflow-x:auto}
+.lab-legend{display:flex; flex-wrap:wrap; gap:16px; font-size:.85rem; color:var(--muted); margin-bottom:10px}
+.lab-legend i{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px}
+.lab-legend .a{background:var(--chart-a)} .lab-legend .b{background:var(--chart-b)}
+.lab-chart{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(20px, 1fr); gap:3px; align-items:end; height:190px; min-width:100%}
+.col{display:grid; grid-template-rows:1fr auto; height:100%; gap:4px}
+.col .bars{display:flex; gap:2px; align-items:flex-end; height:100%; position:relative; border-bottom:1px solid var(--line)}
+.col .bars i{flex:1; border-radius:4px 4px 0 0; display:block}
+.col .bars .a{background:var(--chart-a)} .col .bars .b{background:var(--chart-b)}
+.col .pct{position:absolute; left:50%; transform:translate(-50%, -100%); top:0; font-size:.7rem; color:var(--ink); white-space:nowrap; font-variant-numeric:tabular-nums}
+.col .lbl{font-size:.72rem; text-align:center; color:var(--muted); font-variant-numeric:tabular-nums; height:1.1em}
+.col:hover .bars .a, .col:focus-visible .bars .a{filter:brightness(1.15)}
+.lab-readout{min-height:1.5em; font-size:.9rem; color:var(--muted); font-variant-numeric:tabular-nums; margin-top:8px}
+.lab-atleast{display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+.lab-atleast input{width:7ch}
+.lab-atleast output{font-family:var(--display); font-weight:700; font-size:1.3rem; font-variant-numeric:tabular-nums}
+
+/* Parent view */
+.settings-form{display:grid; gap:18px}
+.pin-form{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.pin-form input{font:inherit; font-size:1.4rem; letter-spacing:.3em; width:7ch; padding:8px 12px; border:2px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink)}
+.pin-form input.code-input{width:13ch; letter-spacing:.06em; text-transform:uppercase}
+.savecode{margin:0; font-family:var(--display); font-weight:700; font-size:1.6rem; letter-spacing:.06em; font-variant-numeric:tabular-nums}
+.parent h3{font-size:1rem; letter-spacing:.04em; border-bottom:1px solid var(--line); padding-bottom:6px; margin-top:8px}
+.days{display:flex; gap:4px; align-items:flex-end; height:70px}
+.days div{flex:1; background:var(--chart-a); border-radius:4px 4px 0 0; min-height:2px}
+.days-labels{display:flex; gap:4px; font-size:.68rem; color:var(--muted); text-align:center}
+.days-labels span{flex:1}
+.ptable{width:100%; border-collapse:collapse; font-size:.9rem; font-variant-numeric:tabular-nums}
+.ptable th,.ptable td{padding:6px 8px; border-bottom:1px solid var(--line); text-align:right}
+.ptable th:first-child,.ptable td:first-child{text-align:left}
+.ptable th{color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em}
+.plist{margin:0; padding-left:20px} .plist li{margin:3px 0}
+
+/* Dice tray */
+.tray{display:grid; gap:16px; max-width:680px; margin:0 auto}
+.dice-row{display:flex; flex-wrap:wrap; gap:8px}
+.dice-row button{background:var(--surface); border:2px solid var(--line); border-radius:12px; padding:12px 0; font-family:var(--display); font-weight:700; font-size:1.05rem; flex:1 1 70px; min-width:70px}
+.dice-row button:hover{border-color:var(--brass)}
+.roll-big{font-family:var(--display); font-size:3.2rem; font-weight:700; text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; font-variant-numeric:tabular-nums; min-height:110px; display:grid; place-items:center}
+.roll-big small{display:block; font-family:var(--body); font-weight:400; font-size:.9rem; color:var(--muted)}
+.roll-log{margin:0; padding:0; list-style:none; display:flex; flex-wrap:wrap; gap:6px; font-size:.9rem; color:var(--muted); font-variant-numeric:tabular-nums}
+.roll-log li{background:var(--surface-2); border-radius:6px; padding:2px 8px}
+
+/* Settings */
+.settings{display:grid; gap:18px; max-width:680px; margin:0 auto}
+.field{display:grid; gap:6px}
+.field label{font-weight:700}
+.field .help{color:var(--muted); font-size:.88rem; margin:0}
+.field textarea,.field input,.field select{font:inherit; padding:8px 12px; border:2px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); width:100%; max-width:420px}
+.field textarea{min-height:120px; resize:vertical}
+.danger{border-top:1px solid var(--line); padding-top:16px; display:grid; gap:8px}
+.danger .btn.ghost{border-color:var(--bad); color:var(--bad); justify-self:start}
+
+.toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(20px); opacity:0;
+  background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-weight:700; font-family:var(--display); font-size:.9rem; letter-spacing:.03em;
+  transition:opacity .3s, transform .3s; pointer-events:none; max-width:calc(100vw - 32px); text-align:center; z-index:20}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+@media (max-width:480px){ body{font-size:16px} .quest{padding:14px} .greet h2{font-size:1.3rem} nav{gap:2px} nav button{padding:6px 7px; font-size:.84rem} }
+</style>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <div class="crest art" id="crest"><span>PDA</span></div>
+    <h1>Pinehurst DM Academy<small>Dungeon Master training</small></h1>
+  </div>
+  <div class="rank" aria-live="polite">
+    <div class="title"><span class="who"><span class="rank-art art" id="rank-art"></span><b id="rank-name">Dice Apprentice</b></span><span id="rank-xp">0 XP</span></div>
+    <div class="bar" role="progressbar" aria-label="Progress to next rank"><i id="rank-bar"></i></div>
+  </div>
+  <nav aria-label="Sections">
+    <button id="nav-home" data-view="home" aria-current="page">Guild Hall</button>
+    <button id="nav-boss" data-view="boss">Boss Fight</button>
+    <button id="nav-tracker" data-view="tracker">Tracker</button>
+    <button id="nav-dice" data-view="dice-tray">Dice</button>
+    <button id="nav-parent" data-view="parent">Parent</button>
+  </nav>
+</header>
+
+<main>
+  <!-- Guild Hall: pick a lesson -->
+  <section id="view-home">
+    <div class="greet">
+      <h2 id="greeting">Welcome, Dungeon Master.</h2>
+      <p>Every good DM does math and knows the rules without the players noticing. Pick a lesson.</p>
+    </div>
+    <div class="daily" id="daily"></div>
+    <div class="hall" id="hall"></div>
+  </section>
+
+  <!-- A lesson: Guildmaster's notes + question panel -->
+  <section id="view-module" hidden>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="sigil" id="mod-sigil">d6</div>
+        <h2 id="mod-title">The Dice Oracle</h2>
+        <span class="streak" id="streak"></span>
+        <button class="back" id="back-home" type="button">← Guild Hall</button>
+      </div>
+      <details class="lesson" id="lesson">
+        <summary>The Guildmaster's lesson</summary>
+        <div class="lesson-body" id="lesson-body"></div>
+      </details>
+      <div class="quest" id="quest">
+        <span class="challenge" id="challenge" hidden>★ Guildmaster challenge · double XP</span>
+        <span class="challenge review" id="review-chip" hidden>↻ Review · the Guildmaster wants another look at this one</span>
+        <p class="flavor" id="flavor"></p>
+        <div class="steps" id="steps"></div>
+        <div id="feedback" hidden></div>
+        <div class="actions" id="actions"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Boss fight -->
+  <section id="view-boss" hidden>
+    <div class="tray" id="boss-pick">
+      <div class="greet"><h2>Boss Fight</h2><p>Every right answer is an attack. Get one wrong twice and the boss hits back. Higher ranks unlock bigger bosses.</p></div>
+      <div class="boss-grid" id="boss-grid"></div>
+    </div>
+    <div class="panel" id="boss-arena" hidden>
+      <div class="panel-head">
+        <div class="sigil" id="boss-sigil">!!</div>
+        <h2 id="boss-title">Ogre</h2>
+        <button class="back" id="boss-flee" type="button">Flee</button>
+      </div>
+      <div class="hpbars">
+        <div class="hpbar boss"><div class="title"><b id="boss-name">Ogre</b><span id="boss-hp">59 / 59</span></div><div class="bar"><i id="boss-bar"></i></div></div>
+        <div class="hpbar you"><div class="title"><b id="hero-name">You</b><span id="hero-hp">20 / 20</span></div><div class="bar"><i id="hero-bar"></i></div></div>
+      </div>
+      <div class="boss-log" id="boss-log" aria-live="polite"></div>
+      <div id="boss-end" hidden></div>
+    </div>
+  </section>
+
+  <!-- Initiative tracker -->
+  <section id="view-tracker" hidden>
+    <div class="tracker">
+      <div class="greet"><h2>Initiative Tracker</h2><p>For the real game. Highest Initiative goes first. Tap a name to deal damage or add a condition.</p></div>
+      <div class="trk-bar">
+        <span class="round">Round <span id="trk-round">1</span></span>
+        <button class="btn" id="trk-next" type="button">Next turn →</button>
+        <button class="btn ghost" id="trk-sort" type="button">Sort</button>
+        <button class="btn ghost" id="trk-clear" type="button">Clear fight</button>
+      </div>
+      <div id="trk-note" hidden></div>
+      <ol class="trk-list" id="trk-list"></ol>
+      <form class="trk-add" id="trk-add">
+        <span class="lbl">Add a combatant</span>
+        <input id="trk-name" type="text" placeholder="Name" autocomplete="off" aria-label="Name" required>
+        <input id="trk-init" type="number" inputmode="numeric" placeholder="Init" aria-label="Initiative">
+        <input id="trk-hp" type="number" inputmode="numeric" placeholder="HP" aria-label="Hit points" min="0">
+        <input id="trk-ac" type="number" inputmode="numeric" placeholder="AC" aria-label="Armor class">
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <div class="trk-quick">
+        <button class="btn ghost" id="trk-add-party" type="button">Add the party</button>
+        <select id="trk-monster" aria-label="Monster"></select>
+        <button class="btn ghost" id="trk-add-monster" type="button">Add monster</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dice tray + Dice lab -->
+  <section id="view-dice-tray" hidden>
+    <div class="tray">
+      <div class="greet"><h2>Dice Tray</h2><p>For the real game. Tap a die.</p></div>
+      <div class="roll-big" id="roll-big"><span><small>Roll something</small></span></div>
+      <div class="dice-row" id="dice-row"></div>
+      <ul class="roll-log" id="roll-log" aria-label="Recent rolls"></ul>
+
+      <div class="greet" style="margin-top:16px"><h2>Dice Lab</h2><p>What do the dice usually do? Build a roll and see every result it can give, and how likely each one is.</p></div>
+      <div class="lab-controls">
+        <label>Dice<select id="lab-n"></select></label>
+        <label>Sides<select id="lab-d"></select></label>
+        <label>Bonus<input id="lab-m" type="number" inputmode="numeric" value="0" min="-5" max="20"></label>
+        <div class="lab-expr" id="lab-expr">2d6</div>
+        <div class="presets"><span>Try:</span>
+          <button type="button" data-expr="1,12,0">1d12</button><button type="button" data-expr="2,6,0">2d6</button><button type="button" data-expr="1,20,0">1d20</button>
+          <button type="button" data-expr="3,6,0">3d6</button><button type="button" data-expr="2,8,4">Ogre club 2d8+4</button><button type="button" data-expr="8,6,0">Fireball 8d6</button>
+        </div>
+      </div>
+      <div class="tiles" id="lab-stats"></div>
+      <div class="lab-chart-wrap">
+        <div class="lab-legend"><span><i class="a"></i>Chance (the math)</span><span><i class="b"></i>Your rolls</span></div>
+        <div class="lab-chart" id="lab-chart" role="img" aria-label="Chance of each total"></div>
+        <div class="lab-readout" id="lab-readout">Hover or tap a bar to see its numbers.</div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="lab-roll10" type="button">Roll 10 times</button>
+        <button class="btn" id="lab-roll100" type="button">Roll 100 times</button>
+        <button class="btn ghost" id="lab-reset" type="button">Clear rolls</button>
+        <span class="xpgain" id="lab-count"></span>
+      </div>
+      <div class="lab-atleast">
+        <label for="lab-target">Chance of rolling at least</label>
+        <input id="lab-target" class="edit" type="number" inputmode="numeric" value="7">
+        <output id="lab-atleast-out" for="lab-target">58.3%</output>
+        <span id="lab-atleast-note" style="color:var(--muted); font-size:.9rem"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Parent view (PIN) -->
+  <section id="view-parent" hidden>
+    <div class="settings parent">
+      <div id="pin-gate">
+        <div class="greet"><h2>Parent View</h2><p id="pin-prompt">Progress, what to work on, and campaign settings. Enter the PIN.</p></div>
+        <form class="pin-form" id="pin-form">
+          <input id="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN" placeholder="••••">
+          <button class="btn" type="submit" id="pin-submit">Unlock</button>
+          <span id="pin-err" class="xpgain" hidden style="color:var(--bad)">That's not the PIN.</span>
+        </form>
+      </div>
+      <div id="parent-body" hidden>
+        <div class="greet"><h2>Parent View</h2><button class="back" id="pin-lock" type="button">Lock</button></div>
+        <div class="tiles" id="p-stats"></div>
+        <h3>Questions answered, last 14 days</h3>
+        <div class="days" id="p-days"></div><div class="days-labels" id="p-days-labels"></div>
+        <h3>By lesson</h3>
+        <div class="tablewrap"><table class="ptable" id="p-lessons"></table></div>
+        <h3>Needs another look</h3>
+        <p class="help" style="margin:0;color:var(--muted);font-size:.9rem">Question types your DM has missed recently. The app slips these back in until each one is answered right twice.</p>
+        <ul class="plist" id="p-review"></ul>
+        <h3>Campaign settings</h3>
+    <form class="settings-form" id="settings-form">
+      <p class="help" style="margin:0;color:var(--muted)">Questions use the real party and places.</p>
+      <div class="field">
+        <label for="set-dm">Dungeon Master's name</label>
+        <input id="set-dm" type="text" autocomplete="off" placeholder="e.g. Sam">
+      </div>
+      <div class="field">
+        <label for="set-party">The party (one hero per line)</label>
+        <p class="help">Your friends' characters. Something like "Thorne the Fighter".</p>
+        <textarea id="set-party"></textarea>
+      </div>
+      <div class="field">
+        <label for="set-level">Party level</label>
+        <p class="help">Used for Proficiency Bonus, attack bonuses and encounter budgets. Most starting campaigns are level 1 to 3.</p>
+        <select id="set-level"></select>
+      </div>
+      <div class="field">
+        <label for="set-places">Places in your world (one per line)</label>
+        <textarea id="set-places"></textarea>
+      </div>
+      <div class="actions"><button class="btn" type="submit">Save campaign</button><span id="saved-note" class="xpgain" hidden>Saved.</span></div>
+      <div class="danger">
+        <p class="help" style="margin:0" id="sync-note">Progress is saved in this browser.</p>
+        <button class="btn ghost" type="button" id="reset-btn">Reset all XP and progress</button>
+      </div>
+    </form>
+        <h3 style="margin-top:20px">Save code</h3>
+        <div class="settings-form">
+          <p class="help" style="margin:0;color:var(--muted)">This device's progress is saved on the server under this code. To play the same save on another iPad or Mac, open the Academy there, go to Parent, and enter the code below.</p>
+          <p class="savecode" id="code-show">Not connected yet</p>
+          <form class="pin-form" id="code-form">
+            <input id="code-input" class="code-input" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="OTTER-4821" aria-label="Save code">
+            <button class="btn ghost" type="submit">Use this code</button>
+          </form>
+          <p class="help" style="margin:0;color:var(--muted)" id="code-msg">Switching replaces what is on this device with that save, and its parent PIN comes with it.</p>
+          <div class="actions"><button class="btn ghost" type="button" id="pin-change">Change parent PIN</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+/* =====================================================================
+   HOW THIS APP WORKS (for the DM and the DM's parent)
+   - MODULES at the bottom of the data section is the list of lessons.
+   - Each module has a lesson (HTML the Guildmaster shows) and a gen()
+     function that returns one random problem:
+       { flavor: "story text",
+         steps: [ { q: "question", answer: 12,          // a number...
+                    hint: "nudge", solution: "worked answer" },
+                  { q: "...", choices: ["Easy","Hard"], answer: "Hard" } ], // ...or a choice
+         challenge: true }   // optional: double XP
+   - To add a new question type, write a new gen function (copy one of
+     the existing ones) and add it to a module's "gens" list.
+   ===================================================================== */
+
+// ---------- Rules data (5e-style numbers) ----------
+const DICE_AVG = {4:2.5, 6:3.5, 8:4.5, 10:5.5, 12:6.5, 20:10.5};
+// XP budget per hero for a Low / Moderate / High difficulty fight, by hero level (2024 Dungeon Master's Guide).
+const XP_THRESH = {1:[50,75,100], 2:[100,150,200], 3:[150,225,400], 4:[250,375,500],
+                   5:[500,750,1100], 6:[600,1000,1400], 7:[750,1300,1700], 8:[1000,1700,2100]};
+const MONSTERS = [
+  {n:'Kobold',       pl:'Kobolds',       xp:25,   hp:5,  ac:12, hd:'2d6-2',   weapon:'dagger',      atk:'1d4+2'},
+  {n:'Bandit',       pl:'Bandits',       xp:25,   hp:11, ac:12, hd:'2d8+2',   weapon:'scimitar',    atk:'1d6+1'},
+  {n:'Goblin',       pl:'Goblins',       xp:50,   hp:7,  ac:15, hd:'2d6',     weapon:'scimitar',    atk:'1d6+2'},
+  {n:'Wolf',         pl:'Wolves',        xp:50,   hp:11, ac:13, hd:'2d8+2',   weapon:'bite',        atk:'2d4+2'},
+  {n:'Skeleton',     pl:'Skeletons',     xp:50,   hp:13, ac:13, hd:'2d8+4',   weapon:'shortsword',  atk:'1d6+2'},
+  {n:'Zombie',       pl:'Zombies',       xp:50,   hp:22, ac:8,  hd:'3d8+9',   weapon:'slam',        atk:'1d6+1'},
+  {n:'Orc',          pl:'Orcs',          xp:100,  hp:15, ac:13, hd:'2d8+6',   weapon:'greataxe',    atk:'1d12+3'},
+  {n:'Hobgoblin',    pl:'Hobgoblins',    xp:100,  hp:11, ac:18, hd:'2d8+2',   weapon:'longsword',   atk:'1d8+1'},
+  {n:'Giant Spider', pl:'Giant Spiders', xp:200,  hp:26, ac:14, hd:'4d10+4',  weapon:'bite',        atk:'1d8+3'},
+  {n:'Bugbear',      pl:'Bugbears',      xp:200,  hp:27, ac:16, hd:'5d8+5',   weapon:'morningstar', atk:'2d8+2'},
+  {n:'Dire Wolf',    pl:'Dire Wolves',   xp:200,  hp:37, ac:14, hd:'5d10+10', weapon:'bite',        atk:'2d6+3'},
+  {n:'Ghoul',        pl:'Ghouls',        xp:200,  hp:22, ac:12, hd:'5d8',     weapon:'claws',       atk:'2d4+2'},
+  {n:'Ogre',         pl:'Ogres',         xp:450,  hp:59, ac:11, hd:'7d10+21', weapon:'greatclub',   atk:'2d8+4'},
+  {n:'Owlbear',      pl:'Owlbears',      xp:700,  hp:59, ac:13, hd:'7d10+21', weapon:'claws',       atk:'2d8+5'},
+  {n:'Troll',        pl:'Trolls',        xp:1800, hp:84, ac:15, hd:'8d10+40', weapon:'claw',        atk:'2d6+4'},
+  {n:'Minotaur',     pl:'Minotaurs',     xp:700,  hp:76, ac:14, hd:'9d10+27', weapon:'greataxe',    atk:'2d12+4'},
+  {n:'Wight',        pl:'Wights',        xp:700,  hp:45, ac:14, hd:'6d8+18',  weapon:'longsword',   atk:'1d8+2'},
+  {n:'Hill Giant',   pl:'Hill Giants',   xp:1800, hp:105,ac:13, hd:'10d12+40',weapon:'greatclub',   atk:'3d8+5'},
+  {n:'Wyvern',       pl:'Wyverns',       xp:2300, hp:110,ac:13, hd:'13d10+39',weapon:'stinger',     atk:'2d6+4'},
+  {n:'Young Green Dragon', pl:'Young Green Dragons', xp:3900, hp:136, ac:18, hd:'16d10+48', weapon:'bite', atk:'2d10+4'},
+];
+// Monsters unlock as the DM ranks up: the biggest monster XP allowed at each rank (index matches RANKS).
+const UNLOCK_XP = [50, 100, 200, 450, 700, 1800, 99999];
+const DAILY_GOAL = 5, DAILY_BONUS = 25;
+const QUEST_NAMES = ["The Miller's Missing Mule", 'Rats in the Rusty Tankard', 'The Toll Bridge Troll', 'A Letter for the Mayor', 'Lights in the Whispering Pines', 'The Sunken Chapel Bell', "Crow's Hollow at Midnight"];
+const HERO_WEAPONS = [['longsword','1d8+3'],['greataxe','1d12+3'],['shortbow','1d6+2'],['dagger','1d4+2'],['fire bolt','1d10'],['rapier','1d8+3'],['warhammer','1d8+2'],['quarterstaff','1d6+1']];
+const SHOP = [['longsword',15],['shield',10],['shortbow',25],['chain shirt',50],['light crossbow',25],['healing potion',50],['rope (50 ft)',1],['lantern',5]];
+const RANKS = [[0,'Dice Apprentice'],[100,'Table Squire'],[250,'Scroll Keeper'],[500,'Lore Warden'],[850,'Encounter Architect'],[1300,'Dungeon Master'],[2000,'Guildmaster of Pinehurst']];
+const PRAISE = ['Natural 20!','Critical success.','The Guildmaster nods.','Your players will never know you just did math.','The goblins tremble.','Clean roll.','That is exactly how a DM thinks.','Pinehurst is in good hands.'];
+
+const DEFAULT_SETTINGS = {
+  dm:'',
+  party:['Thorne the Fighter','Mabel the Wizard','Pip the Rogue','Oona the Cleric'],
+  level:3,
+  places:['the Whispering Pines','the Old Mill','Crow\'s Hollow','the Sunken Chapel','Widow\'s Peak','the Rusty Tankard'],
+};
+
+// ---------- Small helpers ----------
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[rand(0,arr.length-1)];
+const fmt = n => Number.isInteger(n) ? String(n) : String(Math.round(n*100)/100);
+const signed = n => (n>=0 ? '+' : '-') + Math.abs(n);
+const an = name => (/^[aeiou]/i.test(name) ? 'An ' : 'A ') + name;   // "An Ogre", "A Goblin"
+const $ = id => document.getElementById(id);
+// Put a picture from assets/ on a disc, keeping the text sigil underneath as a fallback.
+function setArt(el, key, text){
+  el.classList.add('art'); el.classList.remove('has-img'); el.textContent = '';
+  const span = document.createElement('span'); span.textContent = text; el.append(span);
+  if(!key) return;
+  const img = document.createElement('img'); img.alt = ''; img.decoding = 'async'; img.src = 'assets/' + key + '.png';
+  img.addEventListener('load', () => el.classList.add('has-img'));
+  img.addEventListener('error', () => { img.remove(); el.classList.remove('has-img'); });
+  el.append(img);
+}
+const monSlug = n => 'monster-' + n.toLowerCase().replace(/\s+/g, '-');
+function parseDice(s){ const m = s.match(/^(\d+)d(\d+)([+-]\d+)?$/); return {n:+m[1], d:+m[2], m:m[3]?+m[3]:0, text:s}; }
+function diceText(n,d,m){ return n+'d'+d+(m>0?'+'+m:m<0?'-'+(-m):''); }
+function diceAvg(x){ return x.n*DICE_AVG[x.d] + x.m; }
+function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? Object.assign({}, fallback, JSON.parse(v)) : Object.assign({}, fallback); }catch(e){ return Object.assign({}, fallback); } }
+function save(key, val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  if(SYNC_KEYS.includes(key)){ stampSet('pda-updatedAt', Date.now()); cloudSchedule(); }
+}
+
+// ---------- Account backup ----------
+// Everything in SYNC_KEYS is also kept in one private document in the viewer's Claude account
+// (data/users/<id>/pda-save). localStorage stays the working copy; the account copy restores a
+// device whose browser was cleared and keeps two devices in step. Never rename CLOUD_DOC.
+const SYNC_KEYS = ['pda-settings','pda-progress','pda-tracker'];
+const CLOUD_DOC = 'pda-save';
+const cloud = { ref:null, timer:0, writing:false, dirty:false, state:'connecting', unsub:null };
+function stampGet(k){ try{ return +localStorage.getItem(k) || 0; }catch(e){ return 0; } }
+function stampSet(k, v){ try{ localStorage.setItem(k, String(v)); }catch(e){} }
+function hasLocalData(){ try{ return SYNC_KEYS.some(k => localStorage.getItem(k) !== null); }catch(e){ return false; } }
+function activity(p){ p = p || {}; return (p.xp || 0) + Object.values(p.modules || {}).reduce((a,m)=>a+(m.tries||0),0); }
+function snapshotLocal(){ return { settings, progress, tracker: trk, updatedAt: stampGet('pda-updatedAt') || Date.now() }; }
+function cloudSchedule(){ cloud.dirty = true; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 1500); }
+async function cloudFlush(){
+  if(!cloud.ref || !cloud.dirty) return;
+  if(cloud.writing){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 800); return; }
+  cloud.writing = true; cloud.dirty = false;
+  const body = JSON.parse(JSON.stringify(snapshotLocal()));
+  try{ await cloud.ref.set(body); stampSet('pda-syncedAt', body.updatedAt); cloud.state = 'ok'; }
+  catch(e){
+    cloud.dirty = true; const code = e && e.code;
+    if(['revoked','not_granted','capability_disabled','capability_removed'].includes(code)){ cloud.ref = null; cloud.state = 'local'; }
+    else { cloud.state = 'retry'; cloud.timer = setTimeout(cloudFlush, (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random()*3000); }
+  }
+  cloud.writing = false; renderSyncNote();
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden'){ clearTimeout(cloud.timer); cloudFlush(); } });
+addEventListener('pagehide', () => { clearTimeout(cloud.timer); cloudFlush(); });
+function renderSyncNote(){
+  const el = document.getElementById('sync-note'); if(!el) return;
+  el.textContent = { connecting:'Connecting to the Academy server…',
+    ok:'Progress is saved on this device and backed up to the server.',
+    retry:'Saved on this device. The server backup will catch up when it reconnects.',
+    local:'Saved on this device only for now. It backs up to the server once this device is online.' }[cloud.state];
+}
+// Put an account copy into memory and this browser, then redraw whatever is on screen.
+function applyRemote(r){
+  settings = Object.assign({}, DEFAULT_SETTINGS, r.settings || {});
+  progress = Object.assign({xp:0, modules:{}, bestStreak:0}, r.progress || {});
+  trk = Object.assign({round:1, turn:0, open:null, list:[]}, r.tracker || {});
+  try{ localStorage.setItem('pda-settings', JSON.stringify(settings)); localStorage.setItem('pda-progress', JSON.stringify(progress)); localStorage.setItem('pda-tracker', JSON.stringify(trk)); }catch(e){}
+  stampSet('pda-updatedAt', r.updatedAt || 0); stampSet('pda-syncedAt', r.updatedAt || 0);
+  renderRank(); fillSettings();
+  if(!$('view-home').hidden){ renderDaily(); renderHall(); }
+  else if(!$('view-tracker').hidden) renderTracker();
+  else if(!$('view-parent').hidden) renderParent();
+  else if(!$('view-boss').hidden && !boss.active) renderBossPick();
+}
+// Started offline: try again when the network or the app comes back.
+function cloudRetry(){ if(!cloud.ref && cloud.state !== 'connecting' && document.visibilityState === 'visible'){ cloud.state = 'connecting'; cloudConnect(); } }
+addEventListener('online', cloudRetry);
+document.addEventListener('visibilitychange', cloudRetry);
+async function cloudConnect(){
+  try{
+    const db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+    const user = db ? await window.claude.use('user') : null;
+    const id = user ? await user.id() : null;
+    if(!db || !id){ cloud.state = 'local'; return; }
+    const ref = db.doc('data/users/' + id + '/' + CLOUD_DOC);
+    const snap = await ref.get();
+    cloud.ref = ref;
+    const synced = stampGet('pda-syncedAt'), localAt = stampGet('pda-updatedAt');
+    const localChanged = localAt > synced || (synced === 0 && hasLocalData());
+    if(!snap.exists){ if(hasLocalData()) cloudSchedule(); }
+    else {
+      const r = snap.data() || {}, remoteChanged = (r.updatedAt || 0) > synced;
+      if(remoteChanged && !localChanged) applyRemote(r);
+      else if(remoteChanged && localChanged){
+        // Both sides moved on since the last sync: keep whichever has more practice in it.
+        if(activity(r.progress) >= activity(progress)) applyRemote(r); else cloudSchedule();
+      } else if(localChanged) cloudSchedule();
+    }
+    cloud.state = 'ok';
+    cloud.unsub = ref.onSnapshot(s => {
+      if(!s.exists || s.metadata.hasPendingWrites || cloud.writing || cloud.dirty) return;
+      const r = s.data() || {};
+      if((r.updatedAt || 0) > stampGet('pda-syncedAt')) applyRemote(r);
+    }, () => { cloud.unsub = null; });
+    if(cloud.dirty) cloudFlush();
+  }catch(e){ cloud.state = cloud.ref ? 'retry' : 'local'; if(cloud.ref) cloudSchedule(); }
+  finally{ renderSyncNote(); }
+}
+
+let settings = load('pda-settings', DEFAULT_SETTINGS);
+let progress = load('pda-progress', {xp:0, modules:{}, bestStreak:0});
+let streak = 0;
+
+const hero  = () => pick(settings.party.length ? settings.party : DEFAULT_SETTINGS.party);
+const MON = () => MONSTERS.filter(m => m.xp <= UNLOCK_XP[rankFor(progress.xp).idx]);   // monsters unlocked at the current rank
+function pickMon(f){ const ok = f || (() => true); const list = MON().filter(ok); return pick(list.length ? list : MONSTERS.filter(ok)); }
+const place = () => pick(settings.places.length ? settings.places : DEFAULT_SETTINGS.places);
+const partySize = () => Math.min(6, Math.max(3, settings.party.length || 4));
+const level = () => XP_THRESH[settings.level] ? settings.level : 3;
+
+// Turn what the kid typed into a number. Accepts "5.5", "5 1/2", "11/2", "+4", "-2", "65%", "30 ft", "1,200".
+function parseAnswer(raw){
+  let s = String(raw).trim().toLowerCase().replace(/,/g,'').replace(/−/g,'-').replace(/^\+/,'').replace(/[\s%a-z]+$/,'').trim();
+  let m = s.match(/^(-?)(\d+)\s+(\d+)\/(\d+)$/); if(m){ const v = +m[2] + (+m[3])/(+m[4]); return m[1] ? -v : v; }
+  m = s.match(/^(-?\d+)\/(\d+)$/); if(m) return +m[1]/+m[2];
+  if(s==='' || isNaN(+s)) return null;
+  return +s;
+}
+
+// ---------- Question generators ----------
+// 1. The Dice Oracle: averages, max/min, comparing dice
+function genDiceAverage(){
+  const mon = pickMon(), atk = parseDice(mon.atk), avg1 = DICE_AVG[atk.d], avg = diceAvg(atk);
+  return { flavor:`${an(mon.n)} swings its ${mon.weapon} at ${hero()} near ${place()}. The ${mon.weapon} deals ${atk.text} damage.`,
+    steps:[{ q:`What's the average damage of ${atk.text}? (decimals like 5.5 are fine)`, answer:avg,
+      hint:`The average of one d${atk.d} is (${atk.d} + 1) ÷ 2 = ${avg1}. Multiply by the number of dice, then add the bonus.`,
+      solution:`${atk.n} × ${avg1} = ${fmt(atk.n*avg1)}, plus ${atk.m} = ${fmt(avg)}.` }] };
+}
+function genDiceStatBlock(){
+  const mon = pickMon(), atk = parseDice(mon.atk), avg = diceAvg(atk);
+  return { flavor:`You're writing the ${mon.n}'s stat block into your DM notebook. Its ${mon.weapon} deals ${atk.text}.`,
+    steps:[{ q:`The Monster Manual prints the average damage rounded DOWN. What number goes in the stat block?`, answer:Math.floor(avg),
+      hint:`Work out the average first (one d${atk.d} averages ${DICE_AVG[atk.d]}), then drop anything after the decimal point.`,
+      solution:`The average is ${fmt(avg)}. Rounded down, the book prints ${Math.floor(avg)}.` }] };
+}
+function genDiceMaxMin(){
+  const [w, d] = pick(HERO_WEAPONS), atk = parseDice(d), h = hero();
+  return { flavor:`${h} draws a ${w}, which deals ${atk.text} damage.`,
+    steps:[{ q:`What's the MOST damage one hit can do?`, answer:atk.n*atk.d+atk.m,
+      hint:`Every die shows its biggest face.`, solution:`${atk.n} × ${atk.d} = ${atk.n*atk.d}, plus ${atk.m} = ${atk.n*atk.d+atk.m}.` },
+     { q:`What's the LEAST damage one hit can do?`, answer:atk.n+atk.m,
+      hint:`Every die shows a 1.`, solution:`${atk.n} × 1 = ${atk.n}, plus ${atk.m} = ${atk.n+atk.m}.` }] };
+}
+function genDiceCompare(){
+  const a = {n:rand(1,3), d:pick([4,6,8]), m:0}, b = {n:rand(1,2), d:pick([8,10,12]), m:0};
+  a.text = diceText(a.n,a.d,0); b.text = diceText(b.n,b.d,0);
+  const avA = diceAvg(a), avB = diceAvg(b);
+  const answer = avA>avB ? a.text : avB>avA ? b.text : 'Same on average';
+  return { flavor:`You're designing a trap for ${place()}. You can't decide between ${a.text} and ${b.text} of damage.`,
+    steps:[{ q:`Which hurts more on average?`, choices:[a.text, b.text, 'Same on average'], answer,
+      hint:`Average of one die = (sides + 1) ÷ 2. Then multiply by how many dice.`,
+      solution:`${a.text} averages ${fmt(avA)}. ${b.text} averages ${fmt(avB)}. Answer: ${answer}.` }] };
+}
+function genDiceOverFight(){
+  const [w, d] = pick(HERO_WEAPONS), atk = parseDice(d), avg = diceAvg(atk), k = rand(3,5), h = hero();
+  return { flavor:`${h}'s ${w} deals ${atk.text}. You're guessing how long a fight will last.`,
+    steps:[{ q:`What's the average damage of one hit? (decimals are fine)`, answer:avg,
+      hint:`One d${atk.d} averages ${DICE_AVG[atk.d]}.`, solution:`${atk.n} × ${DICE_AVG[atk.d]} + ${atk.m} = ${fmt(avg)}.` },
+     { q:`About how much damage over ${k} hits?`, answer:avg*k,
+      hint:`Multiply the average by ${k}.`, solution:`${fmt(avg)} × ${k} = ${fmt(avg*k)}.` }] };
+}
+
+// 2. Hit or Miss: d20 odds
+function genHitChance(){
+  const mon = pickMon(), B = rand(3,7), AC = mon.ac, h = hero();
+  let need = AC - B; if(need < 2) need = 2; if(need > 20) need = 20;
+  const faces = 21 - need;
+  const needNote = (AC-B) < 2 ? ' (a natural 1 always misses, so 2 is the lowest hit)' : (AC-B) > 20 ? ' (a natural 20 always hits)' : '';
+  return { flavor:`${h} attacks the ${mon.n} with ${signed(B)} to hit. The ${mon.n}'s AC is ${AC}.`,
+    steps:[{ q:`What's the lowest d20 roll that hits?`, answer:need,
+      hint:`Subtract the attack bonus from the AC.`, solution:`${AC} − ${B} = ${AC-B}${needNote}. Lowest hit: ${need}.` },
+     { q:`How many of the d20's twenty faces hit?`, answer:faces,
+      hint:`Count from ${need} up to 20.`, solution:`From ${need} to 20 is 21 − ${need} = ${faces} faces.` },
+     { q:`What's the chance to hit, as a percent?`, answer:faces*5,
+      hint:`Each face of a d20 is 5% (100 ÷ 20).`, solution:`${faces} faces × 5% = ${faces*5}%.` }] };
+}
+function genNeedRoll(){
+  const mon = pickMon(), need = rand(5,16), h = hero();
+  return { flavor:`The ${mon.n} needs to roll ${need} or higher to hit ${h}.`,
+    steps:[{ q:`What's the ${mon.n}'s chance to hit, as a percent?`, answer:(21-need)*5,
+      hint:`Faces that hit: 21 − ${need}. Each face is 5%.`, solution:`21 − ${need} = ${21-need} faces. ${21-need} × 5% = ${(21-need)*5}%.` }] };
+}
+function genAdvantage(){
+  const missPct = pick([20,30,40,50,60,70]), hitPct = 100-missPct, both = missPct*missPct/100, h = hero();
+  return { challenge:true, flavor:`${h} has advantage: roll two d20s and keep the higher. With one die the hit chance is ${hitPct}%, so each die misses ${missPct}% of the time.`,
+    steps:[{ q:`What's the chance that BOTH dice miss, as a percent?`, answer:both,
+      hint:`${missPct}% of ${missPct}%. Multiply the two percents, then divide by 100.`, solution:`${missPct} × ${missPct} = ${missPct*missPct}, ÷ 100 = ${fmt(both)}%.` },
+     { q:`So what's the chance to hit with advantage?`, answer:100-both,
+      hint:`If both don't miss, at least one hit. Take the both-miss chance away from 100%.`, solution:`100 − ${fmt(both)} = ${fmt(100-both)}%. Advantage turned ${hitPct}% into ${fmt(100-both)}%.` }] };
+}
+
+// 3. Encounter Architect: XP budgets
+const DIFF = ['Low','Moderate','High'];
+function rating(xp, t){ return xp>=t[2] ? 'High' : xp>=t[1] ? 'Moderate' : xp>=t[0] ? 'Low' : 'Easier than Low'; }
+function genEncounterBuild(){
+  const L = level(), S = partySize(), per = XP_THRESH[L], t = per.map(x=>x*S);
+  const mon = pickMon(m=>m.xp<=700);
+  const C = mon.xp>=450 ? rand(1,2) : rand(2,6);
+  const total = C*mon.xp, name = C===1 ? mon.n : mon.pl, which = rand(0,2);
+  return { flavor:`You're planning tonight's fight at ${place()}: ${C} ${name} against ${S} level-${L} heroes.`,
+    steps:[{ q:`A ${DIFF[which]} difficulty fight is ${per[which]} XP per level-${L} hero. What's the party's ${DIFF[which]} budget?`, answer:t[which],
+      hint:`${S} heroes × ${per[which]} XP.`, solution:`${S} × ${per[which]} = ${t[which]} XP.` },
+     { q:`Each ${mon.n} is worth ${mon.xp} XP. What's the total XP of ${C} ${name}?`, answer:total,
+      hint:`${C} × ${mon.xp}.`, solution:`${C} × ${mon.xp} = ${total} XP.` },
+     { q:`This party's budgets: Low ${t[0]} · Moderate ${t[1]} · High ${t[2]}. How tough is this fight?`,
+      choices:['Easier than Low','Low','Moderate','High'], answer:rating(total,t),
+      hint:`Find the biggest budget that ${total} reaches or passes.`, solution:`${total} XP against Low ${t[0]} / Moderate ${t[1]} / High ${t[2]} is ${rating(total,t)==='Easier than Low'?'easier than a Low fight':'a '+rating(total,t)+' fight'}.` }] };
+}
+function genEncounterFit(){
+  const L = level(), S = partySize(), t = XP_THRESH[L].map(x=>x*S);
+  for(let tries=0; tries<40; tries++){
+    const mon = pickMon(m=>m.xp<=200);
+    const which = rand(0,2), budget = t[which], count = Math.floor(budget/mon.xp), left = budget - count*mon.xp;
+    if(count<2 || count>9) continue;
+    return { flavor:`You want a ${DIFF[which]} fight for your ${S} level-${L} heroes. The budget is ${budget} XP, and each ${mon.n} costs ${mon.xp} XP.`,
+      steps:[{ q:`How many ${mon.pl} fit in the budget?`, answer:count,
+        hint:`Divide the budget by ${mon.xp} and ignore the leftover.`, solution:`${budget} ÷ ${mon.xp} = ${fmt(budget/mon.xp)}. You can't send part of a ${mon.n}, so ${count}.` },
+       { q:`How much of the budget is left over?`, answer:left, hint:`${count} × ${mon.xp} = ${count*mon.xp}. Subtract from ${budget}.`, solution:`${budget} − ${count*mon.xp} = ${left} XP. Spend it on a trap, or save it.` }] };
+  }
+  return genEncounterBuild();
+}
+
+// 4. The Treasure Split
+function genLootSplit(){
+  const S = partySize(), G = rand(60,999), each = Math.floor(G/S), left = G%S;
+  return { flavor:`The party cracks open a chest in ${place()}: ${G} gold pieces. ${S} heroes want their share.`,
+    steps:[{ q:`How many gold does each hero get?`, answer:each,
+      hint:`Divide ${G} by ${S}. Whole coins only.`, solution:`${G} ÷ ${S} = ${each} remainder ${left}. Each hero gets ${each}.` },
+     { q:`How many coins are left over for the party fund?`, answer:left,
+      hint:`${S} × ${each} = ${S*each}. The rest is left over.`, solution:`${G} − ${S*each} = ${left} coins left over.` }] };
+}
+function genCoinConvert(){
+  const ladder = [['copper','silver'],['silver','gold'],['gold','platinum']];
+  const [from, to] = pick(ladder), N = Math.random()<0.5 ? rand(2,99)*10 : rand(12,999);
+  return { flavor:`A merchant at ${place()} pays the party ${N} ${from} pieces. Ten ${from} make one ${to}.`,
+    steps:[{ q:`How many ${to} pieces is that? (decimals are fine)`, answer:N/10,
+      hint:`Divide by 10: the decimal point moves one place left.`, solution:`${N} ÷ 10 = ${fmt(N/10)} ${to}.` }] };
+}
+function genShopping(){
+  const [item, price] = pick(SHOP.filter(s=>s[1]>=5)), k = rand(2,5), cost = k*price, G = cost + rand(5,120);
+  return { flavor:`The party has ${G} gp and buys ${k} ${item}s at ${price} gp each.`,
+    steps:[{ q:`What's the total cost?`, answer:cost, hint:`${k} × ${price}.`, solution:`${k} × ${price} = ${cost} gp.` },
+     { q:`How much gold is left?`, answer:G-cost, hint:`${G} − ${cost}.`, solution:`${G} − ${cost} = ${G-cost} gp.` }] };
+}
+function genTithe(){
+  const pct = pick([10,25,50]), G = rand(3,45)*20, take = G*pct/100;
+  return { flavor:`The thieves' guild of ${place()} demands ${pct}% of the party's ${G} gp haul.`,
+    steps:[{ q:`How much gold do the thieves take?`, answer:take,
+      hint: pct===50 ? 'Half.' : pct===25 ? 'A quarter: divide by 4.' : 'A tenth: divide by 10.',
+      solution:`${pct}% of ${G} = ${G} × ${pct}/100 = ${take} gp.` }] };
+}
+function genSellLoot(){
+  const [item, price] = pick(SHOP.filter(s=>s[1]>=5)), k = rand(2,4);
+  return { flavor:`The party loots ${k} ${item}s worth ${price} gp each. Shops only pay HALF price for used gear.`,
+    steps:[{ q:`How much gold does the party get for all ${k}? (decimals are fine)`, answer:k*price/2,
+      hint:`Half of ${price} is ${fmt(price/2)}. Then multiply by ${k}.`, solution:`${price} ÷ 2 = ${fmt(price/2)}, × ${k} = ${fmt(k*price/2)} gp.` }] };
+}
+
+// 5. Monster Maker
+function genModifier(){
+  const score = rand(3,20), mod = Math.floor((score-10)/2), half = (score-10)/2;
+  const ab = pick(['Strength','Dexterity','Constitution','Wisdom']);
+  return { flavor:`You're homebrewing the ${place().replace(/^the /,'')} Beast. Its ${ab} score is ${score}.`,
+    steps:[{ q:`What's its ${ab} modifier? (type +3 or -2)`, answer:mod,
+      hint:`Subtract 10, divide by 2, and round DOWN (toward the smaller number, even for negatives).`,
+      solution:`(${score} − 10) ÷ 2 = ${fmt(half)}${Number.isInteger(half)?'':', rounded down is '+mod}. Modifier: ${signed(mod)}.` }] };
+}
+function genHpTrack(){
+  const mon = pickMon(m=>m.hp>=15), d1 = rand(4,12), d2 = rand(3,11), h = hero();
+  const left = Math.max(0, mon.hp - d1 - d2);
+  return { flavor:`The ${mon.n} has ${mon.hp} HP. ${h} hits it for ${d1}, then again for ${d2}.`,
+    steps:[{ q:`How many HP does the ${mon.n} have left?`, answer:left,
+      hint:`Subtract both hits from ${mon.hp}.`, solution:`${mon.hp} − ${d1} − ${d2} = ${left}.` }] };
+}
+function genRoundsToDrop(){
+  const mon = pickMon(m=>m.hp>=20), D = rand(8,25), rounds = Math.ceil(mon.hp/D);
+  return { flavor:`Pacing check. The ${mon.n} has ${mon.hp} HP and your party deals about ${D} damage every round.`,
+    steps:[{ q:`How many rounds until it drops?`, answer:rounds,
+      hint:`Divide, then round UP. A monster with 1 HP left still gets a turn.`, solution:`${mon.hp} ÷ ${D} = ${fmt(mon.hp/D)}, rounded up is ${rounds} rounds.` }] };
+}
+function genTrollRegen(){
+  const D = rand(18,34), net = D-10, rounds = Math.ceil(84/net);
+  return { challenge:true, flavor:`A Troll (84 HP) regenerates 10 HP at the start of each of its turns. Your party deals about ${D} damage per round.`,
+    steps:[{ q:`How much HP does the Troll really lose each round?`, answer:net, hint:`${D} dealt, 10 healed back.`, solution:`${D} − 10 = ${net} per round.` },
+     { q:`About how many rounds until it drops?`, answer:rounds,
+      hint:`84 ÷ ${net}, rounded up.`, solution:`84 ÷ ${net} = ${fmt(84/net)}, rounded up is ${rounds} rounds. (Fire stops the regeneration. Your players should figure that out.)` }] };
+}
+function genHitDiceHp(){
+  const mon = pickMon(m=>m.hd), hd = parseDice(mon.hd), avg = diceAvg(hd);
+  return { flavor:`${an(mon.n)}'s hit points are listed as ${hd.text}.`,
+    steps:[{ q:`What's its average HP, rounded down like the Monster Manual?`, answer:Math.floor(avg),
+      hint:`One d${hd.d} averages ${DICE_AVG[hd.d]}. Multiply by ${hd.n}, add ${hd.m}, round down.`,
+      solution:`${hd.n} × ${DICE_AVG[hd.d]} = ${fmt(hd.n*DICE_AVG[hd.d])}, ${hd.m>=0?'+':'−'} ${Math.abs(hd.m)} = ${fmt(avg)}, rounded down: ${Math.floor(avg)}.` }] };
+}
+
+// 6. Maps & Miles
+function genRoom(){
+  const a = rand(4,12), b = rand(3,9);
+  return { flavor:`You're drawing a chamber under ${place()} on the battle map: ${a} squares long and ${b} squares wide. Every square is 5 feet.`,
+    steps:[{ q:`How many feet long is the chamber?`, answer:a*5, hint:`${a} squares × 5 feet.`, solution:`${a} × 5 = ${a*5} feet.` },
+     { q:`How many squares of floor are there?`, answer:a*b, hint:`Length × width.`, solution:`${a} × ${b} = ${a*b} squares.` }] };
+}
+function genBlast(){
+  const spells = [['Fireball',20],['Shatter',10],['Spirit Guardians',15],['Ice Storm',20],['Moonbeam',5],['Cloudkill',20]];
+  const [sp, r] = pick(spells), h = hero();
+  return { flavor:`${h} casts ${sp}, which fills a circle with a ${r}-foot radius.`,
+    steps:[{ q:`How many squares across is the whole blast, edge to edge?`, answer:2*r/5,
+      hint:`Radius is center to edge. Edge to edge is twice that. Then divide by 5.`, solution:`${r} × 2 = ${2*r} feet, ÷ 5 = ${2*r/5} squares across.` }] };
+}
+function genTravel(){
+  const D = pick([30,36,42,48,54,60,66,72,84,90,100]), days = Math.floor(D/24), rest = D%24;
+  return { flavor:`Pinehurst to ${place()} is ${D} miles. Walking at a normal pace covers 24 miles a day.`,
+    steps:[{ q:`How many FULL days of walking is that?`, answer:days, hint:`How many 24s fit in ${D}?`, solution:`${D} ÷ 24 = ${days} remainder ${rest}. ${days} full days.` },
+     { q:`How many miles are left for the last part of the trip?`, answer:rest, hint:`${days} × 24 = ${days*24}. What's left?`, solution:`${D} − ${days*24} = ${rest} miles.` }] };
+}
+function genSpeed(){
+  const sp = pick([25,30,35,40]), h = hero();
+  return { flavor:`${h} has a speed of ${sp} feet. The Dash action doubles movement for one turn.`,
+    steps:[{ q:`How many squares can ${h} move normally?`, answer:sp/5, hint:`Feet ÷ 5.`, solution:`${sp} ÷ 5 = ${sp/5} squares.` },
+     { q:`How many squares with a Dash?`, answer:2*sp/5, hint:`Double it.`, solution:`${sp/5} × 2 = ${2*sp/5} squares.` }] };
+}
+function genPerimeter(){
+  const a = rand(4,10)*5, b = rand(3,8)*5;
+  return { flavor:`A tower room in ${place()} is ${a} feet by ${b} feet. The rogue wants to check every wall for secret doors.`,
+    steps:[{ q:`How many feet of wall is that in total (the perimeter)?`, answer:2*(a+b),
+      hint:`Two long walls plus two short walls.`, solution:`${a} + ${b} + ${a} + ${b} = ${2*(a+b)} feet.` }] };
+}
+
+// 7. Damage Doctor
+function genResist(){
+  const mon = pickMon(), N = rand(5,23), h = hero(), type = pick(['slashing','piercing','bludgeoning','fire','cold']);
+  return { flavor:`The ${mon.n} is RESISTANT to ${type} damage. ${h} hits it with ${type} damage for ${N}.`,
+    steps:[{ q:`How much damage actually gets through? (round down)`, answer:Math.floor(N/2),
+      hint:`Resistance means half, rounded down.`, solution:`${N} ÷ 2 = ${fmt(N/2)}, rounded down is ${Math.floor(N/2)}.` }] };
+}
+function genVulnerable(){
+  const mon = pickMon(), N = rand(4,16), h = hero(), type = pick(['bludgeoning','fire','radiant','thunder']);
+  return { flavor:`The ${mon.n} is VULNERABLE to ${type} damage. ${h} hits it with ${type} damage for ${N}.`,
+    steps:[{ q:`How much damage does it take?`, answer:N*2, hint:`Vulnerable means double.`, solution:`${N} × 2 = ${N*2}.` }] };
+}
+function genCrit(){
+  const [w, d] = pick(HERO_WEAPONS), atk = parseDice(d), h = hero();
+  const rolls = []; for(let i=0;i<atk.n*2;i++) rolls.push(rand(1,atk.d));
+  const sum = rolls.reduce((a,b)=>a+b,0);
+  return { flavor:`${h} rolls a natural 20 with a ${w} (${atk.text})! On a critical hit you roll the damage dice TWICE, but add the bonus only once.`,
+    steps:[{ q:`How many d${atk.d}s do you roll?`, answer:atk.n*2, hint:`Twice the normal number of dice.`, solution:`${atk.n} × 2 = ${atk.n*2} dice.` },
+     { q:`The dice show ${rolls.join(', ')}. What's the total damage?`, answer:sum+atk.m,
+      hint:`Add up the dice, then add ${atk.m} once.`, solution:`${rolls.join(' + ')} = ${sum}, plus ${atk.m} = ${sum+atk.m}.` }] };
+}
+function genGroupAttack(){
+  const mon = pickMon(m=>m.xp<=100), C = rand(3,6), d = rand(3,9), h = hero(), hp = rand(18,45), total = C*d;
+  return { flavor:`${C} ${mon.pl} surround ${h}, who has ${hp} HP. Every one of them hits for ${d}.`,
+    steps:[{ q:`What's the total damage?`, answer:total, hint:`${C} × ${d}.`, solution:`${C} × ${d} = ${total}.` },
+     { q:`How many HP does ${h} have left? (0 if they drop)`, answer:Math.max(0,hp-total),
+      hint:`${hp} − ${total}. HP never goes below 0.`, solution:`${hp} − ${total} = ${hp-total}${hp-total<0?', so 0. '+h+' is down!':'.'}` }] };
+}
+function genHeal(){
+  const max = rand(20,40), cur = rand(4,max-3), r1 = rand(1,4), r2 = rand(1,4), heal = r1+r2+2, h = hero();
+  return { flavor:`${h} is at ${cur} of ${max} HP. They drink a Potion of Healing (2d4+2) as a Bonus Action and roll ${r1} and ${r2}.`,
+    steps:[{ q:`How much healing is that?`, answer:heal, hint:`${r1} + ${r2} + 2.`, solution:`${r1} + ${r2} + 2 = ${heal}.` },
+     { q:`What's ${h}'s HP now? (healing can't go above the maximum)`, answer:Math.min(max, cur+heal),
+      hint:`${cur} + ${heal}, but never more than ${max}.`, solution:`${cur} + ${heal} = ${cur+heal}${cur+heal>max?', which is over the max, so '+max:''}.` }] };
+}
+function genSaveHalf(){
+  const rolls = []; for(let i=0;i<8;i++) rolls.push(rand(1,6));
+  const T = rolls.reduce((a,b)=>a+b,0), mon = pickMon();
+  return { flavor:`Fireball! 8d6 comes up ${rolls.join(', ')}. The ${mon.n} makes its saving throw, which means HALF damage.`,
+    steps:[{ q:`What's the full damage?`, answer:T, hint:`Add all eight dice.`, solution:`${rolls.join(' + ')} = ${T}.` },
+     { q:`How much does the ${mon.n} take after saving? (round down)`, answer:Math.floor(T/2),
+      hint:`Half of ${T}, rounded down.`, solution:`${T} ÷ 2 = ${fmt(T/2)}, rounded down is ${Math.floor(T/2)}.` }] };
+}
+
+
+// ---------- Rules data (2024 Player's Handbook) ----------
+const PB = lvl => Math.ceil(lvl/4) + 1;        // Proficiency Bonus: +2 at levels 1-4, +3 at 5-8, +4 at 9-12 ...
+const mod = score => Math.floor((score-10)/2); // ability modifier
+const ABILITIES = ['Strength','Dexterity','Constitution','Intelligence','Wisdom','Charisma'];
+const DC_LADDER = [['Very easy',5],['Easy',10],['Medium',15],['Hard',20],['Very hard',25],['Nearly impossible',30]];
+const SKILLS = [ // skill, ability, an example task
+  ['Athletics','Strength','climbing a crumbling cliff'], ['Athletics','Strength','swimming across the fast river'],
+  ['Acrobatics','Dexterity','keeping balance on a narrow ledge'], ['Sleight of Hand','Dexterity','slipping a key out of a guard\'s pocket'], ['Stealth','Dexterity','sneaking past sleeping wolves'],
+  ['Arcana','Intelligence','recognizing a glowing magic rune'], ['History','Intelligence','remembering who built the old chapel'], ['Investigation','Intelligence','working out how a trap is triggered'], ['Nature','Intelligence','knowing which berries are poisonous'], ['Religion','Intelligence','identifying a holy symbol'],
+  ['Animal Handling','Wisdom','calming a spooked horse'], ['Insight','Wisdom','telling whether the mayor is lying'], ['Medicine','Wisdom','stabilizing a dying friend'], ['Perception','Wisdom','spotting a goblin hiding in the trees'], ['Survival','Wisdom','tracking an owlbear through the forest'],
+  ['Deception','Charisma','lying to the gate guard'], ['Intimidation','Charisma','scaring a bandit into talking'], ['Performance','Charisma','playing a song at the inn'], ['Persuasion','Charisma','convincing the mayor to send help'],
+];
+const CLASSES = [ // class, Hit Point Die, fixed HP per level, spellcasting ability
+  ['Barbarian',12,7,null],['Fighter',10,6,null],['Paladin',10,6,'Charisma'],['Ranger',10,6,'Wisdom'],['Bard',8,5,'Charisma'],['Cleric',8,5,'Wisdom'],
+  ['Druid',8,5,'Wisdom'],['Monk',8,5,null],['Rogue',8,5,null],['Warlock',8,5,'Charisma'],['Sorcerer',6,4,'Charisma'],['Wizard',6,4,'Intelligence'] ];
+const ARMOR = [ // name, base AC, Dex rule: 'full' | 2 (max +2) | 0 (none)
+  ['no armor',10,'full'],['Leather armor',11,'full'],['Studded leather',12,'full'],['Hide armor',12,2],['Chain shirt',13,2],['Scale mail',14,2],
+  ['Breastplate',14,2],['Half plate',15,2],['Ring mail',14,0],['Chain mail',16,0],['Splint armor',17,0],['Plate armor',18,0] ];
+const WEAPONS = [ // name, damage, properties, mastery
+  ['Dagger','1d4','Finesse, Light, Thrown','Nick'],['Shortsword','1d6','Finesse, Light','Vex'],['Scimitar','1d6','Finesse, Light','Nick'],['Rapier','1d8','Finesse','Vex'],
+  ['Longsword','1d8','Versatile (1d10)','Sap'],['Warhammer','1d8','Versatile (1d10)','Push'],['Quarterstaff','1d6','Versatile (1d8)','Topple'],['Spear','1d6','Thrown, Versatile (1d8)','Sap'],
+  ['Greatsword','2d6','Heavy, Two-Handed','Graze'],['Greataxe','1d12','Heavy, Two-Handed','Cleave'],['Maul','2d6','Heavy, Two-Handed','Topple'],['Glaive','1d10','Heavy, Reach, Two-Handed','Graze'],
+  ['Halberd','1d10','Heavy, Reach, Two-Handed','Cleave'],['Handaxe','1d6','Light, Thrown','Vex'],['Mace','1d6','Simple','Sap'],['Javelin','1d6','Thrown','Slow'],
+  ['Shortbow','1d6','Ammunition, Two-Handed','Vex'],['Longbow','1d8','Ammunition, Heavy, Two-Handed','Slow'],['Light crossbow','1d8','Ammunition, Loading, Two-Handed','Slow'],
+  ['Heavy crossbow','1d10','Ammunition, Heavy, Loading, Two-Handed','Push'],['Hand crossbow','1d6','Ammunition, Light, Loading','Vex'] ];
+const MASTERY = {
+  Cleave:'After hitting a creature, make one extra attack against a different creature within 5 feet of it (no ability modifier to the damage)',
+  Graze:'If your attack misses, the target still takes damage equal to your ability modifier',
+  Nick:'The extra Light-weapon attack can be made as part of the Attack action instead of using a Bonus Action',
+  Push:'On a hit, push the target up to 10 feet away (if it is Large or smaller)',
+  Sap:'On a hit, the target has Disadvantage on its next attack roll',
+  Slow:'On a hit, the target\'s Speed drops by 10 feet until your next turn',
+  Topple:'On a hit, the target must pass a Constitution save or fall Prone',
+  Vex:'On a hit, you have Advantage on your next attack against that creature',
+};
+const CONDITIONS = [
+  ['Blinded', "can't see, automatically fails checks that need sight, and attack rolls against it have Advantage while its own have Disadvantage"],
+  ['Charmed', "can't attack the charmer, and the charmer has Advantage on Charisma checks against it"],
+  ['Frightened', "has Disadvantage on checks and attacks while the source of fear is in sight, and can't willingly move closer to it"],
+  ['Grappled', "has a Speed of 0 and Disadvantage on attacks against anyone except the grappler"],
+  ['Incapacitated', "can't take any Action, Bonus Action or Reaction, loses Concentration, and can't speak"],
+  ['Invisible', "has Advantage on Initiative, attack rolls against it have Disadvantage, and its own attacks have Advantage"],
+  ['Paralyzed', "is Incapacitated, can't move or speak, automatically fails Str and Dex saves, and any hit from within 5 feet is a Critical Hit"],
+  ['Poisoned', "has Disadvantage on attack rolls and ability checks"],
+  ['Prone', "must crawl or spend half its Speed to stand, has Disadvantage on attacks, and attacks against it from within 5 feet have Advantage"],
+  ['Restrained', "has a Speed of 0, attack rolls against it have Advantage, its own have Disadvantage, and it has Disadvantage on Dex saves"],
+  ['Stunned', "is Incapacitated, automatically fails Str and Dex saves, and attack rolls against it have Advantage"],
+  ['Unconscious', "is Incapacitated and Prone, drops what it's holding, automatically fails Str and Dex saves, and hits from within 5 feet are Critical Hits"],
+];
+const ACTIONS = [ ['Attack','make one or more attacks'], ['Dash','move extra distance equal to your Speed'], ['Disengage','move away without provoking Opportunity Attacks'],
+  ['Dodge','attackers have Disadvantage against you until your next turn'], ['Help','give an ally Advantage on an ability check or on their next attack roll'],
+  ['Hide','make a DC 15 Stealth check to become hidden'], ['Influence','persuade, deceive, intimidate or charm a creature'], ['Magic','cast a spell or use a magic item'],
+  ['Ready','prepare to act later in the round when something specific happens'], ['Search','use Perception, Insight, Medicine or Survival to notice or find something'],
+  ['Study','use Arcana, History, Investigation, Nature or Religion to recall or figure something out'], ['Utilize','use a nonmagical object'] ];
+const FULL_CASTER_SLOTS = {1:[2],2:[3],3:[4,2],4:[4,3],5:[4,3,2]};
+
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=rand(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function choicesFrom(correct, pool, n){ const wrong = shuffle([...new Set(pool)].filter(x => x !== correct)).slice(0, n-1); return shuffle([correct, ...wrong]); }
+const pm = m => `${m>=0?'+':'−'} ${Math.abs(m)}`;   // "+ 3" / "− 1" for showing sums
+// A hero of a specific class. If the party name already says "the Fighter", use a guild NPC instead of "Pip the Rogue the Paladin".
+const NPCS = ['Alder','Wren','Dagny','Petra','Tomas','Ilse','Bram','Sorrel'];
+function heroAs(c){ const h = hero(); return /\bthe\b/i.test(h) ? `${pick(NPCS)} the ${c}` : `${h} the ${c}`; }
+
+// 8. Building a Hero
+function genProfBonus(){
+  const L = rand(1,8), h = hero();
+  return { flavor:`${h} just reached level ${L}.`,
+    steps:[{ q:`What's ${h}'s Proficiency Bonus? (type +2 or 2)`, answer:PB(L),
+      hint:`+2 at levels 1 to 4, +3 at levels 5 to 8, +4 at 9 to 12. It climbs every 4 levels.`, solution:`Level ${L} is in the ${L<=4?'1 to 4':'5 to 8'} band, so the Proficiency Bonus is +${PB(L)}.` }] };
+}
+function genAttackBonus(){
+  const L = level(), S = rand(10,20), [w] = pick(WEAPONS.slice(0,13)), h = hero(), m = mod(S);
+  return { flavor:`${h} is level ${L} with Strength ${S} and is proficient with the ${w.toLowerCase()}.`,
+    steps:[{ q:`What's the Strength modifier?`, answer:m, hint:'(score − 10) ÷ 2, rounded down.', solution:`(${S} − 10) ÷ 2 = ${fmt((S-10)/2)} → ${signed(m)}.` },
+     { q:`Attack bonus = ability modifier + Proficiency Bonus. What is it at level ${L}?`, answer:m+PB(L), hint:`Proficiency Bonus at level ${L} is +${PB(L)}.`, solution:`${signed(m)} + ${PB(L)} = ${signed(m+PB(L))}. ${h} rolls d20 ${signed(m+PB(L))} to hit.` }] };
+}
+function genStartingHp(){
+  const [c, die] = pick(CLASSES), Con = rand(8,18), m = mod(Con), h = heroAs(c);
+  return { flavor:`${h} is brand new at level 1. ${c}s use a d${die} Hit Point Die. Constitution ${Con}.`,
+    steps:[{ q:`Level 1 HP = the biggest number on the Hit Point Die + Constitution modifier. What's ${h}'s HP?`, answer:die+m,
+      hint:`${die} plus the Con modifier (${signed(m)}).`, solution:`${die} ${pm(m)} = ${die+m} HP.` }] };
+}
+function genLevelUpHp(){
+  const [c, die, fixed] = pick(CLASSES), Con = rand(8,18), cur = rand(10,40), m = mod(Con), h = heroAs(c);
+  return { flavor:`${h} levels up! Current max HP is ${cur}. Instead of rolling the d${die} they take the fixed number, ${fixed}, plus their Con modifier (Constitution ${Con}).`,
+    steps:[{ q:`What's the new max HP?`, answer:cur+fixed+m, hint:`${cur} + ${fixed} ${pm(m)}.`, solution:`${cur} + ${fixed} ${pm(m)} = ${cur+fixed+m}. (The fixed number is always half the die plus 1.)` }] };
+}
+function genCarry(){
+  const S = rand(8,20), h = hero();
+  return { flavor:`${h} (Strength ${S}) wants to haul the ogre's treasure chest out of ${place()}.`,
+    steps:[{ q:`Carrying capacity is Strength score × 15 pounds. How many pounds can ${h} carry?`, answer:S*15, hint:`${S} × 15. Try ${S} × 10 plus ${S} × 5.`, solution:`${S} × 15 = ${S*15} pounds.` }] };
+}
+function genPassivePerception(){
+  const L = level(), W = rand(8,18), prof = Math.random()<0.6, h = hero(), m = mod(W), pp = 10 + m + (prof?PB(L):0);
+  return { flavor:`A goblin is sneaking up on the camp. ${h} (level ${L}, Wisdom ${W}) is ${prof?'proficient':'NOT proficient'} in Perception.`,
+    steps:[{ q:`Passive Perception = 10 + Wisdom modifier${prof?' + Proficiency Bonus':''}. What is it?`, answer:pp,
+      hint:`Wisdom ${W} gives ${signed(m)}.${prof?' Proficiency at level '+L+' is +'+PB(L)+'.':''}`, solution:`10 ${pm(m)}${prof?' + '+PB(L):''} = ${pp}. If the goblin's Stealth total is lower, ${h} notices it without rolling.` }] };
+}
+function genSkillBonus(){
+  const L = level(), [sk, ab] = pick(SKILLS), S = rand(8,18), h = hero(), m = mod(S);
+  return { flavor:`${h} (level ${L}) is proficient in ${sk}, which uses ${ab}. Their ${ab} score is ${S}.`,
+    steps:[{ q:`What do they add to a ${sk} check? (modifier + Proficiency Bonus)`, answer:m+PB(L), hint:`${ab} ${S} → ${signed(m)}. Proficiency at level ${L} is +${PB(L)}.`, solution:`${signed(m)} + ${PB(L)} = ${signed(m+PB(L))}.` }] };
+}
+function genSpellAbility(){
+  const [c,,,ab] = pick(CLASSES.filter(c=>c[3]));
+  return { flavor:`${heroAs(c)} is preparing spells for the day.`, steps:[{ q:`Which ability powers a ${c}'s spells?`, choices:choicesFrom(ab, ['Intelligence','Wisdom','Charisma','Constitution'], 4), answer:ab,
+    hint:`Wizards study (Intelligence). Clerics, Druids and Rangers sense (Wisdom). Bards, Paladins, Sorcerers and Warlocks have force of personality (Charisma).`, solution:`${c}s use ${ab}.` }] };
+}
+
+// 9. The d20 Test
+function genCheckVsDc(){
+  const [sk, ab, task] = pick(SKILLS), b = rand(1,7), [dcName, dc] = pick(DC_LADDER.slice(1,4)), r = rand(2,19), h = hero(), total = r+b;
+  return { flavor:`${h} is ${task}. You call it ${dcName} (DC ${dc}). ${h} has +${b} to ${sk} and rolls a ${r}.`,
+    steps:[{ q:`What's the total?`, answer:total, hint:`Roll + bonus.`, solution:`${r} + ${b} = ${total}.` },
+     { q:`Does ${h} succeed? (Meet it or beat it.)`, choices:['Success','Failure'], answer: total>=dc ? 'Success':'Failure', hint:`Compare ${total} to DC ${dc}. Equal counts as a success.`, solution:`${total} ${total>=dc?'≥':'<'} ${dc}: ${total>=dc?'Success':'Failure'}.` }] };
+}
+function genNeedForDc(){
+  for(let t=0;t<20;t++){
+    const dc = pick([10,12,13,15,17,18,20]), b = rand(0,8), need = dc-b; if(need<2||need>20) continue;
+    const h = hero(), [sk] = pick(SKILLS);
+    return { flavor:`${h} needs to pass a DC ${dc} ${sk} check with a +${b} bonus.`,
+      steps:[{ q:`What's the lowest d20 roll that succeeds?`, answer:need, hint:`DC minus bonus.`, solution:`${dc} − ${b} = ${need}. (Ability checks have no automatic success on a 20 or failure on a 1.)` }] };
+  }
+  return genCheckVsDc();
+}
+function genWhichSkill(){
+  const [sk, ab, task] = pick(SKILLS), h = hero();
+  return { flavor:`${h} is ${task}.`,
+    steps:[{ q:`Which skill is that?`, choices:choicesFrom(sk, SKILLS.map(s=>s[0]), 4), answer:sk, hint:`Which ability does the task use? Then which skill under it fits?`, solution:`${task.charAt(0).toUpperCase()+task.slice(1)} is ${sk}.` },
+     { q:`And ${sk} uses which ability?`, choices:choicesFrom(ab, ABILITIES, 4), answer:ab, hint:`Str: Athletics. Dex: Acrobatics, Sleight of Hand, Stealth. Int: Arcana, History, Investigation, Nature, Religion. Wis: Animal Handling, Insight, Medicine, Perception, Survival. Cha: the four social skills.`, solution:`${sk} is a ${ab} skill.` }] };
+}
+function genDcLadder(){
+  const [name, dc] = pick(DC_LADDER);
+  return { flavor:`A player asks to try something, and you decide it's "${name.toLowerCase()}".`,
+    steps:[{ q:`What DC do you set?`, choices:choicesFrom(String(dc), DC_LADDER.map(d=>String(d[1])), 4), answer:String(dc), hint:`The ladder goes 5, 10, 15, 20, 25, 30 from Very easy to Nearly impossible.`, solution:`${name} = DC ${dc}.` }] };
+}
+function genAdvRules(){
+  const h = hero();
+  const cases = [
+    { f:`${h} has Advantage from an ally's Help and Disadvantage from being Poisoned.`, q:`How do they roll?`, a:'One d20, normally: they cancel out', w:['Two d20s, keep the higher','Two d20s, keep the lower','Three d20s'], s:`If you have both Advantage and Disadvantage you have neither, no matter how many of each.` },
+    { f:`${h} has Advantage from TWO different sources.`, q:`How many d20s do they roll?`, a:'Two, keep the higher', w:['Three, keep the highest','One','Two, add them together'], s:`Advantage never stacks. Two dice, keep the better one.` },
+    { f:`${h} rolls a natural 20 on a Dexterity saving throw against a Fireball, even though the total would be too low.`, q:`What happens?`, a:'Automatic success', w:['Fails, the total is too low','Rolls again','Takes double damage'], s:`In the 2024 rules a natural 20 is an automatic success on saving throws and attack rolls, and a natural 1 is an automatic failure.` },
+    { f:`${h} rolls a natural 20 on a Persuasion check against DC 30.`, q:`What happens?`, a:'Add the modifier; it only succeeds if the total reaches 30', w:['Automatic success','The DC drops to 20','Roll again'], s:`Ability checks have no automatic success or failure. Only attack rolls and saving throws do.` },
+    { f:`${h} has Heroic Inspiration and just rolled badly on an attack.`, q:`What can they do?`, a:'Spend it to reroll the d20 and use the new roll', w:['Add +5','Take a second turn','Nothing, it only works on checks'], s:`Heroic Inspiration lets you reroll any D20 Test. You must use the new roll.` },
+    { f:`${h} takes the Hide action behind a crate.`, q:`What's the Stealth DC to become hidden?`, a:'15', w:['10','12','20'], s:`Hiding is a DC 15 Dexterity (Stealth) check. Pass it and you have the Invisible condition until you're found.` },
+  ];
+  const c = pick(cases);
+  return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Check the Guildmaster's lesson above.`, solution:c.s }] };
+}
+
+// 10. The Combat Round
+function genInitiative(){
+  for(let t=0;t<30;t++){
+    const names = [...new Set([hero(), hero(), pickMon().n, pickMon().n])].slice(0,3);
+    if(names.length<3) continue;
+    const rows = names.map(n => { const r = rand(1,20), m = rand(-1,4); return {n, r, m, t:r+m}; });
+    if(new Set(rows.map(x=>x.t)).size<3) continue;
+    const first = rows.reduce((a,b)=>b.t>a.t?b:a), ask = pick(rows);
+    return { flavor:`Roll for Initiative! ` + rows.map(x=>`${x.n} rolled ${x.r} with ${signed(x.m)} Dex`).join('. ') + '.',
+      steps:[{ q:`What's ${ask.n}'s Initiative total?`, answer:ask.t, hint:`Roll + Dexterity modifier.`, solution:`${ask.r} ${pm(ask.m)} = ${ask.t}.` },
+       { q:`Who goes first?`, choices:shuffle(rows.map(x=>x.n)), answer:first.n, hint:`Highest total goes first.`, solution:`Order: ` + rows.slice().sort((a,b)=>b.t-a.t).map(x=>`${x.n} (${x.t})`).join(', ') + '.' }] };
+  }
+  return genDifficultTerrain();
+}
+function genDifficultTerrain(){
+  const sp = pick([25,30,35]), d = pick([5,10,15]), h = hero();
+  return { flavor:`${h} (Speed ${sp}) has to cross ${d} feet of thick mud near ${place()}. Mud is Difficult Terrain: every foot costs 2 feet of movement.`,
+    steps:[{ q:`How many feet of movement does the mud use up?`, answer:2*d, hint:`${d} × 2.`, solution:`${d} × 2 = ${2*d} feet of movement.` },
+     { q:`How many feet of normal movement are left this turn?`, answer:sp-2*d, hint:`${sp} − ${2*d}.`, solution:`${sp} − ${2*d} = ${sp-2*d} feet.` }] };
+}
+function genJump(){
+  const S = rand(8,20), h = hero();
+  return { flavor:`A chasm splits the road to ${place()}. ${h} has Strength ${S}.`,
+    steps:[{ q:`With a 10-foot run-up, a Long Jump covers feet equal to the Strength SCORE. How far can ${h} jump?`, answer:S, hint:`The score, not the modifier.`, solution:`Strength ${S} = a ${S}-foot jump.` },
+     { q:`From a standing start it's half that. How far? (decimals are fine)`, answer:S/2, hint:`${S} ÷ 2.`, solution:`${S} ÷ 2 = ${fmt(S/2)} feet.` },
+     { q:`A High Jump is 3 + Strength MODIFIER feet with a run-up. How high?`, answer:3+mod(S), hint:`Strength ${S} gives a modifier of ${signed(mod(S))}.`, solution:`3 ${pm(mod(S))} = ${3+mod(S)} feet.` }] };
+}
+function genFall(){
+  const hgt = rand(2,10)*10, n = Math.min(20, hgt/10), h = hero();
+  return { flavor:`The rope snaps. ${h} falls ${hgt} feet into the pit. Falling deals 1d6 Bludgeoning damage per 10 feet (max 20d6).`,
+    steps:[{ q:`How many d6 do you roll?`, answer:n, hint:`${hgt} ÷ 10.`, solution:`${hgt} ÷ 10 = ${n}d6.` },
+     { q:`What's the average damage? (decimals are fine)`, answer:n*3.5, hint:`A d6 averages 3.5.`, solution:`${n} × 3.5 = ${fmt(n*3.5)}. ${h} also lands Prone.` }] };
+}
+function genCover(){
+  const mon = pickMon(), kind = pick([['Half Cover',2,'a low wall'],['Three-Quarters Cover',5,'an arrow slit']]);
+  return { flavor:`A ${mon.n} (AC ${mon.ac}) is shooting from behind ${kind[2]}, which gives it ${kind[0]}.`,
+    steps:[{ q:`${kind[0]} adds +${kind[1]} to AC and Dexterity saves. What AC do the heroes need to hit now?`, answer:mon.ac+kind[1], hint:`${mon.ac} + ${kind[1]}.`, solution:`${mon.ac} + ${kind[1]} = ${mon.ac+kind[1]}. Total Cover means it can't be targeted at all.` }] };
+}
+function genActions(){
+  const h = hero();
+  const cases = [
+    { f:`${h} is standing next to an Orc and wants to walk away without getting hit by an Opportunity Attack.`, a:'Disengage' },
+    { f:`${h} is surrounded and just wants to survive the round, so attackers should have Disadvantage.`, a:'Dodge' },
+    { f:`${h} needs to cross the whole courtyard this turn, twice their normal Speed.`, a:'Dash' },
+    { f:`${h} wants to give the wizard Advantage on their next attack against the Ogre.`, a:'Help' },
+    { f:`${h} wants to look around the crypt for a hidden door.`, a:'Search' },
+    { f:`${h} wants to remember everything they know about trolls.`, a:'Study' },
+    { f:`${h} wants to talk the bandit captain into surrendering.`, a:'Influence' },
+    { f:`${h} wants to pull the big lever, but only once the rogue is clear of the gate.`, a:'Ready' },
+    { f:`${h} wants to become hidden behind the barrels.`, a:'Hide' },
+  ];
+  const c = pick(cases), desc = ACTIONS.find(a=>a[0]===c.a)[1];
+  return { flavor:c.f, steps:[{ q:`Which action is that?`, choices:choicesFrom(c.a, ACTIONS.map(a=>a[0]), 4), answer:c.a, hint:`There are 12 actions. Which description matches?`, solution:`${c.a}: ${desc}.` }] };
+}
+function genTurnBudget(){
+  const h = hero();
+  const cases = [
+    { f:`It's ${h}'s turn.`, q:`How many Actions do they get on their turn?`, a:'1', w:['2','3','As many as their Speed allows'], s:`One Action, one Bonus Action (if something gives you one), movement up to your Speed, and one free object interaction.` },
+    { f:`An Orc runs past ${h}, and then a Goblin does too.`, q:`How many Opportunity Attacks can ${h} make this round?`, a:'1', w:['2','0','One per enemy'], s:`An Opportunity Attack uses your Reaction, and you get one Reaction per round. It comes back at the start of your turn.` },
+    { f:`${h} casts Healing Word (a Bonus Action spell) and also wants to drink a Potion of Healing this turn.`, q:`Can they do both?`, a:'No: both are Bonus Actions and you only get one', w:['Yes','Yes, but with Disadvantage','Only if they don\'t move'], s:`In the 2024 rules drinking a potion is a Bonus Action, so it competes with Healing Word. Next turn, or use the Action to hand it to someone else.` },
+    { f:`${h} moves 10 feet, attacks, then wants to move 15 more feet (Speed 30).`, q:`Is that allowed?`, a:'Yes: you can split movement around your action', w:['No: move first, then act','No: moving after attacking provokes','Only with Dash'], s:`You can break up your movement however you like on your turn, as long as the total doesn't pass your Speed.` },
+    { f:`The Orc walks out of ${h}'s reach without taking the Disengage action.`, q:`What can ${h} do?`, a:'Make an Opportunity Attack using their Reaction', w:['Nothing until their turn','Take a free Action','Move after it for free'], s:`Leaving a creature's reach without Disengage provokes an Opportunity Attack: one melee attack, using your Reaction.` },
+  ];
+  const c = pick(cases);
+  return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Each turn: move, one Action, maybe one Bonus Action. One Reaction per round.`, solution:c.s }] };
+}
+function genTwoWeapon(){
+  const h = hero(), m = rand(2,4), r1 = rand(1,6), r2 = rand(1,4);
+  return { flavor:`${h} (Strength ${signed(m)}) fights with a shortsword (1d6, Light) and a dagger (1d4, Light). Both hit! The shortsword rolls ${r1}; the dagger's Bonus Action attack rolls ${r2}.`,
+    steps:[{ q:`Shortsword damage, with the modifier?`, answer:r1+m, hint:`${r1} + ${m}.`, solution:`${r1} + ${m} = ${r1+m}.` },
+     { q:`The extra Light-weapon attack does NOT add the ability modifier. Total damage from both hits?`, answer:r1+m+r2, hint:`The dagger is just ${r2}.`, solution:`${r1+m} + ${r2} = ${r1+m+r2}. (A negative modifier would still apply.)` }] };
+}
+function genGrapple(){
+  const L = level(), S = rand(12,20), h = hero(), m = mod(S), dc = 8+m+PB(L);
+  return { flavor:`${h} (level ${L}, Strength ${S}) grabs a fleeing Goblin with an Unarmed Strike (Grapple).`,
+    steps:[{ q:`The Goblin must save against DC 8 + Strength modifier + Proficiency Bonus. What's the DC?`, answer:dc, hint:`8 + ${m} + ${PB(L)}.`, solution:`8 + ${m} + ${PB(L)} = ${dc}. The Goblin picks Strength or Dexterity for the save.` },
+     { q:`An Unarmed Strike for damage deals 1 + Strength modifier. How much if ${h} punches instead?`, answer:1+m, hint:`1 + ${m}.`, solution:`1 + ${m} = ${1+m} Bludgeoning.` }] };
+}
+
+// 11. Hit Points & Dying
+function genInstantDeath(){
+  const h = hero(), max = rand(10,30), cur = rand(1,8), dmg = rand(cur+3, cur+max+8), over = dmg-cur, dies = over>=max;
+  const out = dies ? 'Instant death' : 'Drops to 0 HP and starts Death Saving Throws';
+  return { flavor:`${h} has ${cur} HP left out of a maximum of ${max}, and a Troll hits for ${dmg}!`,
+    steps:[{ q:`How much damage is left over after ${h} drops to 0?`, answer:over, hint:`${dmg} − ${cur}.`, solution:`${dmg} − ${cur} = ${over} left over.` },
+     { q:`If the leftover damage is at least the max HP, it's instant death. What happens?`, choices:['Instant death','Drops to 0 HP and starts Death Saving Throws'], answer:out, hint:`Compare ${over} with ${max}.`,
+       solution:`${over} ${dies?'≥':'<'} ${max}: ${dies?'instant death. A rough night in Pinehurst.':'they fall Unconscious at 0 HP and start Death Saving Throws on their next turn.'}` }] };
+}
+function genDeathSave(){
+  const h = hero(), s = rand(0,2), f = rand(0,2), r = rand(1,20);
+  let out, why;
+  if(r===20){ out='Back up with 1 HP'; why='A natural 20 on a Death Saving Throw means you regain 1 HP and wake up.'; }
+  else if(r===1){ out = f+2>=3 ? 'Dead' : 'Two failures'; why='A natural 1 counts as two failures.'+(f+2>=3?' That makes three: dead.':''); }
+  else if(r>=10){ out = s+1>=3 ? 'Stable (three successes)' : 'One success'; why='10 or higher is a success.'+(s+1>=3?' Three successes: stable, but still Unconscious.':''); }
+  else { out = f+1>=3 ? 'Dead' : 'One failure'; why='9 or lower is a failure.'+(f+1>=3?' Three failures: dead.':''); }
+  const opts = ['One success','One failure','Two failures','Stable (three successes)','Dead','Back up with 1 HP'];
+  return { flavor:`${h} is at 0 HP with ${s} success${s===1?'':'es'} and ${f} failure${f===1?'':'s'} so far. They roll a ${r} on their Death Saving Throw.`,
+    steps:[{ q:`What happens?`, choices:choicesFrom(out, opts, 4), answer:out, hint:`DC 10. Natural 1 = two failures. Natural 20 = back up with 1 HP. Three of either kind ends it.`, solution:why }] };
+}
+function genConcentration(){
+  const h = hero(), d = rand(3,40), dc = Math.max(10, Math.floor(d/2));
+  return { flavor:`${h} is concentrating on Bless and takes ${d} damage from an arrow.`,
+    steps:[{ q:`The Constitution save DC is 10 or half the damage (rounded down), whichever is higher. What's the DC?`, answer:dc, hint:`Half of ${d} is ${fmt(d/2)}. Is that more than 10?`,
+      solution:`Half of ${d} rounded down is ${Math.floor(d/2)}. ${Math.floor(d/2)>10?'That beats 10, so':'That is not more than 10, so'} the DC is ${dc}.` }] };
+}
+function genTempHp(){
+  const h = hero(), a = rand(3,10), b = rand(3,12);
+  return { flavor:`${h} has ${a} Temporary Hit Points. The bard's song offers ${b} more Temporary Hit Points.`,
+    steps:[{ q:`Temporary HP don't add together; you keep the higher amount. How many does ${h} have now?`, answer:Math.max(a,b), hint:`Pick the bigger number. Don't add.`, solution:`Keep ${Math.max(a,b)}.${a===b?' They were equal, so nothing changes.':''}` }] };
+}
+function genShortRest(){
+  const [c, die] = pick(CLASSES), Con = rand(10,18), k = rand(1,3), h = heroAs(c), m = mod(Con), rolls = []; for(let i=0;i<k;i++) rolls.push(rand(1,die));
+  const sum = rolls.reduce((a,b)=>a+b,0);
+  return { flavor:`After the fight the party takes a Short Rest (1 hour). ${h} spends ${k} Hit Point ${k===1?'Die':'Dice'} (d${die}) and rolls ${rolls.join(', ')}. Constitution ${Con}.`,
+    steps:[{ q:`Each die heals the roll + Con modifier. How many HP does ${h} regain?`, answer:sum+k*m, hint:`Add the rolls (${sum}), then add ${signed(m)} for EACH die (${k} times).`, solution:`${sum} + ${k} × ${m} = ${sum+k*m} HP.` }] };
+}
+function genLongRest(){
+  const L = rand(1,8), h = hero(), back = Math.max(1, Math.floor(L/2));
+  return { flavor:`${h} is level ${L}, so they have ${L} Hit Point Dice in total, and they've spent all of them. The party takes a Long Rest (8 hours).`,
+    steps:[{ q:`A Long Rest restores all HP and HALF your total Hit Point Dice (rounded down, minimum 1). How many dice come back?`, answer:back, hint:`${L} ÷ 2, rounded down, but never less than 1.`, solution:`${L} ÷ 2 = ${fmt(L/2)} → ${Math.floor(L/2)}${Math.floor(L/2)<1?', bumped up to the minimum of 1':''}. ${back} ${back===1?'die':'dice'} back.` }] };
+}
+function genCureWounds(){
+  const h = hero(), W = rand(12,18), m = mod(W), slot = rand(1,3), n = 2 + 2*(slot-1), rolls = []; for(let i=0;i<n;i++) rolls.push(rand(1,8));
+  const sum = rolls.reduce((a,b)=>a+b,0);
+  return { flavor:`The cleric (Wisdom ${W}) casts Cure Wounds on ${h} using a level ${slot} spell slot. Cure Wounds heals 2d8 + Wisdom modifier, plus 2d8 for every slot level above 1.`,
+    steps:[{ q:`How many d8 does the cleric roll?`, answer:n, hint:`2 + 2 × (${slot} − 1).`, solution:`2 + 2 × ${slot-1} = ${n}d8.` },
+     { q:`The dice show ${rolls.join(', ')}. Total healing?`, answer:sum+m, hint:`Add the dice, then add the Wisdom modifier (${signed(m)}).`, solution:`${rolls.join(' + ')} = ${sum}, plus ${m} = ${sum+m} HP.` }] };
+}
+function genExhaustion(){
+  const h = hero(), n = rand(1,5);
+  return { flavor:`${h} has ${n} level${n===1?'':'s'} of Exhaustion after days without sleep. Each level gives −2 to every D20 Test and −5 feet of Speed. Level 6 is death.`,
+    steps:[{ q:`How many points come off every one of ${h}'s d20 rolls?`, answer:2*n, hint:`2 × ${n}.`, solution:`2 × ${n} = ${2*n}. Attacks, checks and saves all take −${2*n}.` },
+     { q:`${h}'s normal Speed is 30. What is it now?`, answer:30-5*n, hint:`30 − 5 × ${n}.`, solution:`30 − ${5*n} = ${30-5*n} feet.` }] };
+}
+
+// 12. Spellbook
+function genSlots(){
+  const L = rand(1,5), slots = FULL_CASTER_SLOTS[L], h = heroAs('Wizard'), k = rand(1, Math.max(1, slots[0]-1));
+  const cast = shuffle(['Magic Missile','Shield','Thunderwave','Sleep','Healing Word','Cure Wounds']).slice(0,k);
+  return { flavor:`${h} is level ${L}, with ${slots[0]} level-1 spell slots${slots[1]?' and '+slots[1]+' level-2 slots':''}. Today they've cast ${cast.join(' and ')} (all level 1).`,
+    steps:[{ q:`How many level-1 slots are left?`, answer:slots[0]-k, hint:`${slots[0]} − ${k}.`, solution:`${slots[0]} − ${k} = ${slots[0]-k}. Slots come back after a Long Rest.` }] };
+}
+function genCantripScale(){
+  const L = pick([1,3,5,7,11,17]), n = 1 + (L>=5) + (L>=11) + (L>=17), h = heroAs('Wizard');
+  return { flavor:`${h} casts Fire Bolt. It deals 1d10 Fire damage and gains an extra d10 at levels 5, 11 and 17. ${h} is level ${L}.`,
+    steps:[{ q:`How many d10 does Fire Bolt roll at level ${L}?`, answer:n, hint:`Count how many of 5, 11 and 17 are at or below ${L}.`, solution:`Level ${L}: ${n}d10.` },
+     { q:`Average damage? (decimals are fine)`, answer:n*5.5, hint:`A d10 averages 5.5.`, solution:`${n} × 5.5 = ${fmt(n*5.5)}.` }] };
+}
+function genMagicMissile(){
+  const slot = rand(1,4), darts = 3 + (slot-1), h = hero();
+  return { flavor:`${h} casts Magic Missile with a level ${slot} spell slot. It fires 3 darts, plus 1 more for each slot level above 1. Each dart deals 1d4 + 1 Force damage and never misses.`,
+    steps:[{ q:`How many darts?`, answer:darts, hint:`3 + (${slot} − 1).`, solution:`3 + ${slot-1} = ${darts} darts.` },
+     { q:`Average total damage? (a d4 averages 2.5; decimals are fine)`, answer:darts*3.5, hint:`Each dart averages 2.5 + 1 = 3.5.`, solution:`${darts} × 3.5 = ${fmt(darts*3.5)}.` }] };
+}
+function genSpellDc(){
+  const [c,,,ab] = pick(CLASSES.filter(c=>c[3])), L = level(), S = rand(12,20), m = mod(S), h = heroAs(c);
+  return { flavor:`${h} is level ${L} with ${ab} ${S}.`,
+    steps:[{ q:`Spell save DC = 8 + Proficiency Bonus + ${ab} modifier. What is it?`, answer:8+PB(L)+m, hint:`8 + ${PB(L)} + ${m}.`, solution:`8 + ${PB(L)} + ${m} = ${8+PB(L)+m}.` },
+     { q:`Spell attack bonus = Proficiency Bonus + ${ab} modifier. What is it?`, answer:PB(L)+m, hint:`${PB(L)} + ${m}.`, solution:`${PB(L)} + ${m} = ${signed(PB(L)+m)}. Handy: the attack bonus is always the save DC minus 8.` }] };
+}
+function genScorchingRay(){
+  const slot = rand(2,4), rays = 3 + (slot-2), h = hero();
+  return { flavor:`${h} casts Scorching Ray (a level 2 spell) with a level ${slot} slot: 3 rays, plus 1 per slot level above 2. Each ray is its own attack dealing 2d6 Fire damage.`,
+    steps:[{ q:`How many rays?`, answer:rays, hint:`3 + (${slot} − 2).`, solution:`${rays} rays.` },
+     { q:`If every ray hits, what's the average damage?`, answer:rays*7, hint:`2d6 averages 7.`, solution:`${rays} × 7 = ${rays*7}.` }] };
+}
+function genSpellRules(){
+  const h = hero();
+  const cases = [
+    { f:`${h} is concentrating on Bless and casts Hold Person, which also needs Concentration.`, q:`What happens to Bless?`, a:'It ends immediately', w:['Both keep going','Bless pauses until Hold Person ends','Roll a Con save to keep it'], s:`You can concentrate on only one spell at a time. Casting a second Concentration spell ends the first.` },
+    { f:`${h} casts Fireball.`, q:`What shape and size is it?`, a:'A 20-foot-radius Sphere', w:['A 15-foot Cone','A 100-foot Line','A 15-foot Cube'], s:`Fireball: 20-foot-radius Sphere, 8d6 Fire damage, Dexterity save for half.` },
+    { f:`${h} casts Burning Hands.`, q:`What shape and size is it?`, a:'A 15-foot Cone', w:['A 20-foot-radius Sphere','A 30-foot Line','A 10-foot Cube'], s:`Burning Hands: 15-foot Cone, 3d6 Fire damage, Dexterity save for half.` },
+    { f:`${h} casts Lightning Bolt.`, q:`What shape and size is it?`, a:'A 100-foot Line, 5 feet wide', w:['A 20-foot-radius Sphere','A 60-foot Cone','A 30-foot Cube'], s:`Lightning Bolt: 100-foot-long, 5-foot-wide Line, 8d6 Lightning damage.` },
+    { f:`${h} wants to cast a cantrip.`, q:`What does it cost?`, a:'Nothing: cantrips never use spell slots', w:['A level-1 slot','A Bonus Action','1 Hit Point Die'], s:`Cantrips are free and unlimited. That's why Fire Bolt is a wizard's best friend.` },
+    { f:`${h} casts Shield as a Reaction during the Orc's turn. On ${h}'s own next turn they want to cast Magic Missile.`, q:`Allowed?`, a:'Yes', w:['No: one spell per round','No: Shield used up the turn','Only a cantrip'], s:`Shield used last round's Reaction. A new turn brings a new Action, and the Reaction comes back.` },
+    { f:`${h} casts Cure Wounds using a level 3 slot.`, q:`How much does it heal?`, a:'6d8 + spellcasting modifier', w:['2d8 + modifier','3d8 + modifier','4d8 + modifier'], s:`Cure Wounds is 2d8 + modifier, and gains 2d8 per slot level above 1: level 3 is 2 + 2 + 2 = 6d8.` },
+  ];
+  const c = pick(cases);
+  return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`See the Spellbook lesson above.`, solution:c.s }] };
+}
+
+// 13. The Armory
+function genArmorClass(){
+  const [name, base, rule] = pick(ARMOR), D = rand(8,20), shield = Math.random()<0.5, h = hero(), m = mod(D);
+  const dexPart = rule==='full' ? m : rule===0 ? 0 : Math.min(m, 2), ac = base + dexPart + (shield?2:0);
+  const ruleText = rule==='full' ? 'adds the full Dex modifier' : rule===0 ? 'ignores Dex entirely (heavy armor)' : 'adds Dex up to a maximum of +2 (medium armor)';
+  const Name = name.charAt(0).toUpperCase()+name.slice(1);
+  return { flavor:`${h} has Dexterity ${D} and wears ${name}${shield?' and carries a shield':''}. ${Name} is AC ${base} and ${ruleText}.`,
+    steps:[{ q:`What's the Dex modifier?`, answer:m, hint:'(score − 10) ÷ 2, rounded down.', solution:`(${D} − 10) ÷ 2 → ${signed(m)}.` },
+     { q:`What's ${h}'s AC?${shield?' (A shield adds +2.)':''}`, answer:ac, hint: rule===0 ? `Heavy armor: just ${base}${shield?' + 2':''}.` : rule===2 ? `Dex counts, but only up to +2.` : `${base} + Dex${shield?' + 2':''}.`,
+       solution:`${base} ${pm(dexPart)}${rule===2 && m>2 ? ' (Dex capped at +2)' : rule===0 ? ' (no Dex)' : ''}${shield?' + 2':''} = ${ac}.` }] };
+}
+function genFinesse(){
+  const [name, dice] = pick(WEAPONS.filter(w=>w[2].includes('Finesse'))), S = rand(8,14), D = rand(14,20), h = hero(), dmg = parseDice(dice), r = rand(1,dmg.d);
+  const best = Math.max(mod(S), mod(D)), ab = mod(D)>=mod(S) ? 'Dexterity' : 'Strength';
+  return { flavor:`${h} (Strength ${S}, Dexterity ${D}) attacks with a ${name.toLowerCase()} (${dice}, Finesse).`,
+    steps:[{ q:`Finesse lets you choose Strength or Dexterity. Which should ${h} use?`, choices:['Strength','Dexterity'], answer:ab, hint:`Pick whichever modifier is higher.`, solution:`Str ${signed(mod(S))} vs Dex ${signed(mod(D))}: ${ab}.` },
+     { q:`The damage die shows ${r}. Total damage?`, answer:r+best, hint:`${r} + ${best}.`, solution:`${r} + ${best} = ${r+best}.` }] };
+}
+function genVersatile(){
+  const [name, dice, props] = pick(WEAPONS.filter(w=>w[2].includes('Versatile'))), big = props.match(/Versatile \((\dd\d+)\)/)[1], h = hero(), m = rand(2,4);
+  const one = parseDice(dice), two = parseDice(big);
+  return { flavor:`${h} (Strength ${signed(m)}) has a ${name.toLowerCase()}: ${dice} in one hand, or ${big} in two hands (Versatile).`,
+    steps:[{ q:`Average damage one-handed, with the modifier? (decimals are fine)`, answer:diceAvg(one)+m, hint:`A d${one.d} averages ${DICE_AVG[one.d]}.`, solution:`${DICE_AVG[one.d]} + ${m} = ${fmt(diceAvg(one)+m)}.` },
+     { q:`Average two-handed?`, answer:diceAvg(two)+m, hint:`A d${two.d} averages ${DICE_AVG[two.d]}.`, solution:`${DICE_AVG[two.d]} + ${m} = ${fmt(diceAvg(two)+m)}. Putting away the shield buys one extra point on average. Worth it? That's a player's choice.` }] };
+}
+function genMastery(){
+  const [name, dice, props, mast] = pick(WEAPONS), h = heroAs('Fighter');
+  return { flavor:`${h} has Weapon Mastery with the ${name.toLowerCase()} (${dice}, ${props}).`,
+    steps:[{ q:`Which mastery property does a ${name.toLowerCase()} have?`, choices:choicesFrom(mast, Object.keys(MASTERY), 4), answer:mast, hint:`Heavy two-handers tend to Cleave or Graze. Light blades Nick or Vex. Hammers Push or Topple. Swords and maces Sap.`, solution:`${name}: ${mast}.` },
+     { q:`What does ${mast} do?`, choices:choicesFrom(MASTERY[mast], Object.values(MASTERY), 4), answer:MASTERY[mast], hint:`Think about what a ${name.toLowerCase()} would naturally do to someone.`, solution:`${mast}: ${MASTERY[mast]}.` }] };
+}
+function genGraze(){
+  const h = hero(), m = rand(2,5), [name, dice] = pick(WEAPONS.filter(w=>w[3]==='Graze'));
+  return { flavor:`${h} (Strength ${signed(m)}) swings a ${name.toLowerCase()} (${dice}, Graze mastery) at a Bugbear and MISSES.`,
+    steps:[{ q:`Graze: on a miss you still deal damage equal to your ability modifier. How much?`, answer:m, hint:`Just the modifier, no dice.`, solution:`${m} damage, even on a miss.` }] };
+}
+function genRanged(){
+  const h = hero(), L = level(), S = rand(8,14), D = rand(12,20), [name, dice] = pick(WEAPONS.filter(w=>w[2].includes('Ammunition')));
+  return { flavor:`${h} (level ${L}, Strength ${S}, Dexterity ${D}) is proficient with the ${name.toLowerCase()} (${dice}).`,
+    steps:[{ q:`Ranged weapons use which ability for attack and damage?`, choices:['Strength','Dexterity'], answer:'Dexterity', hint:`Aim, not muscle.`, solution:`Ranged attacks use Dexterity.` },
+     { q:`What's the attack bonus? (Dex modifier + Proficiency Bonus)`, answer:mod(D)+PB(L), hint:`Dex ${D} → ${signed(mod(D))}. Proficiency +${PB(L)}.`, solution:`${mod(D)} + ${PB(L)} = ${signed(mod(D)+PB(L))}.` }] };
+}
+
+// 14. Condition Codex
+function genConditionName(){
+  const [name, desc] = pick(CONDITIONS), mon = pickMon();
+  return { flavor:`The ${mon.n} ${desc}.`, steps:[{ q:`Which condition is that?`, choices:choicesFrom(name, CONDITIONS.map(c=>c[0]), 4), answer:name, hint:`Match the most unusual part of the description.`, solution:`${name}: ${desc}.` }] };
+}
+function genConditionEffect(){
+  const h = hero(), mon = pickMon();
+  const cases = [
+    { f:`The ${mon.n} is Paralyzed and ${h} hits it with a sword from 5 feet away.`, q:`What happens to the hit?`, a:"It's automatically a Critical Hit", w:['Normal damage','Double the modifier','Half damage'], s:`Paralyzed (and Unconscious): any hit from within 5 feet is a Critical Hit. Roll the damage dice twice.` },
+    { f:`${h} is Poisoned.`, q:`What's affected?`, a:'Attack rolls and ability checks have Disadvantage', w:['Saving throws have Disadvantage','Speed is halved','Can\'t cast spells'], s:`Poisoned: Disadvantage on attack rolls and ability checks. Saves are fine.` },
+    { f:`${h} is Frightened of the Owlbear, which is 20 feet away in plain sight.`, q:`Can ${h} charge it?`, a:"No: a Frightened creature can't willingly move closer to the source", w:['Yes, with Disadvantage','Yes, at half Speed','Only with Dash'], s:`Frightened: Disadvantage on checks and attacks while the source is in sight, and no moving closer to it.` },
+    { f:`The ${mon.n} is Restrained by a net, and ${h} shoots it from 40 feet away.`, q:`How does ${h} roll?`, a:'With Advantage', w:['With Disadvantage','Normally','Can\'t target it'], s:`Restrained: attack rolls against the creature have Advantage, from any distance.` },
+    { f:`The ${mon.n} is Prone, and ${h} shoots it from 40 feet away.`, q:`How does ${h} roll?`, a:'With Disadvantage', w:['With Advantage','Normally','Automatic hit'], s:`Prone: attacks from within 5 feet have Advantage, but attacks from farther away have Disadvantage. Lying flat makes you hard to shoot.` },
+    { f:`${h} is Incapacitated by a Hold Person spell while concentrating on Bless.`, q:`What happens to Bless?`, a:'It ends: Incapacitated breaks Concentration', w:['Nothing','It pauses','Roll a Con save'], s:`Incapacitated: no Actions, Bonus Actions or Reactions, no speaking, and Concentration ends.` },
+    { f:`${h} is Grappled by the ${mon.n}.`, q:`What's ${h}'s Speed?`, a:'0', w:['Half','Normal','5 feet'], s:`Grappled: Speed 0, and Disadvantage on attacks against anyone except the grappler. Escape with an Athletics or Acrobatics check against the grappler's DC.` },
+  ];
+  const c = pick(cases);
+  return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Check the Condition Codex above.`, solution:c.s }] };
+}
+function genProneStand(){
+  const h = hero(), sp = pick([25,30,35,40]);
+  return { flavor:`${h} (Speed ${sp}) was knocked Prone by a Maul's Topple mastery.`,
+    steps:[{ q:`Standing up costs HALF your Speed. How many feet of movement does it cost?`, answer:sp/2, hint:`${sp} ÷ 2.`, solution:`${sp} ÷ 2 = ${fmt(sp/2)} feet.` },
+     { q:`How many feet can ${h} still move after standing?`, answer:sp/2, hint:`What's left of ${sp}.`, solution:`${sp} − ${fmt(sp/2)} = ${fmt(sp/2)} feet.` }] };
+}
+
+// 15. The DM's Chair: judgment calls. Several answers are defensible; the Guildmaster explains the best one.
+const CHAIR = [
+  { f:`A player wants to leap off the balcony onto the Ogre's back and stab it.`, q:`What do you do?`, a:'Ask for a Dexterity (Acrobatics) check, DC 15. Success: Advantage on the attack. Failure: they land Prone next to it.', w:['Say no, that isn\'t in the rules','Let it work automatically because it\'s cool','Make them roll Athletics, Acrobatics and Stealth, all DC 20'], s:`One check, a clear DC, and something interesting on BOTH results. Saying no kills the fun. Automatic success makes the dice pointless. Three checks is a wall of math that mostly produces failure.` },
+  { f:`In the middle of a fight, a player says you're running Opportunity Attacks wrong and wants to look it up now.`, q:`What do you do?`, a:'Make a quick ruling, keep the fight moving, and check the book together after the session', w:['Stop the game and read the rules page aloud','Tell them the DM is always right','Let the player decide'], s:`The 2024 DMG says it outright: rule quickly, look it up later. Keeping the pace matters more than being perfectly right in the moment.` },
+  { f:`One player hasn't said anything for twenty minutes. The other three are doing all the talking.`, q:`What do you do?`, a:'Turn to them and ask what their character does, with something simple to react to', w:['Leave them alone; they\'re probably fine','Give them bonus XP for being quiet','Have a monster attack them to force a reaction'], s:`Spotlight sharing is the DM's job. A direct, low-pressure question ("Pip, you notice the mayor's hands are shaking. What do you do?") pulls them in without putting them on the spot.` },
+  { f:`You spent the week preparing the Sunken Chapel. The party decides to go to the swamp instead.`, q:`What do you do?`, a:'Follow them to the swamp, and quietly reuse the chapel\'s rooms and monsters there', w:['Block the swamp with an impassable wall','Tell them the swamp is boring and they should go to the chapel','Cancel the session'], s:`Players choose; the DM adapts. Prepared material is a toolbox, not a script. Moving your dungeon is a classic DM trick they will never notice.` },
+  { f:`A player rolls a natural 1 on Persuasion trying to get the mayor's help.`, q:`What happens?`, a:'The mayor refuses, but lets slip what might change his mind', w:['Nothing happens; try again next turn','The mayor throws them in jail forever','The mayor helps anyway'], s:`Fail forward. A failed check should change the situation, not stall it. Now the players have a new goal instead of a dead end.` },
+  { f:`The players have been whispering about a plan for fifteen minutes and nothing is happening.`, q:`What do you do?`, a:'Make something happen: footsteps in the corridor, the torch flickers, a door creaks', w:['Wait silently until they finish','Tell them to hurry up','Skip to the next day'], s:`The world keeps moving. A small event resets the pace and gives them a reason to act now. It's a nudge, not a punishment.` },
+  { f:`A player wants their character to fly up to the tower window. They have no wings, no spell, no rope.`, q:`What do you do?`, a:'Ask what they\'re trying to achieve, then offer a way that could work: the ivy, the drainpipe, a distraction', w:['Just let them fly','Flat no, next player','Make them roll a DC 30 check'], s:`"No, but..." is the DM's best phrase. Find the goal behind the ask and turn it into a real choice with real risk.` },
+  { f:`The big fight you planned is going badly for the monsters. Two rounds in, it's nearly over and the heroes barely got scratched.`, q:`What do you do?`, a:'Change the situation: reinforcements arrive, the floor starts to collapse, the boss flees to fight another day', w:['Secretly double the boss\'s HP forever','Let it end and sulk','Have the boss suddenly deal triple damage'], s:`Adjust the story, not the dice. Reinforcements and terrain are things the players can see and react to. Secretly inflating numbers cheats them without them knowing.` },
+  { f:`A player's character dies in the fight. The player looks really upset.`, q:`What do you do?`, a:'Let it be real and honor it, give the player a moment, then help them bring in a new character quickly', w:['Reveal it was all a dream','Say the character was only knocked out, every time','Tell them to stop being upset'], s:`Death only means something if it can happen. But the person matters more than the character: check in, keep them in the game, get them back at the table fast.` },
+  { f:`A player asks "What's the Orc's AC?" before attacking.`, q:`What do you do?`, a:'Don\'t say the number; tell them whether their roll hits, and after a few rolls they\'ll work it out', w:['Tell them exactly: AC 13','Refuse to ever tell them anything about the monster','Change the AC so they can\'t figure it out'], s:`"Does a 15 hit?" keeps a little mystery and makes the players pay attention. Letting them deduce the AC over a few turns is a reward for thinking.` },
+  { f:`The rogue says "I search the hallway for traps" and rolls a 4.`, q:`How do you handle the roll?`, a:'Use their Passive Perception, or roll in secret, so a bad roll doesn\'t tell them a trap is there', w:['Say "You find nothing" with a big grin','Tell them exactly where the trap is','Make them roll again until they pass'], s:`A visible failed roll leaks information: now they know something is there. Passive scores and secret rolls keep the suspense honest.` },
+  { f:`Two players are arguing about who gets the magic sword. It's getting heated.`, q:`What do you do?`, a:'Let the characters talk it out in the game for a minute; if it drags, suggest a fair way to decide and move on', w:['Decide for them: the fighter gets it','Take the sword away','Let them fight to the death'], s:`A little in-character arguing is roleplay. A lot is a stalled game. Step in as the referee only when the fun stops.` },
+  { f:`You realize you ruled a rule wrong last session, and it cost the wizard a spell slot.`, q:`What do you do?`, a:'Tell the table at the start, fix it going forward, and give the wizard the slot back', w:['Say nothing and hope no one noticed','Rewind the whole session','Insist you were right'], s:`DMs make mistakes. Owning it builds trust, and trust is what makes players follow you into the dark.` },
+  { f:`It's ten minutes before the end of the session and the party just opened the door to the boss's lair.`, q:`What do you do?`, a:'Describe the lair, let the boss say one line, and end on a cliffhanger', w:['Rush through the whole boss fight in ten minutes','Pretend the door was locked','Keep playing until everyone has to leave'], s:`A cliffhanger makes everyone want next session to come faster. A rushed boss fight is a waste of your best scene.` },
+];
+function genChair(){
+  const c = pick(CHAIR);
+  return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Which choice keeps the game moving AND keeps it fair?`, solution:c.s }] };
+}
+
+// ---------- The lesson list ----------
+const MODULES = [
+  { id:'dice', section:'numbers', sigil:'d6', title:'The Dice Oracle', tag:'Average, biggest and smallest rolls',
+    lesson:`<p>A DM needs to know what dice <em>usually</em> do, not just what they can do. The trick:</p>
+      <p><span class="rule">average of one die = (sides + 1) ÷ 2</span></p>
+      <div class="tablewrap"><table><tr><th>Die</th><td>d4</td><td>d6</td><td>d8</td><td>d10</td><td>d12</td><td>d20</td></tr>
+      <tr><th>Average</th><td>2.5</td><td>3.5</td><td>4.5</td><td>5.5</td><td>6.5</td><td>10.5</td></tr></table></div>
+      <p>For something like <b>2d8+4</b>: two dice × 4.5 = 9, plus 4 = 13. The Monster Manual rounds down when it prints averages.</p>
+      <p><b>Why a DM cares:</b> if an ogre averages 13 damage and your wizard has 12 HP, you just learned something important before the fight started.</p>`,
+    gens:[genDiceAverage, genDiceStatBlock, genDiceMaxMin, genDiceCompare, genDiceOverFight] },
+  { id:'hit', section:'numbers', sigil:'AC', title:'Hit or Miss', tag:'d20 odds, as percents',
+    lesson:`<p>A d20 has 20 faces, so each face is <span class="rule">5%</span> (100 ÷ 20).</p>
+      <ul><li><b>Roll needed</b> = Armor Class − attack bonus.</li>
+      <li><b>Faces that hit</b> = 21 − roll needed.</li>
+      <li><b>Chance</b> = faces × 5%.</li></ul>
+      <p>Example: +5 to hit against AC 13. Need 8. Faces 8 through 20 is 13 faces. 13 × 5 = <b>65%</b>.</p>
+      <p>Two house facts: a natural 20 always hits and a natural 1 always misses. <b>Advantage</b> means rolling twice and keeping the better one, which is the Guildmaster challenge in this lesson.</p>`,
+    gens:[genHitChance, genHitChance, genNeedRoll, genAdvantage] },
+  { id:'encounter', section:'numbers', sigil:'XP', title:'Encounter Architect', tag:'Build fair fights (or deadly ones)',
+    lesson:`<p>Every fight has an XP price. Compare it to what your party can handle. (This is the 2024 Dungeon Master's Guide method.)</p>
+      <p><b>Step 1.</b> Find the budget. Each hero's level gives an XP number per difficulty; multiply by the number of heroes.</p>
+      <div class="tablewrap"><table><tr><th>Hero level</th><th>Low</th><th>Moderate</th><th>High</th></tr>
+      <tr><td>1</td><td>50</td><td>75</td><td>100</td></tr><tr><td>2</td><td>100</td><td>150</td><td>200</td></tr>
+      <tr><td>3</td><td>150</td><td>225</td><td>400</td></tr><tr><td>4</td><td>250</td><td>375</td><td>500</td></tr>
+      <tr><td>5</td><td>500</td><td>750</td><td>1100</td></tr></table></div>
+      <p><b>Step 2.</b> Add up the monsters' XP. <b>Step 3.</b> Compare the total to the budgets. <b>Low</b> means the heroes will win but spend some resources. <b>Moderate</b> can knock someone to 0 HP. <b>High</b> can kill a hero if luck goes badly.</p>
+      <p>The old 2014 rules multiplied XP for groups of monsters. The 2024 book dropped that, but a DM still knows that six goblins acting together are nastier than their XP suggests.</p>`,
+    gens:[genEncounterBuild, genEncounterBuild, genEncounterFit] },
+  { id:'treasure', section:'numbers', sigil:'gp', title:'The Treasure Split', tag:'Loot, coins and shop math',
+    lesson:`<p>Coins climb a ladder of tens: <span class="rule">10 cp = 1 sp</span> <span class="rule">10 sp = 1 gp</span> <span class="rule">10 gp = 1 pp</span>. Converting is just moving the decimal point.</p>
+      <p>When the party splits loot, divide and keep the remainder as a party fund (it pays for rope and healing potions). Shops pay half price for used gear, and a guild that wants "10%" wants a tenth.</p>
+      <p><b>Why a DM cares:</b> players argue about gold more than anything else. The DM who can split 347 gold five ways in their head ends the argument.</p>`,
+    gens:[genLootSplit, genCoinConvert, genShopping, genTithe, genSellLoot] },
+  { id:'monster', section:'numbers', sigil:'HP', title:'Monster Maker', tag:'Modifiers, hit points, pacing',
+    lesson:`<p><b>Ability modifiers.</b> <span class="rule">(score − 10) ÷ 2, rounded down</span>. Strength 16 → +3. Strength 7 → (7 − 10) ÷ 2 = −1.5, rounded down to <b>−2</b>. Rounding down means toward the smaller number, so negatives get bigger.</p>
+      <p><b>Hit points.</b> Monsters list HP as dice, like 7d10+21. Average them like damage dice. Track HP by subtracting as the fight goes.</p>
+      <p><b>Pacing.</b> Divide a monster's HP by the party's damage per round to guess how many rounds a fight lasts. Round UP; a monster on 1 HP still gets a turn. A 3-round fight is snappy. A 10-round fight needs a twist.</p>`,
+    gens:[genModifier, genModifier, genHpTrack, genRoundsToDrop, genHitDiceHp, genTrollRegen] },
+  { id:'map', section:'numbers', sigil:'5 ft', title:'Maps & Miles', tag:'Squares, areas and travel',
+    lesson:`<p>On a battle map <span class="rule">1 square = 5 feet</span>. Speed 30 means 6 squares. A radius goes from the center to the edge, so a 20-foot-radius fireball is 40 feet (8 squares) across.</p>
+      <p>Room size is length × width (in squares or feet). The distance around a room is the perimeter: add all four walls.</p>
+      <p>Overland, a party at normal pace walks <span class="rule">24 miles a day</span>. Divide the distance by 24 for days; the remainder is the last short day.</p>`,
+    gens:[genRoom, genBlast, genTravel, genSpeed, genPerimeter] },
+  { id:'damage', section:'numbers', sigil:'½', title:'Damage Doctor', tag:'Resist, crit, save and heal',
+    lesson:`<ul><li><b>Resistance</b>: half damage, rounded down.</li>
+      <li><b>Vulnerability</b>: double damage.</li>
+      <li><b>Critical hit</b>: roll all the damage dice twice. Add the bonus once.</li>
+      <li><b>Successful save</b> against many spells: half damage, rounded down.</li>
+      <li><b>Healing</b> never raises HP above the maximum. Damage never takes it below 0.</li></ul>
+      <p><b>Why a DM cares:</b> these come up every single session, and players will happily "forget" the ones that hurt them.</p>`,
+    gens:[genResist, genVulnerable, genCrit, genGroupAttack, genHeal, genSaveHalf] },
+  { id:'hero', section:'rules', sigil:'PB', title:'Building a Hero', tag:'Proficiency, hit points, attack bonuses',
+    lesson:`<p>Three numbers run everything on a character sheet.</p>
+      <ul><li><b>Ability modifier</b> = (score − 10) ÷ 2, rounded down. Strength 16 is +3.</li>
+      <li><b>Proficiency Bonus</b> depends only on level: <span class="rule">+2 at levels 1–4</span> <span class="rule">+3 at 5–8</span> <span class="rule">+4 at 9–12</span>. You add it to things you're trained in: weapons, skills, saving throws, spells.</li>
+      <li><b>Attack bonus</b> = ability modifier + Proficiency Bonus (if proficient). <b>Skill bonus</b> works the same way.</li></ul>
+      <p><b>Hit points.</b> At level 1 you get the top number of your class's Hit Point Die plus your Con modifier. Every level after that you roll the die (or take the fixed number: d6 → 4, d8 → 5, d10 → 6, d12 → 7) and add Con again.</p>
+      <div class="tablewrap"><table><tr><th>Hit Point Die</th><th>Classes</th></tr><tr><td>d12</td><td>Barbarian</td></tr><tr><td>d10</td><td>Fighter, Paladin, Ranger</td></tr><tr><td>d8</td><td>Bard, Cleric, Druid, Monk, Rogue, Warlock</td></tr><tr><td>d6</td><td>Sorcerer, Wizard</td></tr></table></div>
+      <p><b>Passive Perception</b> = 10 + Wisdom modifier (+ Proficiency Bonus if proficient). It's the number a sneaking monster has to beat, no roll needed. <b>Carrying capacity</b> = Strength score × 15 pounds.</p>`,
+    gens:[genProfBonus, genAttackBonus, genStartingHp, genLevelUpHp, genCarry, genPassivePerception, genSkillBonus, genSpellAbility] },
+  { id:'d20', section:'rules', sigil:'DC', title:'The d20 Test', tag:'Checks, saves, DCs, advantage',
+    lesson:`<p>Almost everything is a <b>D20 Test</b>: roll a d20, add modifiers, compare to a target. There are three kinds: <b>ability checks</b> (skills), <b>saving throws</b>, and <b>attack rolls</b>. Meet it or beat it.</p>
+      <p>You set the <b>Difficulty Class</b>:</p>
+      <div class="tablewrap"><table><tr><th>Task</th><td>Very easy</td><td>Easy</td><td>Medium</td><td>Hard</td><td>Very hard</td><td>Nearly impossible</td></tr>
+      <tr><th>DC</th><td>5</td><td>10</td><td>15</td><td>20</td><td>25</td><td>30</td></tr></table></div>
+      <p><b>Advantage</b>: roll two d20s, keep the higher. <b>Disadvantage</b>: keep the lower. They never stack, and if you have both they cancel to a single normal roll.</p>
+      <p><b>Natural 20 and 1.</b> On attack rolls and saving throws, a 20 always succeeds and a 1 always fails. Ability checks get no such luck. <b>Heroic Inspiration</b> lets a player reroll any D20 Test.</p>
+      <p><b>Skills by ability.</b> Str: Athletics. Dex: Acrobatics, Sleight of Hand, Stealth. Int: Arcana, History, Investigation, Nature, Religion. Wis: Animal Handling, Insight, Medicine, Perception, Survival. Cha: Deception, Intimidation, Performance, Persuasion. Hiding is a DC 15 Stealth check.</p>`,
+    gens:[genCheckVsDc, genNeedForDc, genWhichSkill, genWhichSkill, genDcLadder, genAdvRules, genAdvRules] },
+  { id:'combat', section:'rules', sigil:'⚔', title:'The Combat Round', tag:'Turns, actions, movement, cover',
+    lesson:`<p>A round is 6 seconds. Everyone rolls <b>Initiative</b> (d20 + Dex modifier) and acts from highest to lowest.</p>
+      <p>On your turn you get: <b>movement</b> up to your Speed (split it up however you like), <b>one Action</b>, <b>one Bonus Action</b> if something gives you one, and one free object interaction. You get <b>one Reaction</b> per round, which comes back at the start of your turn.</p>
+      <p>The 12 actions: Attack, Dash, Disengage, Dodge, Help, Hide, Influence, Magic, Ready, Search, Study, Utilize.</p>
+      <ul><li><b>Opportunity Attack</b>: when an enemy leaves your reach without Disengaging, use your Reaction for one melee attack.</li>
+      <li><b>Difficult Terrain</b> costs 2 feet per foot. Climbing, swimming and crawling do too.</li>
+      <li><b>Cover</b>: Half Cover +2 AC and Dex saves, Three-Quarters +5, Total Cover can't be targeted.</li>
+      <li><b>Jumping</b>: Long Jump = Strength score in feet (half from standing). High Jump = 3 + Str modifier.</li>
+      <li><b>Falling</b>: 1d6 per 10 feet, max 20d6, and you land Prone.</li>
+      <li><b>Two weapons</b>: with a Light weapon in each hand, the extra attack is a Bonus Action and doesn't add your ability modifier to damage.</li>
+      <li><b>Grapple and Shove</b> are Unarmed Strikes: the target saves against DC 8 + Str modifier + Proficiency Bonus.</li></ul>`,
+    gens:[genInitiative, genDifficultTerrain, genJump, genFall, genCover, genActions, genActions, genTurnBudget, genTurnBudget, genTwoWeapon, genGrapple] },
+  { id:'survive', section:'rules', sigil:'0 HP', title:'Hit Points & Dying', tag:'Death saves, rests, healing, concentration',
+    lesson:`<p><b>At 0 HP</b> you fall Unconscious. Each turn, roll a <b>Death Saving Throw</b>: 10 or higher is a success, 9 or lower a failure. Three successes: stable. Three failures: dead. A natural 1 counts as two failures. A natural 20: you're back up with 1 HP. Taking damage at 0 HP is a failure (two for a crit).</p>
+      <p><b>Instant death</b>: if the damage that drops you to 0 has leftover equal to or more than your max HP, you die outright. A friend can stabilize you with a DC 10 Wisdom (Medicine) check.</p>
+      <p><b>Rests.</b> A <b>Short Rest</b> is 1 hour: spend Hit Point Dice, each healing the roll + Con modifier. A <b>Long Rest</b> is 8 hours: all HP back, plus half your total Hit Point Dice (minimum 1).</p>
+      <p><b>Healing.</b> Potion of Healing: 2d4 + 2, drunk as a Bonus Action. Cure Wounds: 2d8 + spellcasting modifier, +2d8 per slot level above 1. Healing never passes max HP. <b>Temporary HP</b> don't stack: keep the higher amount.</p>
+      <p><b>Concentration.</b> When you take damage, make a Con save: DC 10 or half the damage, whichever is higher. <b>Exhaustion</b>: −2 on D20 Tests and −5 feet Speed per level. Level 6 is death.</p>`,
+    gens:[genInstantDeath, genDeathSave, genDeathSave, genConcentration, genTempHp, genShortRest, genLongRest, genCureWounds, genExhaustion] },
+  { id:'spells', section:'rules', sigil:'✦', title:'Spellbook', tag:'Slots, save DCs, scaling, areas',
+    lesson:`<p><b>Spell slots</b> are your ammunition. A level 3 wizard or cleric has 4 level-1 slots and 2 level-2 slots. <b>Cantrips</b> are free and unlimited, and their damage grows at levels 5, 11 and 17.</p>
+      <p><b>Spell save DC</b> = 8 + Proficiency Bonus + spellcasting modifier. <b>Spell attack</b> = Proficiency Bonus + modifier. Wizards use Intelligence; Clerics, Druids and Rangers use Wisdom; Bards, Paladins, Sorcerers and Warlocks use Charisma.</p>
+      <p><b>Using a higher slot</b> makes many spells stronger: Magic Missile gets an extra dart, Scorching Ray an extra ray, Cure Wounds an extra 2d8.</p>
+      <p><b>Concentration</b>: one Concentration spell at a time. <b>Areas</b>: Fireball is a 20-foot-radius Sphere, Burning Hands a 15-foot Cone, Lightning Bolt a 100-foot Line, Thunderwave a 15-foot Cube.</p>`,
+    gens:[genSlots, genCantripScale, genMagicMissile, genSpellDc, genScorchingRay, genSpellRules, genSpellRules] },
+  { id:'armory', section:'rules', sigil:'1d8', title:'The Armory', tag:'Weapons, armor, masteries',
+    lesson:`<p><b>Armor Class.</b> Light armor adds your full Dex modifier. Medium armor adds Dex up to +2. Heavy armor ignores Dex. A shield adds +2 to any of them. No armor: 10 + Dex.</p>
+      <div class="tablewrap"><table><tr><th>Armor</th><th>AC</th><th>Dex</th></tr><tr><td>Leather / Studded</td><td>11 / 12</td><td>full</td></tr><tr><td>Chain shirt / Breastplate / Half plate</td><td>13 / 14 / 15</td><td>max +2</td></tr><tr><td>Chain mail / Splint / Plate</td><td>16 / 17 / 18</td><td>none</td></tr></table></div>
+      <p><b>Weapons.</b> Melee uses Strength, ranged uses Dexterity. <b>Finesse</b> lets you pick either. <b>Versatile</b> weapons do a bigger die in two hands. <b>Light</b> weapons can be paired. <b>Heavy</b> weapons need Strength 13 (melee) or Dex 13 (ranged) or you have Disadvantage.</p>
+      <p><b>Weapon Mastery</b> (new in 2024): Fighters, Barbarians, Paladins, Rangers and Rogues unlock a bonus effect per weapon. Cleave, Graze, Nick, Push, Sap, Slow, Topple, Vex.</p>`,
+    gens:[genArmorClass, genArmorClass, genFinesse, genVersatile, genMastery, genGraze, genRanged] },
+  { id:'conditions', section:'rules', sigil:'KO', title:'Condition Codex', tag:'Prone, Poisoned, Paralyzed and friends',
+    lesson:`<p>Conditions are the rules' way of saying "something is wrong with you". The ones that come up most:</p>
+      <ul><li><b>Prone</b>: half your Speed to stand; melee attacks against you have Advantage, ranged ones Disadvantage.</li>
+      <li><b>Poisoned</b>: Disadvantage on attacks and checks.</li>
+      <li><b>Frightened</b>: Disadvantage while the source is in sight; can't move closer.</li>
+      <li><b>Grappled / Restrained</b>: Speed 0. Restrained also gives attackers Advantage.</li>
+      <li><b>Incapacitated</b>: no Actions, Bonus Actions or Reactions; Concentration breaks.</li>
+      <li><b>Paralyzed / Unconscious</b>: Incapacitated, auto-fail Str and Dex saves, and hits from within 5 feet are Critical Hits.</li>
+      <li><b>Invisible</b>: attacks against you have Disadvantage, yours have Advantage.</li></ul>
+      <p>A DM who knows these cold keeps the fight moving. Players will happily "forget" the ones that hurt them.</p>`,
+    gens:[genConditionName, genConditionName, genConditionEffect, genConditionEffect, genProneStand] },
+  { id:'chair', section:'rules', sigil:'DM', title:"The DM's Chair", tag:'Judgment calls at the table',
+    lesson:`<p>Rules tell you what the dice do. This lesson is about what <b>you</b> do. There's rarely one right answer, but there's usually a best one.</p>
+      <ul><li><b>Keep it moving.</b> Rule quickly, look it up later. A game that stalls is a game that ends early.</li>
+      <li><b>Say "yes, and" or "no, but".</b> Find the goal behind a wild idea and offer a way it could work, with a cost.</li>
+      <li><b>Fail forward.</b> A failed roll should change the situation, not stop it.</li>
+      <li><b>Share the spotlight.</b> Every player should do something cool every session.</li>
+      <li><b>Prepare situations, not scripts.</b> Players will go where you didn't expect. Bring your prep with you.</li>
+      <li><b>Be a fair referee.</b> Adjust the story in the open, never the dice in secret.</li></ul>`,
+    gens:[genChair] },
+  { id:'boss', section:'mixed', sigil:'!!', title:'Boss Fight', tag:'Answer to attack. Miss twice and it hits back.', special:'boss', gens:[] },
+  { id:'mixed', section:'mixed', sigil:'?', title:'Random Encounter', tag:'Numbers and rules, shuffled together', mixed:true,
+    lesson:`<p>Anything from any lesson. This is what a real session feels like: you never know which bit of math is coming next.</p>`,
+    gens:[] },
+];
+
+const GEN_INDEX = {}; MODULES.forEach(m => m.gens.forEach(g => { GEN_INDEX[g.name] = GEN_INDEX[g.name] || { gen:g, mod:m }; }));
+
+// ---------- Rank / XP ----------
+function rankFor(xp){
+  let i = 0; while(i+1 < RANKS.length && xp >= RANKS[i+1][0]) i++;
+  const next = RANKS[i+1];
+  return { name:RANKS[i][1], idx:i, floor:RANKS[i][0], next: next ? next[0] : null };
+}
+function renderRank(){
+  const r = rankFor(progress.xp);
+  $('rank-name').textContent = r.name; setArt($('rank-art'), 'rank-' + (r.idx + 1), '');
+  $('rank-xp').textContent = r.next ? `${progress.xp} / ${r.next} XP` : `${progress.xp} XP`;
+  $('rank-bar').style.width = r.next ? Math.min(100, (progress.xp - r.floor)/(r.next - r.floor)*100) + '%' : '100%';
+}
+function addXp(n){
+  const before = rankFor(progress.xp).idx;
+  progress.xp += n; save('pda-progress', progress); renderRank();
+  const after = rankFor(progress.xp);
+  if(after.idx > before){
+    const newly = MONSTERS.filter(m => m.xp > UNLOCK_XP[before] && m.xp <= UNLOCK_XP[after.idx]).map(m => m.n);
+    toast(`Rank up! You are now a ${after.name}.` + (newly.length ? ` Unlocked: ${newly.join(', ')}.` : ''));
+  }
+}
+let toastTimer;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 3200); }
+
+// ---------- Views ----------
+const VIEWS = ['home','module','boss','tracker','dice-tray','parent'];
+function show(view){
+  VIEWS.forEach(v => { $('view-'+v).hidden = v !== view; });
+  document.querySelectorAll('nav button').forEach(b => { if(b.dataset.view === view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  if(view === 'home'){ renderDaily(); renderHall(); }
+  if(view === 'boss' && !boss.active) renderBossPick();
+  if(view === 'tracker') renderTracker();
+  if(view === 'dice-tray') renderLab();
+  if(view === 'parent') renderParent();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => { history.replaceState(null,'','#'+b.dataset.view); show(b.dataset.view); }));
+$('back-home').addEventListener('click', () => { history.replaceState(null,'','#home'); show('home'); });
+
+function stars(correct){ return correct>=50 ? '★★★' : correct>=25 ? '★★☆' : correct>=10 ? '★☆☆' : '☆☆☆'; }
+function renderHall(){
+  $('greeting').textContent = settings.dm ? `Welcome back, DM ${settings.dm}.` : 'Welcome, Dungeon Master.';
+  const hall = $('hall'); hall.textContent = '';
+  const SECTIONS = [['numbers','The Numbers','Math a DM does at the table'],['rules','The Rules','From the 2024 Player\'s Handbook'],['mixed','Put It to the Test','']];
+  SECTIONS.forEach(([key, title, sub]) => {
+  const head = document.createElement('div'); head.className = 'hall-head';
+  const h = document.createElement('h3'); h.textContent = title; head.append(h);
+  if(sub){ const p = document.createElement('span'); p.textContent = sub; head.append(p); }
+  hall.append(head);
+  MODULES.filter(m => m.section === key).forEach(m => {
+    const p = progress.modules[m.id] || {correct:0, tries:0};
+    const card = document.createElement('button'); card.type = 'button'; card.className = 'card' + (m.mixed || m.special ? ' mixed' : ''); card.id = 'card-'+m.id;
+    const sig = document.createElement('div'); sig.className = 'sigil'; setArt(sig, m.id, m.sigil);
+    const h = document.createElement('h3'); h.textContent = m.title;
+    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = m.tag;
+    const prog = document.createElement('div'); prog.className = 'prog';
+    if(m.special === 'boss'){ const n = Object.values(progress.bosses || {}).reduce((a,b)=>a+b,0); prog.textContent = n ? `${n} ${n===1?'trophy':'trophies'}` : 'No trophies yet'; }
+    else if(m.mixed){ prog.textContent = 'Mixes every lesson'; }
+    else { const s = document.createElement('span'); s.className = 'stars'; s.textContent = stars(p.correct); prog.append(s, document.createTextNode(`${p.correct} correct`)); }
+    card.append(sig, h, tag, prog);
+    card.addEventListener('click', () => { if(m.special === 'boss'){ history.replaceState(null,'','#boss'); show('boss'); } else openModule(m); });
+    hall.append(card);
+  });
+  });
+}
+
+// ---------- Question flow ----------
+let current = { module:null, problem:null, step:0, tries:0, choice:null };
+function openModule(m){
+  restoreQuest();
+  current.module = m;
+  setArt($('mod-sigil'), m.id, m.sigil); $('mod-title').textContent = m.title;
+  $('lesson-body').innerHTML = m.lesson;
+  const p = progress.modules[m.id] || {correct:0};
+  $('lesson').open = p.correct < 3 && !m.mixed;   // first visits open the lesson automatically
+  history.replaceState(null,'','#'+m.id);
+  show('module');
+  nextProblem();
+}
+function nextProblem(){
+  const m = current.module;
+  let src = m, gen = null, review = false;
+  // Smart review: sometimes bring back a question type he missed, until it's answered right twice.
+  const pool = m.mixed ? Object.keys(progress.review || {}) : Object.keys(progress.review || {}).filter(k => m.gens.some(g => g.name === k));
+  const due = pool.filter(k => GEN_INDEX[k]);
+  if(due.length && !boss.active && Math.random() < 0.35){ const k = pick(due); gen = GEN_INDEX[k].gen; src = GEN_INDEX[k].mod; review = true; }
+  else { if(m.mixed) src = pick(MODULES.filter(x => x.gens.length)); gen = pick(src.gens); }
+  current.problem = gen(); current.problem.from = src.id; current.problem.gen = gen.name; current.problem.review = review;
+  current.step = 0; current.tries = 0; current.choice = null;
+  $('challenge').hidden = !current.problem.challenge;
+  $('review-chip').hidden = !review;
+  $('flavor').textContent = current.problem.flavor;
+  if(m.mixed && !boss.active){ $('mod-title').textContent = `${m.title} · ${src.title}`; setArt($('mod-sigil'), src.id, src.sigil); }
+  renderSteps();
+}
+function renderStreak(){ const q = current.module && current.module.id === 'daily' ? `Quest ${Math.min(DAILY_GOAL, daily().done)} / ${DAILY_GOAL}` : ''; const st = streak >= 2 ? `Streak <b>${streak}</b>` : ''; $('streak').innerHTML = [q, st].filter(Boolean).join(' · '); }
+function renderSteps(){
+  const wrap = $('steps'); wrap.textContent = '';
+  const steps = current.problem.steps;
+  steps.forEach((st, i) => {
+    if(i > current.step) return;
+    const div = document.createElement('div'); div.className = 'step' + (i < current.step ? ' done' : '');
+    const q = document.createElement('p'); q.className = 'q'; q.textContent = st.q; div.append(q);
+    if(i < current.step){
+      const a = document.createElement('div'); a.textContent = 'Answer: ' + (typeof st.answer === 'number' ? fmt(st.answer) : st.answer); a.style.fontVariantNumeric = 'tabular-nums'; div.append(a);
+    } else {
+      if(st.choices){
+        const ch = document.createElement('div'); ch.className = 'choices';
+        st.choices.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.setAttribute('aria-pressed','false');
+          b.addEventListener('click', () => { current.choice = c; ch.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x===b))); });
+          ch.append(b); });
+        div.append(ch);
+      } else {
+        const row = document.createElement('div'); row.className = 'answer';
+        const inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'answer-input'; inp.autocomplete = 'off'; inp.setAttribute('aria-label','Your answer');
+        inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); check(); } });
+        row.append(inp); div.append(row);
+        setTimeout(() => inp.focus(), 50);
+      }
+    }
+    wrap.append(div);
+  });
+  $('feedback').hidden = true; $('feedback').className = 'feedback';
+  const act = $('actions'); act.textContent = '';
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.id = 'check-btn'; btn.textContent = 'Check'; btn.addEventListener('click', check);
+  act.append(btn);
+  renderStreak();
+}
+function feedback(kind, title, body, extra){
+  const f = $('feedback'); f.hidden = false; f.className = 'feedback ' + kind; f.textContent = '';
+  const b = document.createElement('b'); b.textContent = title; f.append(b);
+  if(body){ const p = document.createElement('div'); p.className = 'sol'; p.textContent = body; f.append(p); }
+  if(extra){ const p = document.createElement('div'); p.className = 'xpgain'; p.textContent = extra; f.append(p); }
+}
+function record(correct){
+  const id = current.problem.from; const p = progress.modules[id] || {correct:0, tries:0};
+  p.tries++; if(correct) p.correct++; progress.modules[id] = p;
+  if(correct){ streak++; if(streak > progress.bestStreak) progress.bestStreak = streak; } else streak = 0;
+  // Smart review bookkeeping
+  const g = current.problem.gen; progress.review = progress.review || {};
+  if(!correct) progress.review[g] = 2;   // bring it back until it's answered right twice
+  else if(current.tries === 0 && progress.review[g]){ progress.review[g]--; if(progress.review[g] <= 0) delete progress.review[g]; }
+  // Activity by day (for the Parent view)
+  progress.days = progress.days || {}; const t = today(); progress.days[t] = (progress.days[t] || 0) + 1;
+  Object.keys(progress.days).sort().slice(0, -30).forEach(k => delete progress.days[k]);
+  // Daily quest
+  if(current.module && current.module.id === 'daily'){ const d = daily(); d.done++; if(d.done >= DAILY_GOAL && !d.complete){ d.complete = true; d.streak++; save('pda-progress', progress); addXp(DAILY_BONUS); toast(`Quest complete! +${DAILY_BONUS} XP. Day streak: ${d.streak}.`); } }
+  save('pda-progress', progress);
+}
+function check(){
+  const st = current.problem.steps[current.step];
+  let given, ok;
+  if(st.choices){
+    if(current.choice === null){ feedback('hint', 'Pick one of the choices first.'); return; }
+    given = current.choice; ok = given === st.answer;
+    document.querySelectorAll('.choices button').forEach(b => { if(b.textContent === given) b.classList.add(ok ? 'ok' : 'no'); });
+  } else {
+    const inp = $('answer-input'); given = parseAnswer(inp.value);
+    if(given === null){ feedback('hint', 'Type a number.', 'Decimals (5.5), fractions (5 1/2) and signs (+3, -2) all work.'); inp.focus(); return; }
+    ok = Math.abs(given - st.answer) < 0.011;
+    inp.classList.remove('ok','no'); inp.classList.add(ok ? 'ok' : 'no');
+  }
+  if(ok){
+    const base = current.tries === 0 ? 10 : 5, gain = base * (current.problem.challenge ? 2 : 1);
+    record(true); addXp(gain);
+    feedback('good', pick(PRAISE), st.solution, `+${gain} XP${current.tries===0 && streak>=3 ? ' · streak '+streak : ''}`);
+    if(boss.active) bossHit(current.tries === 0);
+    advance();
+  } else if(current.tries === 0){
+    current.tries = 1;
+    feedback('hint', 'Not quite. Hint:', st.hint);
+    if(!st.choices){ const inp = $('answer-input'); inp.select(); inp.focus(); }
+  } else {
+    record(false);
+    feedback('bad', 'Here is how the Guildmaster works it out:', st.solution);
+    if(boss.active) bossAttack();
+    advance();
+  }
+}
+function advance(){
+  const act = $('actions'); act.textContent = '';
+  const inp = $('answer-input'); if(inp) inp.disabled = true;
+  document.querySelectorAll('.choices button').forEach(b => b.disabled = true);
+  renderStreak();
+  if(boss.active && boss.over) return;   // the fight is decided; the arena shows the ending
+  const last = current.step >= current.problem.steps.length - 1;
+  const questDone = current.module.id === 'daily' && daily().complete;
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.id = 'next-btn';
+  btn.textContent = last ? (questDone ? 'Quest complete → Guild Hall' : 'Next question →') : 'Next step →';
+  btn.addEventListener('click', () => {
+    if(!last){ current.step++; current.tries = 0; current.choice = null; renderSteps(); }
+    else if(questDone){ history.replaceState(null,'','#home'); show('home'); }
+    else nextProblem();
+  });
+  act.append(btn);
+  btn.focus();
+}
+
+// ---------- Daily quest ----------
+function today(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function dayDiff(a, b){ const [y1,m1,d1] = a.split('-').map(Number), [y2,m2,d2] = b.split('-').map(Number); return Math.round((Date.UTC(y2,m2-1,d2) - Date.UTC(y1,m1-1,d1)) / 86400000); }
+function daily(){
+  const t = today(), prev = progress.daily;
+  if(!prev || prev.date !== t){
+    const carry = prev && prev.complete && dayDiff(prev.date, t) === 1 ? prev.streak : 0;
+    progress.daily = { date:t, done:0, complete:false, streak:carry }; save('pda-progress', progress);
+  }
+  return progress.daily;
+}
+function questName(){ return QUEST_NAMES[new Date().getDay()]; }
+function renderDaily(){
+  const d = daily(), box = $('daily'); box.textContent = '';
+  const sig = document.createElement('div'); sig.className = 'sigil'; setArt(sig, 'daily', 'Q');
+  const h = document.createElement('h3'); h.textContent = `Today's Quest: ${questName()}`;
+  const p = document.createElement('p');
+  p.textContent = d.complete ? `Done for today. +${DAILY_BONUS} XP claimed.${d.streak > 1 ? ' Day streak: ' + d.streak + '.' : ''} Come back tomorrow.`
+                             : `${DAILY_GOAL} questions from anywhere in the Academy. ${d.done} of ${DAILY_GOAL} done. Reward: +${DAILY_BONUS} XP${d.streak ? ' · day streak ' + d.streak : ''}.`;
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn' + (d.complete ? ' done' : ''); btn.id = 'daily-btn';
+  btn.textContent = d.complete ? 'Play more anyway' : d.done ? 'Continue the quest' : 'Start the quest';
+  btn.addEventListener('click', () => openModule({ id:'daily', mixed:true, sigil:'Q', title:questName(), gens:[],
+    lesson:`<p>Five questions from any lesson, a different quest every day. Finish it for +${DAILY_BONUS} XP, and keep a day streak going.</p>` }));
+  box.append(sig, h, p, btn);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && !$('view-module').hidden){ const n = $('next-btn'); if(n && document.activeElement !== n){ e.preventDefault(); n.click(); } } });
+
+// ---------- Boss fight ----------
+// Each correct answer is an attack: 2d6 + rank on the first try, 1d6 + rank after a hint, and a
+// streak of 3 makes it a Critical Hit (roll the dice twice). Two wrong answers and the boss attacks
+// with its real damage dice. Your HP grows with your rank.
+const boss = { active:false, over:false, mon:null, hp:0, heroHp:0, heroMax:0 };
+function rollDice(x){ const rolls = []; for(let i=0;i<x.n;i++) rolls.push(rand(1,x.d)); return { rolls, total: rolls.reduce((a,b)=>a+b,0) + x.m }; }
+function bossLog(line){ const log = $('boss-log'); const d = document.createElement('div'); d.textContent = line; log.prepend(d); while(log.children.length > 6) log.lastChild.remove(); }
+function renderBossBars(){
+  $('boss-hp').textContent = `${Math.max(0,boss.hp)} / ${boss.mon.hp}`; $('boss-bar').style.width = Math.max(0, boss.hp/boss.mon.hp*100) + '%';
+  $('hero-hp').textContent = `${Math.max(0,boss.heroHp)} / ${boss.heroMax}`; $('hero-bar').style.width = Math.max(0, boss.heroHp/boss.heroMax*100) + '%';
+}
+function renderBossPick(){
+  const grid = $('boss-grid'); grid.textContent = '';
+  const r = rankFor(progress.xp), trophies = progress.bosses || {};
+  MONSTERS.slice().sort((a,b)=>a.xp-b.xp || a.hp-b.hp).forEach(mon => {
+    const locked = mon.xp > UNLOCK_XP[r.idx];
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'boss-card'; b.id = 'boss-'+mon.n.replace(/\s+/g,'-').toLowerCase(); b.disabled = locked;
+    const art = document.createElement('div'); art.className = 'sigil'; setArt(art, monSlug(mon.n), mon.n.charAt(0));
+    const h = document.createElement('h3'); h.textContent = mon.n;
+    const st = document.createElement('div'); st.className = 'stat'; st.textContent = `${mon.hp} HP · hits for ${mon.atk} · ${mon.xp} XP`;
+    const tr = document.createElement('div'); tr.className = 'trophy';
+    if(locked){ const i = UNLOCK_XP.findIndex(x => x >= mon.xp); tr.textContent = `Locked until ${RANKS[i][1]}`; }
+    else tr.textContent = trophies[mon.n] ? `Defeated ×${trophies[mon.n]}` : 'Never beaten';
+    b.append(art, h, st, tr); b.addEventListener('click', () => bossStart(mon)); grid.append(b);
+  });
+}
+function bossStart(mon){
+  const r = rankFor(progress.xp);
+  Object.assign(boss, { active:true, over:false, mon, hp:mon.hp, heroHp:20 + 6*r.idx, heroMax:20 + 6*r.idx });
+  $('boss-pick').hidden = true; $('boss-arena').hidden = false; $('boss-end').hidden = true; $('boss-end').textContent = '';
+  $('boss-title').textContent = `${mon.n} of ${place()}`; $('boss-name').textContent = mon.n; setArt($('boss-sigil'), monSlug(mon.n), '!!');
+  $('hero-name').textContent = settings.dm ? `DM ${settings.dm}` : 'You';
+  $('boss-log').textContent = ''; bossLog(`${an(mon.n)} blocks the road. Answer to attack!`);
+  $('boss-arena').append($('quest')); $('quest').hidden = false;
+  renderBossBars();
+  current.module = { id:'boss', mixed:true, gens:[], title:'Boss' };
+  nextProblem();
+}
+function bossHit(firstTry){
+  const r = rankFor(progress.xp).idx, crit = firstTry && streak >= 3 && streak % 3 === 0;
+  const roll = rollDice(firstTry ? {n: crit ? 4 : 2, d:6, m:r} : {n:1, d:6, m:r});
+  boss.hp -= roll.total;
+  bossLog(`${crit ? 'CRITICAL HIT! Streak of ' + streak + ', so the dice are rolled twice. ' : ''}You hit the ${boss.mon.n} for ${roll.total} (${roll.rolls.join(' + ')}${r ? ' + ' + r : ''}).`);
+  renderBossBars();
+  if(boss.hp <= 0) bossEnd(true);
+}
+function bossAttack(){
+  const atk = parseDice(boss.mon.atk), roll = rollDice(atk);
+  boss.heroHp -= roll.total;
+  bossLog(`The ${boss.mon.n}'s ${boss.mon.weapon} hits you for ${roll.total} (${atk.text}: ${roll.rolls.join(' + ')}${atk.m ? ' + ' + atk.m : ''}).`);
+  renderBossBars();
+  if(boss.heroHp <= 0) bossEnd(false);
+}
+function bossEnd(won){
+  boss.over = true;
+  const box = $('boss-end'); box.hidden = false; box.className = 'boss-end ' + (won ? 'win' : 'lose'); box.textContent = '';
+  const h = document.createElement('h3'); const p = document.createElement('p'); p.style.margin = '0';
+  if(won){
+    const gain = Math.min(100, Math.max(10, Math.round(boss.mon.xp/10)));
+    progress.bosses = progress.bosses || {}; progress.bosses[boss.mon.n] = (progress.bosses[boss.mon.n] || 0) + 1; save('pda-progress', progress);
+    addXp(gain);
+    h.textContent = `The ${boss.mon.n} falls!`; p.textContent = `Trophy claimed. +${gain} XP. ${pick(PRAISE)}`;
+  } else {
+    h.textContent = `You're down.`; p.textContent = `The Guildmaster drags you back to the inn. The ${boss.mon.n} had ${Math.max(0,boss.hp)} HP left. Rest up and try again.`;
+  }
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.id = 'boss-done'; btn.textContent = won ? 'Back to the bosses' : 'Try again later';
+  btn.addEventListener('click', bossLeave);
+  box.append(h, p, btn);
+  $('quest').hidden = true;
+  btn.focus();
+}
+function restoreQuest(){ const panel = $('view-module').querySelector('.panel'); $('quest').hidden = false; if($('quest').parentElement !== panel) panel.append($('quest')); }
+function bossLeave(){
+  boss.active = false; boss.over = false;
+  restoreQuest();
+  $('boss-arena').hidden = true; $('boss-pick').hidden = false;
+  renderBossPick();
+}
+$('boss-flee').addEventListener('click', bossLeave);
+
+// ---------- Initiative tracker ----------
+// Saved in this browser so a fight survives a page refresh. Each combatant: name, init, hp/max, ac, kind, conditions, death saves.
+let trk = load('pda-tracker', {round:1, turn:0, open:null, list:[]});
+function trkSave(){ save('pda-tracker', trk); }
+function trkNote(text, bad){ const n = $('trk-note'); n.hidden = !text; n.className = 'trk-note' + (bad ? ' bad' : ''); n.textContent = text || ''; }
+function trkAdd(c){
+  let name = c.name, k = 2; while(trk.list.some(x => x.name === name)) name = `${c.name} ${k++}`;
+  trk.list.push({ id: Date.now() + Math.random(), name, init: c.init ?? null, hp: c.hp ?? null, max: c.hp ?? null, ac: c.ac ?? null, kind: c.kind || 'hero', conds: [], ds: [0,0] });
+}
+function trkSort(){
+  const cur = trk.list[trk.turn] && trk.list[trk.turn].id;
+  trk.list.sort((a,b) => (b.init ?? -99) - (a.init ?? -99) || (a.kind === b.kind ? 0 : a.kind === 'hero' ? -1 : 1));
+  trk.turn = Math.max(0, trk.list.findIndex(x => x.id === cur));
+}
+function renderTracker(){
+  $('trk-round').textContent = trk.round;
+  const ol = $('trk-list'); ol.textContent = '';
+  if(!trk.list.length){ const li = document.createElement('li'); li.className = 'trk-note'; li.textContent = 'No one in the fight yet. Add the party, then the monsters.'; ol.append(li); }
+  trk.list.forEach((c, i) => {
+    const li = document.createElement('li'); li.className = 'trk-row ' + c.kind + (i === trk.turn ? ' current' : '') + (c.hp === 0 ? ' dead' : '');
+    const main = document.createElement('button'); main.type = 'button'; main.className = 'trk-main'; main.id = 'trk-row-' + i;
+    const init = document.createElement('div'); init.className = 'trk-init'; init.textContent = c.init ?? '–';
+    const name = document.createElement('div'); name.className = 'trk-name'; name.textContent = c.name;
+    if(c.ac != null){ const sm = document.createElement('small'); sm.textContent = 'AC ' + c.ac; name.append(sm); }
+    const hp = document.createElement('div'); hp.className = 'trk-hp' + (c.max && c.hp/c.max <= .25 ? ' low' : '');
+    if(c.max != null){ const t = document.createElement('span'); t.textContent = `${c.hp} / ${c.max}`; const bar = document.createElement('div'); bar.className = 'bar'; const fill = document.createElement('i'); fill.style.width = (c.max ? c.hp/c.max*100 : 0) + '%'; bar.append(fill); hp.append(t, bar); }
+    else { const t = document.createElement('small'); t.textContent = 'no HP set'; hp.append(t); }
+    main.append(init, name, hp);
+    const conds = document.createElement('div'); conds.className = 'trk-conds';
+    if(c.hp === 0){ const ch = document.createElement('span'); ch.className = 'chip down'; ch.textContent = c.kind === 'hero' ? 'Down' : 'Dead'; conds.append(ch); }
+    c.conds.forEach(cd => { const ch = document.createElement('span'); ch.className = 'chip'; ch.textContent = cd; conds.append(ch); });
+    if(conds.children.length) main.append(conds);
+    main.addEventListener('click', () => { trk.open = trk.open === c.id ? null : c.id; trkSave(); renderTracker(); });
+    li.append(main);
+    if(trk.open === c.id) li.append(trkPanel(c, i));
+    ol.append(li);
+  });
+}
+function trkPanel(c, i){
+  const panel = document.createElement('div'); panel.className = 'trk-panel';
+  const row1 = document.createElement('div'); row1.className = 'row answer';
+  const amt = document.createElement('input'); amt.type = 'number'; amt.inputMode = 'numeric'; amt.min = '0'; amt.placeholder = '0'; amt.id = 'trk-amt-' + i; amt.setAttribute('aria-label','Amount');
+  const dmg = document.createElement('button'); dmg.type = 'button'; dmg.className = 'btn'; dmg.textContent = 'Damage'; dmg.id = 'trk-dmg-' + i;
+  const heal = document.createElement('button'); heal.type = 'button'; heal.className = 'btn ghost'; heal.textContent = 'Heal'; heal.id = 'trk-heal-' + i;
+  dmg.addEventListener('click', () => {
+    const n = parseInt(amt.value, 10); if(!(n > 0) || c.max == null) return;
+    const before = c.hp; c.hp = Math.max(0, c.hp - n);
+    if(c.hp === 0 && before > 0){
+      if(c.kind === 'hero' && n - before >= c.max) trkNote(`${c.name} drops to 0 with ${n - before} damage left over. That's at least their max HP (${c.max}): instant death.`, true);
+      else if(c.kind === 'hero') trkNote(`${c.name} is down. Start Death Saving Throws on their turn: tap the dots below.`, true);
+      else trkNote(`${c.name} is dead.`);
+    } else trkNote(`${c.name} takes ${n}: ${before} − ${n} = ${c.hp}.`);
+    trkSave(); renderTracker();
+  });
+  heal.addEventListener('click', () => {
+    const n = parseInt(amt.value, 10); if(!(n > 0) || c.max == null) return;
+    const before = c.hp; c.hp = Math.min(c.max, c.hp + n); if(before === 0) c.ds = [0,0];
+    trkNote(before + n > c.max ? `${c.name} heals ${n}, but HP can't pass the max: ${c.hp} / ${c.max}.` : `${c.name} heals ${n}: ${before} + ${n} = ${c.hp}.`);
+    trkSave(); renderTracker();
+  });
+  row1.append(amt, dmg, heal); panel.append(row1);
+  if(c.kind === 'hero' && c.hp === 0){
+    const ds = document.createElement('div'); ds.className = 'ds';
+    [['ok','Successes',0],['no','Failures',1]].forEach(([cls, label, idx]) => {
+      const wrap = document.createElement('span'); wrap.className = cls; wrap.textContent = label;
+      const dots = document.createElement('b'); for(let k=0;k<3;k++){ const d = document.createElement('i'); if(k < c.ds[idx]) d.className = 'on'; dots.append(d); }
+      const plus = document.createElement('button'); plus.type = 'button'; plus.textContent = '+1'; plus.setAttribute('aria-label', label + ' +1');
+      plus.addEventListener('click', () => { c.ds[idx] = Math.min(3, c.ds[idx] + 1);
+        if(c.ds[0] >= 3) trkNote(`${c.name} is stable. Still Unconscious, but no more saves needed.`);
+        if(c.ds[1] >= 3) trkNote(`${c.name} has three failures. They're gone.`, true);
+        trkSave(); renderTracker(); });
+      wrap.append(dots, plus); ds.append(wrap);
+    });
+    const reset = document.createElement('button'); reset.type = 'button'; reset.textContent = 'Reset'; reset.addEventListener('click', () => { c.ds = [0,0]; trkSave(); renderTracker(); });
+    ds.append(reset); panel.append(ds);
+  }
+  const row2 = document.createElement('div'); row2.className = 'row';
+  const lbl = document.createElement('label'); lbl.textContent = 'Initiative'; lbl.htmlFor = 'trk-init-' + i;
+  const ini = document.createElement('input'); ini.type = 'number'; ini.inputMode = 'numeric'; ini.id = 'trk-init-' + i; ini.value = c.init ?? ''; ini.className = 'edit';
+  ini.addEventListener('change', () => { c.init = ini.value === '' ? null : +ini.value; trkSort(); trkSave(); renderTracker(); });
+  const lbl2 = document.createElement('label'); lbl2.textContent = 'Max HP'; lbl2.htmlFor = 'trk-max-' + i;
+  const mx = document.createElement('input'); mx.type = 'number'; mx.inputMode = 'numeric'; mx.id = 'trk-max-' + i; mx.value = c.max ?? ''; mx.className = 'edit';
+  mx.addEventListener('change', () => { const v = mx.value === '' ? null : Math.max(0, +mx.value); c.max = v; c.hp = v == null ? null : (c.hp == null ? v : Math.min(c.hp, v)); trkSave(); renderTracker(); });
+  row2.append(lbl, ini, lbl2, mx); panel.append(row2);
+  const row3 = document.createElement('div'); row3.className = 'row';
+  CONDITIONS.forEach(([cd]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = cd; b.setAttribute('aria-pressed', String(c.conds.includes(cd)));
+    b.addEventListener('click', () => { c.conds = c.conds.includes(cd) ? c.conds.filter(x => x !== cd) : [...c.conds, cd]; trkSave(); renderTracker(); }); row3.append(b); });
+  panel.append(row3);
+  const row4 = document.createElement('div'); row4.className = 'row';
+  const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'sm danger-btn'; rm.textContent = 'Remove from fight';
+  rm.addEventListener('click', () => { trk.list.splice(i, 1); if(trk.turn >= trk.list.length) trk.turn = 0; trk.open = null; trkSave(); renderTracker(); });
+  row4.append(rm); panel.append(row4);
+  return panel;
+}
+$('trk-add').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('trk-name').value.trim(); if(!name) return;
+  const num = id => $(id).value === '' ? null : +$(id).value;
+  trkAdd({ name, init: num('trk-init'), hp: num('trk-hp'), ac: num('trk-ac'), kind: MONSTERS.some(m => m.n.toLowerCase() === name.toLowerCase()) ? 'monster' : 'hero' });
+  ['trk-name','trk-init','trk-hp','trk-ac'].forEach(id => $(id).value = ''); $('trk-name').focus();
+  trkSort(); trkSave(); renderTracker();
+});
+$('trk-add-party').addEventListener('click', () => {
+  settings.party.forEach(n => { if(!trk.list.some(x => x.name === n)) trkAdd({ name:n, kind:'hero' }); });
+  trkNote('Party added. Tap each hero to enter their Initiative roll and max HP.');
+  trkSort(); trkSave(); renderTracker();
+});
+$('trk-add-monster').addEventListener('click', () => {
+  const mon = MONSTERS.find(m => m.n === $('trk-monster').value); if(!mon) return;
+  trkAdd({ name:mon.n, init: rand(1,20) + 1, hp: mon.hp, ac: mon.ac, kind:'monster' });
+  trkNote(`${mon.n} added with ${mon.hp} HP, AC ${mon.ac}, and a rolled Initiative.`);
+  trkSort(); trkSave(); renderTracker();
+});
+$('trk-next').addEventListener('click', () => {
+  if(!trk.list.length) return;
+  trk.turn = (trk.turn + 1) % trk.list.length; if(trk.turn === 0){ trk.round++; trkNote(`Round ${trk.round}. Everyone's Reaction comes back.`); }
+  trk.open = null; trkSave(); renderTracker();
+});
+$('trk-sort').addEventListener('click', () => { trkSort(); trkSave(); renderTracker(); });
+let clearArmed = false;
+$('trk-clear').addEventListener('click', () => {
+  if(!clearArmed){ clearArmed = true; $('trk-clear').textContent = 'Really clear? Tap again'; setTimeout(() => { clearArmed = false; $('trk-clear').textContent = 'Clear fight'; }, 4000); return; }
+  trk = {round:1, turn:0, open:null, list:[]}; clearArmed = false; $('trk-clear').textContent = 'Clear fight'; trkNote(''); trkSave(); renderTracker();
+});
+MONSTERS.forEach(m => { const o = document.createElement('option'); o.value = m.n; o.textContent = `${m.n} (${m.hp} HP, AC ${m.ac})`; $('trk-monster').append(o); });
+
+// ---------- Dice lab ----------
+// Exact probabilities by convolution: start with one certain outcome, then add one die at a time.
+const lab = { n:2, d:6, m:0, counts:{}, total:0 };
+function dist(n, d, m){
+  let probs = [1];
+  for(let i=0;i<n;i++){ const next = new Array(probs.length + d - 1).fill(0); probs.forEach((p, idx) => { for(let f=1; f<=d; f++) next[idx+f-1] += p/d; }); probs = next; }
+  return { min: n + m, probs };   // probs[i] is the chance of rolling (min + i)
+}
+[1,2,3,4,6,8].forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; $('lab-n').append(o); });
+[4,6,8,10,12,20].forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = 'd'+d; $('lab-d').append(o); });
+function labRead(){ lab.n = +$('lab-n').value; lab.d = +$('lab-d').value; lab.m = +$('lab-m').value || 0; lab.counts = {}; lab.total = 0; renderLab(); }
+['lab-n','lab-d','lab-m'].forEach(id => $(id).addEventListener('change', labRead));
+document.querySelectorAll('.presets button').forEach(b => b.addEventListener('click', () => { const [n,d,m] = b.dataset.expr.split(',').map(Number); $('lab-n').value = n; $('lab-d').value = d; $('lab-m').value = m; labRead(); }));
+function labRoll(k){ for(let i=0;i<k;i++){ let t = lab.m; for(let j=0;j<lab.n;j++) t += rand(1, lab.d); lab.counts[t] = (lab.counts[t] || 0) + 1; } lab.total += k; renderLab(); }
+$('lab-roll10').addEventListener('click', () => labRoll(10));
+$('lab-roll100').addEventListener('click', () => labRoll(100));
+$('lab-reset').addEventListener('click', () => { lab.counts = {}; lab.total = 0; renderLab(); });
+$('lab-target').addEventListener('input', renderAtLeast);
+function pct(x, dp){ return (x*100).toFixed(dp == null ? 1 : dp) + '%'; }
+function renderLab(){
+  $('lab-n').value = lab.n; $('lab-d').value = lab.d; $('lab-m').value = lab.m;
+  $('lab-expr').textContent = diceText(lab.n, lab.d, lab.m);
+  const { min, probs } = dist(lab.n, lab.d, lab.m), max = min + probs.length - 1, avg = lab.n * (lab.d + 1) / 2 + lab.m;
+  const top = Math.max(...probs), modes = probs.map((p, i) => [p, min + i]).filter(([p]) => Math.abs(p - top) < 1e-12).map(x => x[1]);
+  const tiles = [['Lowest', min], ['Highest', max], ['Average', fmt(avg)], ['Most likely', lab.n === 1 ? 'all equal' : modes.join(' or ')]];
+  const st = $('lab-stats'); st.textContent = '';
+  tiles.forEach(([k, v]) => { const t = document.createElement('div'); t.className = 'tile'; const b = document.createElement('b'); b.textContent = v; const sp = document.createElement('span'); sp.textContent = k; t.append(b, sp); st.append(t); });
+  const chart = $('lab-chart'); chart.textContent = '';
+  const empTop = lab.total ? Math.max(...Object.values(lab.counts)) / lab.total : 0, scale = Math.max(top, empTop) / 0.85;
+  const every = probs.length > 30 ? 5 : probs.length > 16 ? 2 : 1;
+  probs.forEach((p, i) => {
+    const v = min + i, c = lab.counts[v] || 0, e = lab.total ? c / lab.total : 0;
+    const col = document.createElement('div'); col.className = 'col'; col.tabIndex = 0;
+    const bars = document.createElement('div'); bars.className = 'bars';
+    const a = document.createElement('i'); a.className = 'a'; a.style.height = (p / scale * 100) + '%';
+    bars.append(a);
+    if(lab.total){ const bb = document.createElement('i'); bb.className = 'b'; bb.style.height = (e / scale * 100) + '%'; bars.append(bb); }
+    if(modes.includes(v) && lab.n > 1 && (modes.length <= 2)){ const lab1 = document.createElement('span'); lab1.className = 'pct'; lab1.style.top = (100 - p / scale * 100) + '%'; lab1.textContent = pct(p); bars.append(lab1); }
+    const lbl = document.createElement('div'); lbl.className = 'lbl'; lbl.textContent = (i % every === 0 || i === probs.length - 1) ? v : '';
+    col.append(bars, lbl);
+    const read = () => { $('lab-readout').textContent = `Total ${v}: ${pct(p)} chance` + (lab.total ? ` · you rolled it ${c} of ${lab.total} times (${pct(e)})` : '') + '.'; };
+    col.addEventListener('mouseenter', read); col.addEventListener('focus', read); col.addEventListener('click', read);
+    chart.append(col);
+  });
+  $('lab-count').textContent = lab.total ? `${lab.total} rolls so far` : '';
+  const tgt = $('lab-target'); if(+tgt.value < min || +tgt.value > max) tgt.value = Math.round(avg);
+  renderAtLeast();
+}
+function renderAtLeast(){
+  const { min, probs } = dist(lab.n, lab.d, lab.m), t = Math.round(+$('lab-target').value || 0);
+  const p = probs.reduce((acc, pr, i) => min + i >= t ? acc + pr : acc, 0);
+  $('lab-atleast-out').textContent = pct(p);
+  $('lab-atleast-note').textContent = lab.n === 1 && lab.d === 20 && lab.m === 0 && t >= 1 && t <= 20 ? `That's ${21 - t} of the 20 faces.` : (p === 0 ? 'Impossible with these dice.' : p === 1 ? 'Guaranteed.' : '');
+}
+
+// ---------- Parent view ----------
+// Each family chooses its own PIN the first time, and it travels with the save.
+let pinDraft = '';
+function parentUnlocked(){ try{ return sessionStorage.getItem('pda-parent') === '1'; }catch(e){ return false; } }
+function renderPinGate(){
+  const setting = !settings.pin;
+  $('pin-prompt').textContent = !setting ? 'Progress, what to work on, and campaign settings. Enter the PIN.'
+    : pinDraft ? 'Type the same PIN again to confirm it.'
+    : 'Progress, what to work on, and campaign settings. First, choose a 4-digit parent PIN.';
+  $('pin-submit').textContent = !setting ? 'Unlock' : pinDraft ? 'Confirm' : 'Set PIN';
+}
+function renderParent(){
+  const ok = parentUnlocked();
+  $('pin-gate').hidden = ok; $('parent-body').hidden = !ok;
+  if(!ok){ renderPinGate(); $('pin-input').value = ''; setTimeout(() => $('pin-input').focus(), 50); return; }
+  $('code-show').textContent = KidSave.code() || 'Not connected yet';
+  const r = rankFor(progress.xp), mods = progress.modules || {};
+  const tries = Object.values(mods).reduce((a,m)=>a+m.tries,0), correct = Object.values(mods).reduce((a,m)=>a+m.correct,0);
+  const d = daily(), trophies = Object.values(progress.bosses || {}).reduce((a,b)=>a+b,0);
+  const st = $('p-stats'); st.textContent = '';
+  [[r.name,'Rank'],[progress.xp,'XP'],[tries,'Questions'],[tries ? Math.round(correct/tries*100)+'%' : '–','Correct'],[progress.bestStreak,'Best streak'],[d.streak,'Quest days'],[trophies,'Boss trophies']].forEach(([v,k]) => {
+    const t = document.createElement('div'); t.className = 'tile'; const b = document.createElement('b'); b.textContent = v; if(typeof v === 'string' && v.length > 6) b.className = 'text'; const sp = document.createElement('span'); sp.textContent = k; t.append(b, sp); st.append(t); });
+  const days = $('p-days'), labels = $('p-days-labels'); days.textContent = ''; labels.textContent = '';
+  const series = []; for(let i=13;i>=0;i--){ const dt = new Date(); dt.setDate(dt.getDate()-i); const key = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); series.push([key, (progress.days||{})[key] || 0, dt]); }
+  const mx = Math.max(1, ...series.map(x=>x[1]));
+  series.forEach(([k, n, dt]) => { const bar = document.createElement('div'); bar.style.height = (n/mx*100) + '%'; bar.title = `${k}: ${n} answered`; days.append(bar);
+    const l = document.createElement('span'); l.textContent = n ? n : ''; l.title = k; labels.append(l); });
+  const first = series[0][2], last = series[13][2]; labels.firstChild.textContent = first.toLocaleDateString(undefined,{month:'short',day:'numeric'}); labels.lastChild.textContent = 'today';
+  const tbl = $('p-lessons'); tbl.textContent = '';
+  const hdr = document.createElement('tr'); ['Lesson','Answered','Correct','Accuracy'].forEach(h => { const th = document.createElement('th'); th.textContent = h; hdr.append(th); }); tbl.append(hdr);
+  MODULES.filter(m => m.gens.length).forEach(m => { const p = mods[m.id] || {correct:0,tries:0}; const tr = document.createElement('tr');
+    [m.title, p.tries, p.correct, p.tries ? Math.round(p.correct/p.tries*100)+'%' : '–'].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.append(td); }); tbl.append(tr); });
+  const ul = $('p-review'); ul.textContent = '';
+  const rv = Object.keys(progress.review || {}).filter(k => GEN_INDEX[k]);
+  if(!rv.length){ const li = document.createElement('li'); li.textContent = 'Nothing outstanding. Every missed question type has been answered correctly twice since.'; ul.append(li); }
+  rv.forEach(k => { const li = document.createElement('li'); const sample = GEN_INDEX[k].gen(); li.textContent = `${GEN_INDEX[k].mod.title}: “${sample.steps[0].q}” (${progress.review[k]} more correct needed)`; ul.append(li); });
+}
+$('pin-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('pin-input').value.trim();
+  const unlock = () => { try{ sessionStorage.setItem('pda-parent','1'); }catch(x){} $('pin-err').hidden = true; renderParent(); };
+  const fail = msg => { $('pin-err').textContent = msg; $('pin-err').hidden = false; $('pin-input').value = ''; $('pin-input').focus(); renderPinGate(); };
+  if(settings.pin){ if(v === settings.pin) unlock(); else fail("That's not the PIN."); return; }
+  if(!/^\d{4}$/.test(v)) return fail('Use 4 digits.');
+  if(!pinDraft){ pinDraft = v; $('pin-err').hidden = true; $('pin-input').value = ''; $('pin-input').focus(); renderPinGate(); return; }
+  if(v !== pinDraft){ pinDraft = ''; return fail("Those didn't match. Choose a PIN again."); }
+  pinDraft = ''; settings.pin = v; save('pda-settings', settings); toast('Parent PIN set.'); unlock();
+});
+$('pin-change').addEventListener('click', () => {
+  delete settings.pin; save('pda-settings', settings);
+  try{ sessionStorage.removeItem('pda-parent'); }catch(x){} renderParent();
+});
+$('code-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const msg = $('code-msg'); msg.textContent = 'Checking…';
+  KidSave.switchTo($('code-input').value).catch(err => { msg.textContent = err.message; });
+});
+$('pin-lock').addEventListener('click', () => { try{ sessionStorage.removeItem('pda-parent'); }catch(x){} renderParent(); });
+
+// ---------- Dice tray ----------
+const rollLog = [];
+[4,6,8,10,12,20,100].forEach(d => {
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = 'd'+d; b.id = 'die-'+d;
+  b.addEventListener('click', () => {
+    const r = rand(1,d);
+    const big = $('roll-big'); big.textContent = '';
+    const span = document.createElement('span'); span.textContent = r;
+    const small = document.createElement('small'); small.textContent = d===20 && r===20 ? 'd20 · natural 20!' : d===20 && r===1 ? 'd20 · natural 1…' : 'd'+d;
+    span.append(small); big.append(span);
+    rollLog.unshift('d'+d+': '+r); if(rollLog.length > 12) rollLog.pop();
+    const log = $('roll-log'); log.textContent = ''; rollLog.forEach(x => { const li = document.createElement('li'); li.textContent = x; log.append(li); });
+  });
+  $('dice-row').append(b);
+});
+
+// ---------- Settings ----------
+function fillSettings(){
+  $('set-dm').value = settings.dm || '';
+  $('set-party').value = settings.party.join('\n');
+  $('set-places').value = settings.places.join('\n');
+  const sel = $('set-level'); sel.textContent = '';
+  Object.keys(XP_THRESH).forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = 'Level '+l; sel.append(o); });
+  sel.value = String(settings.level);
+}
+$('settings-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const lines = v => v.split('\n').map(s => s.trim()).filter(Boolean);
+  settings = { dm: $('set-dm').value.trim(), party: lines($('set-party').value), level: +$('set-level').value, places: lines($('set-places').value), pin: settings.pin };
+  if(!settings.party.length) settings.party = DEFAULT_SETTINGS.party.slice();
+  if(!settings.places.length) settings.places = DEFAULT_SETTINGS.places.slice();
+  save('pda-settings', settings); fillSettings();
+  const n = $('saved-note'); n.hidden = false; setTimeout(() => n.hidden = true, 2000);
+  toast('Campaign saved.');
+});
+let resetArmed = false;
+$('reset-btn').addEventListener('click', () => {
+  if(!resetArmed){ resetArmed = true; $('reset-btn').textContent = 'Really reset? Tap again to confirm'; setTimeout(() => { resetArmed = false; $('reset-btn').textContent = 'Reset all XP and progress'; }, 4000); return; }
+  progress = {xp:0, modules:{}, bestStreak:0}; streak = 0; save('pda-progress', progress); renderRank();
+  resetArmed = false; $('reset-btn').textContent = 'Reset all XP and progress'; toast('Progress reset. Fresh adventurer.');
+});
+
+// ---------- Boot ----------
+setArt($('crest'), 'crest', 'PDA'); renderRank(); fillSettings(); renderLab();
+// For testing in a browser console: the answer to the current step.
+window.PDA_DEV = { answer: () => current.problem && current.problem.steps[current.step].answer };
+const hash = (location.hash || '').replace('#','');
+const startMod = MODULES.find(m => m.id === hash);
+if(startMod) openModule(startMod); else if(VIEWS.includes(hash) && hash !== 'module') show(hash); else show('home');
+renderSyncNote(); cloudConnect();
+})();
+</script>
+
+</body></html>

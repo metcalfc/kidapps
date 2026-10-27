@@ -1,0 +1,5 @@
+/data/
+/kidapps
+*.db
+*.db-shm
+*.db-wal

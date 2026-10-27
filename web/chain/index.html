@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en" data-app="chain">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chain Reaction</title>
+<meta name="theme-color" content="#160d2c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chain Reaction">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<!-- splash:start -->
+<link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-744x1133-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-744x1133-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-768x1024-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-768x1024-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-810x1080-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-810x1080-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-820x1180-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-820x1180-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1112-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1112-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1194-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1194-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1210-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1210-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-1024x1366-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-1024x1366-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-1032x1376-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-1032x1376-landscape.png">
+<!-- splash:end -->
+<link rel="stylesheet" href="/shared/fonts/fonts.css">
+<script src="/shared/save.js"></script>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Home-screen app polish for iPad and Mac: no long-press callouts or double-tap zoom on controls. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,img,.key,.card,.choice{-webkit-touch-callout:none;touch-action:manipulation}
+img{-webkit-user-drag:none}
+</style>
+</head>
+<body>
+<style>
+/* Layout: one-screen arcade cabinet. Status rail on top, problem card with chain meter, big keypad below (side by side in landscape). Deliberately single dark theme: a night-time arcade. */
+:root{
+  --bg:#160d2c; --bg2:#21154a; --surface:#2a1c58; --surface2:#3a2873; --line:#4e3a94;
+  --ink:#fff3e4; --muted:#b8a7e4;
+  --tang:#ff8a3d; --pink:#ff4f9a; --cyan:#3fe0ff; --gold:#ffd23f; --good:#5cf2a0; --bad:#ff5a6a;
+  --display:"Bungee","Arial Black",Impact,system-ui,sans-serif;
+  --body:"Baloo 2",ui-rounded,"SF Pro Rounded",system-ui,sans-serif;
+  --heat:0;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px;
+  overflow:hidden; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.glow{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(120% 70% at 50% 115%, var(--pink) 0%, transparent 55%),
+    radial-gradient(80% 60% at 100% 0%, var(--tang) 0%, transparent 60%);
+  opacity:calc(.08 + var(--heat)*.42); transition:opacity .6s}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:radial-gradient(1.5px 1.5px at 12% 18%, var(--ink) 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 12%, var(--ink) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 88% 46%, var(--cyan) 50%, transparent 51%),
+    radial-gradient(1px 1px at 30% 70%, var(--ink) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 56% 38%, var(--gold) 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 88%, var(--ink) 50%, transparent 51%),
+    radial-gradient(1px 1px at 94% 84%, var(--ink) 50%, transparent 51%)}
+#app{position:relative;z-index:1;height:100%;box-sizing:border-box;max-width:1180px;margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:14px;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.lab{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:14px;
+  background:var(--surface2);font-weight:800;font-size:18px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28);transition:transform .08s}
+.btn:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.28)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.hot{background:linear-gradient(180deg,var(--tang),var(--pink));color:#2a0b1e}
+.btn.gold{background:var(--gold);color:#2a1a00}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 2px var(--line);color:var(--muted)}
+.btn.small{min-height:40px;font-size:15px;padding:0 14px;border-radius:11px}
+
+/* ---------- home ---------- */
+.home-top{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:center}
+.brand h1{font-size:clamp(46px,8.5vw,96px);letter-spacing:-.01em;
+  background:linear-gradient(180deg,var(--gold) 0%,var(--tang) 55%,var(--pink) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
+.brand h1 .x{color:var(--cyan);-webkit-text-fill-color:var(--cyan)}
+.brand p{margin:10px 0 0;color:var(--muted);font-size:19px;max-width:30ch;line-height:1.35}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--surface);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile b{font-family:var(--display);font-weight:400;font-size:clamp(24px,3.6vw,34px);line-height:1.05;font-variant-numeric:tabular-nums}
+.tile small{color:var(--muted);font-size:14px}
+.tile.bank{grid-column:1/-1;background:linear-gradient(135deg,var(--surface2),var(--surface));box-shadow:inset 0 0 0 2px var(--gold)}
+.tile.bank b{color:var(--gold);font-size:clamp(34px,5.5vw,52px)}
+.play-btn{min-height:96px;font-family:var(--display);font-weight:400;font-size:clamp(34px,6vw,54px);border-radius:24px;letter-spacing:.04em}
+.play-btn:not([disabled]){animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.025)}}
+.home-row{display:flex;flex-wrap:wrap;gap:10px}
+.home-row .btn{flex:1 1 180px}
+.home-foot{margin-top:auto;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;color:var(--muted);font-size:14px}
+.hold{position:relative;overflow:hidden}
+.hold i{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--cyan)}
+
+/* ---------- play ---------- */
+.hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hud .stat{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.hud .stat b{font-family:var(--display);font-weight:400;font-size:24px;font-variant-numeric:tabular-nums}
+.hud .grow{flex:1}
+.tries-bar{height:8px;border-radius:8px;background:var(--surface);overflow:hidden}
+.tries-bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--cyan),var(--good));transition:width .3s}
+.arena{flex:1;min-height:0;display:grid;gap:16px;grid-template-rows:auto minmax(0,1fr)}
+@media (orientation:landscape) and (min-width:700px){
+  .arena{grid-template-columns:1.25fr 1fr;grid-template-rows:minmax(0,1fr)}
+}
+.stage{display:flex;flex-direction:column;gap:14px;min-height:0}
+.chain{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px 14px;background:var(--surface);border-radius:18px;padding:10px 16px;position:relative}
+.chain-num{display:flex;align-items:baseline;gap:6px}
+.chain-num b{font-family:var(--display);font-weight:400;font-size:38px;line-height:1;font-variant-numeric:tabular-nums;transition:color .2s}
+.chain-num span{color:var(--muted);font-weight:700}
+.chain-track{height:14px;border-radius:10px;background:var(--bg2);overflow:hidden}
+.chain-track i{display:block;height:100%;width:0;border-radius:10px;background:linear-gradient(90deg,var(--tang),var(--pink),var(--gold));transition:width .25s}
+.mult{font-family:var(--display);font-size:30px;color:var(--gold);min-width:2.6em;text-align:right}
+.chain-next{grid-column:1/-1;font-size:14px;color:var(--muted);margin-top:-2px}
+.chain.bump .mult{animation:bump .5s}
+.chain.fever{box-shadow:0 0 0 2px var(--pink),0 0 28px -4px var(--pink)}
+.chain.fever .chain-num b{color:var(--pink)}
+@keyframes bump{30%{transform:scale(1.5) rotate(-6deg)}}
+
+.card{flex:1;min-height:200px;background:linear-gradient(180deg,var(--surface2),var(--surface));border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:18px;position:relative;overflow:hidden;box-shadow:inset 0 -6px 0 rgba(0,0,0,.25)}
+.card.fever{animation:feverglow 1.2s ease-in-out infinite}
+@keyframes feverglow{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 0 0 3px var(--pink),0 0 40px var(--pink)}}
+.q{font-family:var(--display);font-size:clamp(64px,13vmin,150px);line-height:1;display:flex;gap:.25em;align-items:center;font-variant-numeric:tabular-nums}
+.q .x{color:var(--cyan);font-size:.75em}
+.q.pop{animation:qpop .22s ease-out}
+@keyframes qpop{from{transform:scale(.7);opacity:.2}}
+.ans{font-family:var(--display);font-size:clamp(44px,9vmin,100px);min-width:2.2em;text-align:center;padding:0 .3em;border-radius:16px;background:var(--bg2);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.25;border-bottom:4px solid var(--line)}
+.ans.empty{color:var(--line)}
+.ans.right{color:var(--good);border-color:var(--good)}
+.ans.wrong{color:var(--bad);border-color:var(--bad);text-decoration:line-through}
+.ans.reveal{color:var(--good);border-color:var(--good)}
+.reveal-note{font-weight:800;font-size:20px;color:var(--good);min-height:1.4em}
+.speed{width:min(92%,460px);display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.speed-track{height:12px;border-radius:10px;background:var(--bg2);overflow:hidden}
+.speed-track i{display:block;height:100%;width:100%;border-radius:10px;background:var(--gold)}
+.speed-lab{display:flex;justify-content:space-between;font-weight:800;font-size:15px;color:var(--muted)}
+.speed-lab b{font-family:var(--display);font-weight:400;color:var(--gold)}
+.card.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(4px)}}
+.card.flashgood{animation:flashg .35s}
+@keyframes flashg{from{box-shadow:inset 0 0 0 6px var(--good)}}
+
+.pad{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,minmax(56px,1fr));gap:10px;min-height:0}
+.key{border-radius:20px;background:var(--surface2);font-family:var(--display);font-size:clamp(28px,5vmin,46px);box-shadow:inset 0 -6px 0 rgba(0,0,0,.3);transition:transform .06s,background .1s}
+.key.down,.key:active{transform:translateY(3px);box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);background:var(--line)}
+.key.fn{background:var(--surface);color:var(--muted);font-family:var(--body);font-weight:800;font-size:20px}
+
+/* ---------- fx ---------- */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:20}
+#fx canvas{position:absolute;inset:0}
+.float{position:absolute;transform:translate(-50%,-50%);font-family:var(--display);white-space:nowrap;text-shadow:0 3px 0 rgba(0,0,0,.45);animation:rise 1s ease-out forwards}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-260%) scale(1)}}
+.banner{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;animation:bannerpop 1.5s cubic-bezier(.2,1.4,.4,1) forwards;width:max-content;max-width:92vw}
+.banner b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(44px,10vw,110px);line-height:1;text-shadow:0 5px 0 rgba(0,0,0,.4)}
+.banner span{display:block;font-weight:800;font-size:clamp(20px,3vw,30px);margin-top:6px;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+@keyframes bannerpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(2deg)}30%{transform:translate(-50%,-50%) scale(1) rotate(0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
+.flash{position:absolute;inset:0;background:var(--gold);animation:flash .45s forwards}
+@keyframes flash{from{opacity:.35}to{opacity:0}}
+#app.quake{animation:quake .5s}
+@keyframes quake{10%{transform:translate(-6px,4px)}30%{transform:translate(6px,-5px)}50%{transform:translate(-4px,3px)}70%{transform:translate(3px,-2px)}}
+
+/* ---------- sub screens ---------- */
+.sub-head{display:flex;align-items:center;gap:14px}
+.sub-head h2{font-size:clamp(28px,5vw,44px)}
+.panel{background:var(--surface);border-radius:20px;padding:18px}
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.sum-grid div{display:flex;flex-direction:column;gap:2px}
+.sum-grid b{font-family:var(--display);font-weight:400;font-size:28px;font-variant-numeric:tabular-nums}
+.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.choice{min-height:84px;border-radius:18px;background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 -5px 0 rgba(0,0,0,.28)}
+.choice b{font-family:var(--display);font-weight:400;font-size:32px;line-height:1}
+.choice small{color:var(--muted);font-weight:700}
+.choice.sel{background:var(--gold);color:#2a1a00}
+.choice.sel small{color:#5a4200}
+.choice[disabled]{opacity:.35}
+.tickets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tickets li{display:flex;justify-content:space-between;gap:10px;background:var(--bg2);border-radius:12px;padding:10px 14px;font-weight:700}
+.tickets li b{color:var(--gold);font-family:var(--display);font-weight:400}
+.empty-note{color:var(--muted)}
+.hint{color:var(--muted);font-size:15px;line-height:1.4;margin:0}
+
+.map-wrap{overflow-x:auto}
+.map{display:grid;grid-template-columns:repeat(13,minmax(30px,1fr));gap:4px;min-width:420px;max-width:760px}
+.map div{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:clamp(11px,1.6vw,16px);font-variant-numeric:tabular-nums}
+.map .h{color:var(--cyan);font-family:var(--display);font-weight:400}
+.map .c{background:var(--surface);color:var(--muted);cursor:pointer}
+.map .c.m0{background:var(--bad);color:#3a0008}
+.map .c.m1{background:var(--tang);color:#3a1600}
+.map .c.m2{background:var(--cyan);color:#002a33}
+.map .c.m3{background:var(--good);color:#00301a}
+.map .c.m4{background:var(--gold);color:#2a1a00}
+.map .c.sel{outline:3px solid var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.rules h3{font-size:22px;margin-bottom:8px;color:var(--gold)}
+.rules table{width:100%;border-collapse:collapse;font-weight:700}
+.rules td{padding:5px 0;border-bottom:1px solid var(--line)}
+.rules td:last-child{text-align:right;font-family:var(--display);font-weight:400;color:var(--ink)}
+.rules p{margin:0;line-height:1.45}
+
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(10,5,24,.82);display:flex;align-items:center;justify-content:center;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ticket-card{background:var(--gold);color:#2a1a00;border-radius:24px;padding:28px 34px;text-align:center;max-width:420px;width:100%;position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);animation:stamp .6s cubic-bezier(.2,1.5,.4,1)}
+@keyframes stamp{from{transform:scale(.4) rotate(-10deg);opacity:0}}
+.ticket-card .lab{color:#6a4f00}
+.ticket-card b{display:block;font-family:var(--display);font-weight:400;font-size:110px;line-height:1;margin-top:8px}
+.ticket-card .unit{font-family:var(--display);font-size:26px}
+.ticket-card p{margin:10px 0 0;font-weight:700}
+.ticket-card hr{border:0;border-top:3px dashed #8a6a00;margin:16px 0}
+.ticket-card .btn{margin-top:16px;background:#2a1a00;color:var(--gold)}
+.parent{background:var(--surface);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:14px;box-sizing:border-box}
+.parent h2{font-size:26px}
+.field{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.field label{font-weight:700}
+.field input{width:90px;font:inherit;font-weight:800;font-size:20px;padding:8px 10px;border-radius:10px;border:2px solid var(--line);background:var(--bg2);color:var(--ink);text-align:center}
+.parent .row{display:flex;flex-wrap:wrap;gap:8px}
+.pin-box{background:var(--surface);border-radius:22px;padding:22px;width:100%;max-width:340px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.pin-box h2{font-size:26px}
+.pin-dots{display:flex;gap:16px}
+.pin-dots i{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 3px var(--line)}
+.pin-dots i.on{background:var(--cyan);box-shadow:none}
+.pin-dots.shake{animation:shake .4s}
+.pin-pad{width:100%;grid-template-rows:repeat(4,64px)}
+.code-show{margin:6px 0;font-family:var(--display);font-size:28px;color:var(--gold);letter-spacing:.04em}
+.code-row input{flex:1 1 140px;min-width:0;font:inherit;font-weight:800;font-size:20px;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg2);color:var(--ink);text-transform:uppercase;-webkit-user-select:text;user-select:text}
+
+@media (max-width:640px){
+  .home-top{grid-template-columns:1fr}
+  .hud .stat b{font-size:20px}
+  .chain-num b{font-size:30px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .float,.banner{animation:none!important;opacity:0}
+}
+</style>
+
+<div class="glow"></div>
+<div class="stars"></div>
+<div id="app">
+
+  <!-- HOME -->
+  <section id="home" class="screen">
+    <div class="home-top">
+      <div class="brand">
+        <h1>Chain<br>Re<span class="x">×</span>action</h1>
+        <p>Times tables up to 12 × 12. String right answers together and turn them into screen time.</p>
+      </div>
+      <div class="tiles">
+        <div class="tile bank"><span class="lab">Screen time banked</span><b id="hBank">0m 00s</b></div>
+        <div class="tile"><span class="lab">Tries left today</span><b id="hTries">100</b><small id="hTriesOf">of 100</small></div>
+        <div class="tile"><span class="lab">Cashed in today</span><b id="hRedeemed">0m</b><small id="hCap">limit 45m</small></div>
+        <div class="tile"><span class="lab">Earned today</span><b id="hEarned">0m</b><small id="hRight">0 right</small></div>
+        <div class="tile"><span class="lab">Longest chain</span><b id="hBest">0</b><small id="hBestToday">today 0</small></div>
+      </div>
+    </div>
+    <button class="btn hot play-btn" id="playBtn">Play</button>
+    <div class="home-row">
+      <button class="btn gold" id="shopBtn">Cash in minutes</button>
+      <button class="btn" id="mapBtn">Fact map</button>
+      <button class="btn" id="rulesBtn">How scoring works</button>
+    </div>
+    <div class="home-foot">
+      <span id="syncNote">Progress saves on this device.</span>
+      <button class="btn ghost small" id="parentBtn">Grown-ups</button>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="screen" hidden>
+    <div class="hud">
+      <button class="btn small" id="homeBtn">Pause</button>
+      <div class="stat"><span class="lab">Tries left</span><b id="pTries">100</b></div>
+      <div class="stat"><span class="lab">Earned now</span><b id="pEarned">0:00</b></div>
+      <div class="grow"></div>
+      <div class="stat"><span class="lab">Bank</span><b id="pBank">0:00</b></div>
+      <button class="btn small ghost" id="muteBtn">Sound on</button>
+    </div>
+    <div class="tries-bar"><i id="triesFill"></i></div>
+    <div class="arena">
+      <div class="stage">
+        <div class="chain" id="chain">
+          <div class="chain-num"><b id="chainNum">0</b><span>chain</span></div>
+          <div class="chain-track"><i id="chainFill"></i></div>
+          <div class="mult" id="mult">×1</div>
+          <div class="chain-next" id="chainNext">Get 5 in a row for ×1.5</div>
+        </div>
+        <div class="card" id="card">
+          <div class="q" id="q"><span id="qa">7</span><span class="x">×</span><span id="qb">8</span></div>
+          <div class="ans empty" id="ans">?</div>
+          <div class="reveal-note" id="revealNote"></div>
+          <div class="speed">
+            <div class="speed-track"><i id="speedFill"></i></div>
+            <div class="speed-lab"><span>Speed bonus</span><b id="speedLab">LIGHTNING +10</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="pad" id="pad">
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <button class="key fn" data-k="C">Clear</button><button class="key" data-k="0">0</button><button class="key fn" data-k="B">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DONE -->
+  <section id="done" class="screen" hidden>
+    <div class="sub-head"><h2>That's all 100 for today</h2></div>
+    <div class="panel sum-grid">
+      <div><span class="lab">Right answers</span><b id="dRight">0</b></div>
+      <div><span class="lab">Screen time earned</span><b id="dEarned">0m</b></div>
+      <div><span class="lab">Longest chain</span><b id="dChain">0</b></div>
+      <div><span class="lab">Lightning answers</span><b id="dLight">0</b></div>
+    </div>
+    <p class="hint" id="dTip"></p>
+    <div class="home-row">
+      <button class="btn gold" id="dShop">Cash in minutes</button>
+      <button class="btn" id="dMap">See your fact map</button>
+      <button class="btn ghost" id="dHome">Home</button>
+    </div>
+  </section>
+
+  <!-- SHOP -->
+  <section id="shop" class="screen" hidden>
+    <div class="sub-head"><button class="btn small" data-go="home">Back</button><h2>Cash in</h2></div>
+    <div class="panel sum-grid">
+      <div><span class="lab">In your bank</span><b id="sBank">0m</b></div>
+      <div><span class="lab">Today's limit</span><b id="sCap">45m</b></div>
+      <div><span class="lab">Cashed in today</span><b id="sUsed">0m</b></div>
+      <div><span class="lab">You can cash in now</span><b id="sAvail" style="color:var(--gold)">0m</b></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <button class="btn hot play-btn" id="redeemBtn" disabled style="min-height:76px;font-size:28px;animation:none">Pick minutes</button>
+    <p class="hint" id="sHint"></p>
+    <div class="panel">
+      <span class="lab">Today's tickets</span>
+      <ul class="tickets" id="ticketList" style="margin-top:10px"></ul>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section id="map" class="screen" hidden>
+    <div class="sub-head"><button class="btn small" data-go="home">Back</button><h2>Fact map</h2></div>
+    <p class="hint">Every fact from 1 × 1 to 12 × 12. Red ones come up more often until they turn gold. Tap a square to see how you're doing on it.</p>
+    <div class="legend">
+      <span><i style="background:var(--surface)"></i>Not tried yet</span>
+      <span><i style="background:var(--bad)"></i>Often wrong</span>
+      <span><i style="background:var(--tang)"></i>Getting there</span>
+      <span><i style="background:var(--cyan)"></i>Right but slow</span>
+      <span><i style="background:var(--good)"></i>Fast</span>
+      <span><i style="background:var(--gold)"></i>Lightning</span>
+    </div>
+    <div class="map-wrap"><div class="map" id="mapGrid"></div></div>
+    <div class="panel" id="mapInfo">Tap a square.</div>
+  </section>
+
+  <!-- RULES -->
+  <section id="rules" class="screen" hidden>
+    <div class="sub-head"><button class="btn small" data-go="home">Back</button><h2>How scoring works</h2></div>
+    <div class="rules">
+      <div class="panel">
+        <h3>Every right answer</h3>
+        <table><tr><td>Right answer</td><td>16s</td></tr>
+        <tr><td>Answered in 2 seconds (Lightning)</td><td>+8s</td></tr>
+        <tr><td>Answered in 3.5 seconds (Fast)</td><td>+4s</td></tr>
+        <tr><td>Answered in 6 seconds (Quick)</td><td>+1s</td></tr></table>
+      </div>
+      <div class="panel">
+        <h3>Chain multiplier</h3>
+        <table><tr><td>1 to 4 in a row</td><td>×1</td></tr>
+        <tr><td>5 to 9 in a row</td><td>×1.25</td></tr>
+        <tr><td>10 to 19 in a row</td><td>×1.5</td></tr>
+        <tr><td>20 or more in a row</td><td>×1.75</td></tr></table>
+      </div>
+      <div class="panel">
+        <h3>Chain jackpots</h3>
+        <table><tr><td>Chain of 10</td><td>+20s</td></tr>
+        <tr><td>Chain of 25</td><td>+40s</td></tr>
+        <tr><td>Chain of 50</td><td>+1m</td></tr>
+        <tr><td>Perfect 100</td><td>+2m</td></tr></table>
+      </div>
+      <div class="panel">
+        <h3>The rules</h3>
+        <p>You get <b id="rTries">100</b> tries a day and no clock runs out. A wrong answer uses a try and breaks your chain. Screen time goes in your bank. You can cash in up to <b id="rCap">45</b> minutes on a school day and <b id="rCapW">90</b> on a weekend day. Anything left over stays in the bank, so save up during the week for a big weekend.</p>
+        <p style="margin-top:10px;color:var(--muted)">Example: a Lightning answer on a 12 chain is (16 + 8) × 1.5 = 36 seconds. A really great day earns about an hour.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="fx"><canvas id="fxCanvas"></canvas></div>
+
+<div class="overlay" id="ticket" hidden>
+  <div class="ticket-card">
+    <span class="lab">Screen time ticket</span>
+    <b id="tMin">15</b><span class="unit">minutes</span>
+    <hr>
+    <p id="tWhen"></p>
+    <p>Show this to a grown-up to start your time.</p>
+    <button class="btn" id="tClose">Done</button>
+  </div>
+</div>
+
+<div class="overlay" id="pin" hidden>
+  <div class="pin-box">
+    <h2 id="pinTitle">Grown-ups only</h2>
+    <p class="hint" id="pinHint">Enter the PIN.</p>
+    <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+    <div class="pad pin-pad" id="pinPad">
+      <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+      <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+      <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+      <button class="key fn" data-k="X">Cancel</button><button class="key" data-k="0">0</button><button class="key fn" data-k="B">Back</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="parent" hidden>
+  <div class="parent">
+    <h2>Grown-ups</h2>
+    <div class="field"><label for="setTries">Tries per day</label><input id="setTries" type="number" inputmode="numeric" min="10" max="300"></div>
+    <div class="field"><label for="setWeekday">School-day limit (minutes)</label><input id="setWeekday" type="number" inputmode="numeric" min="0" max="240"></div>
+    <div class="field"><label for="setWeekend">Weekend limit (minutes)</label><input id="setWeekend" type="number" inputmode="numeric" min="0" max="240"></div>
+    <div>
+      <span class="lab">Bank: <span id="pBankAdj"></span></span>
+      <div class="row" style="margin-top:8px">
+        <button class="btn small" data-adj="300">Add 5 min</button>
+        <button class="btn small" data-adj="-300">Take 5 min</button>
+        <button class="btn small ghost" id="resetTries">Reset today's tries</button>
+        <button class="btn small ghost" id="wipeAll">Start over</button>
+      </div>
+    </div>
+    <div>
+      <span class="lab">Recent tickets</span>
+      <ul class="tickets" id="allTickets" style="margin-top:8px"></ul>
+    </div>
+    <div>
+      <span class="lab">Save code</span>
+      <p class="code-show num" id="codeShow">Not connected yet</p>
+      <p class="hint">Progress is saved on the server under this code. To play the same save on another iPad or Mac, open Chain Reaction there, tap Grown-ups, and enter it.</p>
+      <form class="row code-row" id="codeForm" style="margin-top:8px">
+        <input id="codeInput" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="OTTER-4821" aria-label="Save code">
+        <button class="btn small" type="submit">Use this code</button>
+      </form>
+      <p class="hint" id="codeMsg" style="margin-top:6px">Switching replaces what is on this device with that save, and its PIN comes with it.</p>
+      <div class="row" style="margin-top:8px"><button class="btn small ghost" id="pinChange" type="button">Change PIN</button></div>
+    </div>
+    <button class="btn hot" id="parentClose">Save and close</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LS_KEY = 'chain-reaction:v2';
+const DEFAULT_SETTINGS = { tries: 100, weekdayCap: 45, weekendCap: 90, sound: true, wk90: true };
+const BASE = 16;
+const SPEED = [ // [max ms, bonus, label, color]
+  [2000, 8, 'LIGHTNING', '--gold'],
+  [3500, 4, 'FAST', '--cyan'],
+  [6000, 1, 'QUICK', '--tang'],
+];
+const STEPS = [[20, 1.75], [10, 1.5], [5, 1.25], [0, 1]];
+const JACKPOTS = { 10: 20, 25: 40, 50: 60, 100: 120 };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* ---------------- state ---------------- */
+function fresh() { return { v: 1, updatedAt: 0, bank: 0, bestChain: 0, days: {}, facts: {}, tickets: [], merged: [], settings: { ...DEFAULT_SETTINGS } }; }
+function normalize(s) {
+  const f = fresh();
+  if (!s || typeof s !== 'object') return f;
+  const settings = { ...f.settings, ...(s.settings || {}) };
+  if (!settings.wk90) { if (settings.weekendCap === 45) settings.weekendCap = 90; settings.wk90 = true; }
+  return { ...f, ...s, settings, days: s.days || {}, facts: s.facts || {}, tickets: Array.isArray(s.tickets) ? s.tickets : [], merged: Array.isArray(s.merged) ? s.merged : [] };
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+/* Add an older save's progress into the current one (used once per old save). */
+function mergeInto(dst, src) {
+  src = normalize(clone(src));
+  dst.bank += Math.max(0, Number(src.bank) || 0);
+  dst.bestChain = Math.max(dst.bestChain || 0, src.bestChain || 0);
+  for (const [k, f] of Object.entries(src.facts)) {
+    const d = dst.facts[k];
+    if (!d) { dst.facts[k] = { n: f.n || 0, ok: f.ok || 0, ms: f.ms || 0 }; continue; }
+    const ms = d.ms && f.ms ? Math.round((d.ms * d.ok + f.ms * f.ok) / Math.max(1, d.ok + f.ok)) : (d.ms || f.ms || 0);
+    d.n += f.n || 0; d.ok += f.ok || 0; d.ms = ms;
+  }
+  for (const [k, day] of Object.entries(src.days)) {
+    const d = dst.days[k];
+    if (!d) { dst.days[k] = { tries: 0, correct: 0, earned: 0, redeemed: 0, bestChain: 0, lightning: 0, ...day }; continue; }
+    for (const f of ['tries', 'correct', 'earned', 'redeemed', 'lightning']) d[f] = (d[f] || 0) + (day[f] || 0);
+    d.bestChain = Math.max(d.bestChain || 0, day.bestChain || 0);
+  }
+  const seen = new Set(dst.tickets.map(t => t.id));
+  src.tickets.forEach(t => { if (t && !seen.has(t.id)) { dst.tickets.push(t); seen.add(t.id); } });
+  dst.tickets.sort((a, b) => a.at - b.at);
+  if (dst.tickets.length > 80) dst.tickets.splice(0, dst.tickets.length - 80);
+}
+function loadLocal() { try { const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} }
+let S = normalize(loadLocal());
+
+const pad2 = n => String(n).padStart(2, '0');
+function todayKey(d = new Date()) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function today() {
+  const k = todayKey();
+  if (!S.days[k]) {
+    S.days[k] = { tries: 0, correct: 0, earned: 0, redeemed: 0, bestChain: 0, lightning: 0 };
+    const keys = Object.keys(S.days).sort();
+    while (keys.length > 120) delete S.days[keys.shift()];
+  }
+  return S.days[k];
+}
+function isWeekend() { const d = new Date().getDay(); return d === 0 || d === 6; }
+function capMin() { return isWeekend() ? S.settings.weekendCap : S.settings.weekdayCap; }
+function triesLeft() { return Math.max(0, S.settings.tries - today().tries); }
+
+/* ---------------- saving: device always, Claude account when available ----------------
+   DOC_ID and LS_KEY must never be renamed again: renaming them is what orphaned the
+   first save. Older saves (LEGACY_DOCS, older localStorage keys) are merged in once. */
+const DOC_ID = 'game-v2';
+const LEGACY_DOCS = ['game'];
+let remote = null, unsub = null, saveTimer = 0, writing = false, dirty = false;
+let syncState = 'connecting', readyResolve;
+const readyP = new Promise(r => { readyResolve = r; });
+setTimeout(() => readyResolve(), 4000);
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
+function persist() {
+  S.updatedAt = Date.now();
+  saveLocal();
+  dirty = true;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 1500);
+}
+async function flush() {
+  if (!remote || !dirty) return;
+  if (writing) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 800); return; }
+  writing = true; dirty = false;
+  try {
+    await remote.set(clone(S));
+    syncState = 'ok';
+  } catch (e) {
+    const code = e && e.code;
+    dirty = true; // never drop unsaved progress; local copy is already saved
+    if (code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') { remote = null; syncState = 'local'; }
+    else { syncState = 'retry'; saveTimer = setTimeout(flush, (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random() * 3000); }
+  }
+  writing = false;
+  setSync();
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(saveTimer); flush(); } });
+addEventListener('pagehide', () => { clearTimeout(saveTimer); flush(); });
+function setSync() {
+  const msg = {
+    connecting: 'Loading saved progress…',
+    ok: 'Progress saves on this device and on the server.',
+    retry: 'Saved on this device. Will back up to the server when it reconnects.',
+    local: 'Saved on this device only for now. It backs up to the server once this device is online.',
+  }[syncState];
+  $('syncNote').textContent = msg;
+}
+function rerender() {
+  if (!$('home').hidden) renderHome();
+  else if (!$('shop').hidden) renderShop();
+  else if (!$('map').hidden) renderMap();
+  else if (!$('play').hidden) renderHud();
+}
+function legacyLocalKeys() {
+  const out = [];
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('chain-reaction') && k !== LS_KEY && !k.endsWith(':merged')) out.push(k); } } catch (e) {}
+  return out;
+}
+function retireLocal(k) { try { localStorage.setItem(k + ':merged', localStorage.getItem(k)); localStorage.removeItem(k); } catch (e) {} }
+function mergeLocalLegacy() {
+  let changed = false;
+  legacyLocalKeys().forEach(k => {
+    try { const r = JSON.parse(localStorage.getItem(k)); if (r && typeof r === 'object' && !S.merged.includes('ls:' + k)) { mergeInto(S, r); S.merged.push('ls:' + k); changed = true; } } catch (e) {}
+    retireLocal(k);
+  });
+  return changed;
+}
+// Started offline: try again when the network or the app comes back.
+let connecting = true;
+function reconnect() { if (!remote && !connecting && document.visibilityState === 'visible') { connecting = true; syncState = 'connecting'; connect(); } }
+addEventListener('online', reconnect);
+document.addEventListener('visibilitychange', reconnect);
+async function connect() {
+  try {
+    const db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+    const user = db ? await window.claude.use('user') : null;
+    const id = user ? await user.id() : null;
+    if (!db || !id) {
+      syncState = 'local';
+      if (mergeLocalLegacy()) persist();
+      return;
+    }
+    const base = 'data/users/' + id + '/';
+    const ref = db.doc(base + DOC_ID);
+    const snap = await ref.get();
+    remote = ref;
+    if (snap.exists) {
+      const r = snap.data() || {};
+      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); }
+      else if ((S.updatedAt || 0) > (r.updatedAt || 0)) dirty = true;
+    } else if (S.updatedAt) dirty = true;
+
+    // One-time recovery of saves stored under earlier document names.
+    let changed = false, accountLegacy = false;
+    const toMark = [];
+    for (const name of LEGACY_DOCS) {
+      const lref = db.doc(base + name);
+      const ls = await lref.get();
+      if (!ls.exists) continue;
+      accountLegacy = true;
+      const ld = ls.data() || {};
+      if (ld.migratedTo || S.merged.includes('db:' + name)) continue;
+      mergeInto(S, ld); S.merged.push('db:' + name); changed = true; toMark.push(lref);
+    }
+    // Old device-only saves: if the account already had an old save, this device's copy is the same data.
+    if (accountLegacy) legacyLocalKeys().forEach(retireLocal);
+    else if (mergeLocalLegacy()) changed = true;
+
+    if (changed) {
+      S.updatedAt = Date.now(); saveLocal();
+      await ref.set(clone(S)); dirty = false;
+      for (const lref of toMark) { try { await lref.update({ migratedTo: DOC_ID, migratedAt: Date.now() }); } catch (e) {} }
+    }
+    syncState = 'ok';
+    if (dirty) flush();
+
+    // Live: pick up progress made on another device or tab.
+    unsub = ref.onSnapshot(s => {
+      if (!s.exists || s.metadata.hasPendingWrites || writing || dirty) return;
+      const r = s.data() || {};
+      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); rerender(); }
+    }, () => { unsub = null; });
+  } catch (e) {
+    if (!remote) syncState = 'local';
+    else { syncState = 'retry'; dirty = true; saveTimer = setTimeout(flush, 5000); }
+  } finally {
+    connecting = false;
+    setSync(); rerender(); readyResolve();
+  }
+}
+
+/* ---------------- formatting ---------------- */
+function fmtMS(sec) { sec = Math.max(0, Math.floor(sec)); return Math.floor(sec / 60) + 'm ' + pad2(sec % 60) + 's'; }
+function fmtClock(sec) { sec = Math.max(0, Math.floor(sec)); return Math.floor(sec / 60) + ':' + pad2(sec % 60); }
+function fmtMin(sec) { return Math.floor(sec / 60) + 'm'; }
+function fmtWhen(ts) { return new Date(ts).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+function fmtTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+
+/* ---------------- screens ---------------- */
+const SCREENS = ['home', 'play', 'done', 'shop', 'map', 'rules'];
+function show(name) {
+  SCREENS.forEach(s => { $(s).hidden = s !== name; });
+  if (name === 'home') renderHome();
+  if (name === 'shop') renderShop();
+  if (name === 'map') renderMap();
+  if (name === 'rules') { $('rTries').textContent = S.settings.tries; $('rCap').textContent = S.settings.weekdayCap; $('rCapW').textContent = S.settings.weekendCap; }
+  if (name !== 'play') { stopSpeed(); setHeat(0); releaseWake(); }
+}
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => show(b.dataset.go)));
+
+function renderHome() {
+  const d = today();
+  $('hBank').textContent = fmtMS(S.bank);
+  $('hTries').textContent = triesLeft();
+  $('hTriesOf').textContent = 'of ' + S.settings.tries;
+  $('hRedeemed').textContent = d.redeemed + 'm';
+  $('hCap').textContent = 'limit ' + capMin() + 'm ' + (isWeekend() ? 'on weekends' : 'on school days');
+  $('hEarned').textContent = fmtMin(d.earned);
+  $('hRight').textContent = d.correct + ' right of ' + d.tries;
+  $('hBest').textContent = S.bestChain;
+  $('hBestToday').textContent = 'today ' + d.bestChain;
+  const left = triesLeft();
+  $('playBtn').disabled = left === 0;
+  $('playBtn').textContent = left === 0 ? 'Back tomorrow' : (d.tries > 0 ? 'Keep playing' : 'Play');
+  setSync();
+}
+
+/* ---------------- sound ---------------- */
+let ac = null;
+function audio() {
+  if (!S.settings.sound) return null;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+  } catch (e) { return null; }
+  return ac;
+}
+function tone(freq, dur = 0.12, type = 'triangle', vol = 0.18, when = 0) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + when;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination);
+  o.start(t); o.stop(t + dur + 0.03);
+}
+const PENTA = [0, 2, 4, 7, 9];
+function noteFor(n) { const s = Math.min(Math.max(n - 1, 0), 14); return 261.63 * Math.pow(2, (PENTA[s % 5] + 12 * Math.floor(s / 5)) / 12); }
+const sfx = {
+  right(chain, tier) { tone(noteFor(chain), 0.14, 'triangle', 0.2); if (tier === 0) { tone(noteFor(chain) * 2, 0.1, 'sine', 0.08, 0.05); tone(noteFor(chain) * 3, 0.08, 'sine', 0.05, 0.09); } },
+  wrong() { tone(160, 0.22, 'sawtooth', 0.1); tone(110, 0.3, 'square', 0.06, 0.08); },
+  step() { [0, 4, 7, 12].forEach((s, i) => tone(392 * Math.pow(2, s / 12), 0.16, 'square', 0.07, i * 0.06)); },
+  jackpot() { [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.22, 'triangle', 0.14, i * 0.07)); },
+  key() { tone(880, 0.03, 'sine', 0.035); },
+  ticket() { [0, 7, 12, 19].forEach((s, i) => tone(440 * Math.pow(2, s / 12), 0.3, 'triangle', 0.14, i * 0.1)); },
+};
+function renderMute() { $('muteBtn').textContent = S.settings.sound ? 'Sound on' : 'Sound off'; }
+$('muteBtn').addEventListener('click', () => { S.settings.sound = !S.settings.sound; renderMute(); persist(); });
+
+/* ---------------- particles & fx ---------------- */
+const cv = $('fxCanvas'), cx = cv.getContext('2d'), fx = $('fx');
+let P = [], raf = 0, last = 0, dpr = 1;
+function resize() { dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px'; }
+addEventListener('resize', resize); resize();
+function spawn(p) { P.push(p); if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } }
+function burst(x, y, n, colors, power = 1) {
+  if (RM) n = Math.ceil(n / 5);
+  for (let i = 0; i < n; i++) {
+    const ang = Math.random() * Math.PI * 2, sp = (0.15 + Math.random() * 0.55) * power;
+    spawn({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 0.25 * power, g: 0.0011, life: 0, max: 700 + Math.random() * 600,
+      size: 4 + Math.random() * 6 * Math.min(power, 1.8), color: colors[i % colors.length], rect: Math.random() < 0.5, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.02 });
+  }
+}
+function rain(n, colors) {
+  if (RM) n = Math.ceil(n / 6);
+  for (let i = 0; i < n; i++) {
+    spawn({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.5, vx: (Math.random() - 0.5) * 0.12, vy: 0.15 + Math.random() * 0.25, g: 0.0003,
+      life: 0, max: 2600 + Math.random() * 1200, size: 6 + Math.random() * 7, color: colors[i % colors.length], rect: true, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.015 });
+  }
+}
+function tick(now) {
+  const dt = Math.min(40, now - last); last = now;
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx.clearRect(0, 0, innerWidth, innerHeight);
+  P = P.filter(p => (p.life += dt) < p.max && p.y < innerHeight + 40);
+  for (const p of P) {
+    p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+    const a = 1 - p.life / p.max;
+    cx.globalAlpha = Math.min(1, a * 1.6);
+    cx.fillStyle = p.color;
+    if (p.rect) { cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); cx.restore(); }
+    else { cx.beginPath(); cx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2); cx.fill(); }
+  }
+  cx.globalAlpha = 1;
+  raf = P.length ? requestAnimationFrame(tick) : 0;
+  if (!raf) cx.clearRect(0, 0, innerWidth, innerHeight);
+}
+function floatText(text, x, y, color, size) {
+  const el = document.createElement('div');
+  el.className = 'float'; el.textContent = text;
+  el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color; el.style.fontSize = size + 'px';
+  fx.appendChild(el); setTimeout(() => el.remove(), 1100);
+}
+function banner(big, small, color) {
+  fx.querySelectorAll('.banner').forEach(b => b.remove());
+  const el = document.createElement('div');
+  el.className = 'banner';
+  el.innerHTML = '<b></b><span></span>';
+  el.firstChild.textContent = big; el.lastChild.textContent = small || '';
+  el.firstChild.style.color = color;
+  fx.appendChild(el); setTimeout(() => el.remove(), 1600);
+}
+function flash() { if (RM) return; const el = document.createElement('div'); el.className = 'flash'; fx.appendChild(el); setTimeout(() => el.remove(), 500); }
+function quake() { if (RM) return; const a = $('app'); a.classList.remove('quake'); void a.offsetWidth; a.classList.add('quake'); }
+function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function centerOf(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
+function setHeat(h) { document.documentElement.style.setProperty('--heat', h.toFixed(2)); }
+
+/* ---------------- facts ---------------- */
+function factKey(a, b) { return a + 'x' + b; }
+function weight(a, b) {
+  const f = S.facts[factKey(a, b)];
+  let w = f ? 1 : 2.2;
+  if (f && f.n) {
+    const acc = f.ok / f.n;
+    w += (1 - acc) * 7;
+    if (f.ms > 4000) w += 1.6; else if (f.ms > 2500) w += 0.6;
+    if (f.n >= 4 && acc > 0.95 && f.ms && f.ms < 2000) w *= 0.45;
+  }
+  if (a === 1 || b === 1 || a === 10 || b === 10) w *= 0.3;
+  if ((a === 11 && b < 10) || (b === 11 && a < 10)) w *= 0.6;
+  if (a === 2 || b === 2) w *= 0.7;
+  return w;
+}
+let retry = [], qCount = 0, lastKey = '';
+function pick() {
+  qCount++;
+  const due = retry.findIndex(r => r.due <= qCount);
+  if (due >= 0) { const r = retry.splice(due, 1)[0]; if (factKey(r.a, r.b) !== lastKey) return r; r.due = qCount + 2; retry.push(r); }
+  const pool = []; let total = 0;
+  for (let a = 1; a <= 12; a++) for (let b = 1; b <= 12; b++) {
+    if (factKey(a, b) === lastKey || factKey(b, a) === lastKey) continue;
+    const w = weight(a, b); total += w; pool.push([a, b, total]);
+  }
+  const r = Math.random() * total;
+  const hit = pool.find(p => p[2] >= r) || pool[pool.length - 1];
+  return { a: hit[0], b: hit[1] };
+}
+function recordFact(a, b, ok, ms) {
+  const k = factKey(a, b);
+  const f = S.facts[k] || (S.facts[k] = { n: 0, ok: 0, ms: 0 });
+  f.n++;
+  if (ok) { f.ok++; f.ms = f.ms ? Math.round(f.ms * 0.65 + ms * 0.35) : Math.round(ms); }
+}
+
+/* ---------------- play ---------------- */
+let cur = null, typed = '', t0 = 0, locked = false, chain = 0, sess = null, speedRaf = 0;
+function multFor(c) { for (const [n, m] of STEPS) if (c >= n) return m; return 1; }
+function tierFor(ms) { return SPEED.findIndex(s => ms <= s[0]); }
+
+function startPlay() {
+  if (triesLeft() === 0) { showDone(); return; }
+  sess = { right: 0, tries: 0, earned: 0, chain: 0, light: 0 };
+  chain = 0; retry = []; locked = false;
+  show('play');
+  renderMute(); renderChain(false); renderHud();
+  requestWake();
+  nextQ();
+}
+$('playBtn').addEventListener('click', async () => { audio(); await readyP; startPlay(); });
+$('homeBtn').addEventListener('click', () => show('home'));
+
+function nextQ() {
+  if (triesLeft() === 0) { setTimeout(showDone, 700); return; }
+  cur = pick(); lastKey = factKey(cur.a, cur.b);
+  typed = ''; locked = false;
+  $('qa').textContent = cur.a; $('qb').textContent = cur.b;
+  retrigger($('q'), 'pop');
+  $('revealNote').textContent = '';
+  renderAns('');
+  t0 = performance.now();
+  startSpeed();
+}
+function renderAns(cls) {
+  const el = $('ans');
+  el.className = 'ans' + (typed ? '' : ' empty') + (cls ? ' ' + cls : '');
+  el.textContent = typed || '?';
+}
+function startSpeed() {
+  stopSpeed();
+  const fill = $('speedFill'), lab = $('speedLab');
+  const step = () => {
+    const ms = performance.now() - t0;
+    const t = tierFor(ms);
+    const frac = Math.max(0, 1 - ms / 6000);
+    fill.style.width = (frac * 100).toFixed(1) + '%';
+    if (t >= 0) { const c = css(SPEED[t][3]); fill.style.background = c; lab.style.color = c; lab.textContent = SPEED[t][2] + ' +' + SPEED[t][1]; }
+    else { lab.style.color = css('--muted'); lab.textContent = 'Take your time'; }
+    speedRaf = t >= 0 ? requestAnimationFrame(step) : 0;
+  };
+  speedRaf = requestAnimationFrame(step);
+}
+function stopSpeed() { if (speedRaf) cancelAnimationFrame(speedRaf); speedRaf = 0; }
+
+function press(k) {
+  if (locked || !cur || $('play').hidden) return;
+  if (k === 'C') { typed = ''; renderAns(''); return; }
+  if (k === 'B') { typed = typed.slice(0, -1); renderAns(''); return; }
+  if (typed.length >= 3) return;
+  typed += k;
+  sfx.key();
+  renderAns('');
+  if (typed.length === String(cur.a * cur.b).length) submit();
+}
+function submit() {
+  const ms = performance.now() - t0;
+  stopSpeed();
+  locked = true;
+  const ans = cur.a * cur.b;
+  const ok = Number(typed) === ans;
+  const d = today();
+  d.tries++; sess.tries++;
+  recordFact(cur.a, cur.b, ok, ms);
+  const [x, y] = centerOf($('card'));
+  if (ok) {
+    chain++;
+    const prevMult = multFor(chain - 1), mult = multFor(chain);
+    const tier = tierFor(ms);
+    const bonus = tier >= 0 ? SPEED[tier][1] : 0;
+    let gain = Math.round((BASE + bonus) * mult);
+    const jackpot = JACKPOTS[chain] || 0;
+    gain += jackpot;
+    S.bank += gain; d.earned += gain; d.correct++;
+    sess.right++; sess.earned += gain; sess.chain = Math.max(sess.chain, chain);
+    if (tier === 0) { d.lightning++; sess.light++; }
+    d.bestChain = Math.max(d.bestChain, chain);
+    S.bestChain = Math.max(S.bestChain, chain);
+    persist();
+
+    renderAns('right');
+    retrigger($('card'), 'flashgood');
+    const tc = tier >= 0 ? css(SPEED[tier][3]) : css('--good');
+    const power = 1 + Math.min(chain, 40) / 22;
+    burst(x, y, Math.min(70, 16 + chain * 2), [tc, css('--pink'), css('--ink'), css('--tang')], power);
+    floatText('+' + gain + 's', x + (Math.random() * 80 - 40), y - 40, tc, 34 + Math.min(chain, 30));
+    if (tier >= 0) floatText(SPEED[tier][2] + '!', x, y + 70, tc, 22 + (tier === 0 ? 8 : 0));
+    sfx.right(chain, tier);
+
+    if (jackpot) {
+      setTimeout(() => {
+        banner(chain === 100 ? 'PERFECT!' : 'CHAIN ' + chain + '!', '+' + (jackpot >= 60 ? (jackpot / 60) + ' min' : jackpot + 's') + ' jackpot', css('--gold'));
+        rain(140, [css('--gold'), css('--pink'), css('--cyan'), css('--tang'), css('--good')]);
+        flash(); quake(); sfx.jackpot();
+      }, 120);
+    } else if (mult > prevMult) {
+      setTimeout(() => { banner('×' + mult, 'Multiplier up!', css('--pink')); burst(x, y, 50, [css('--pink'), css('--gold')], 2.2); sfx.step(); }, 120);
+    } else if (tier === 0 && chain >= 3 && chain % 3 === 0) {
+      quake();
+    }
+    renderChain(mult > prevMult);
+    renderHud();
+    setTimeout(nextQ, 170);
+  } else {
+    const broken = chain;
+    chain = 0;
+    persist();
+    renderAns('wrong');
+    retrigger($('card'), 'shake');
+    sfx.wrong();
+    if (broken >= 5) {
+      const [cxp, cyp] = centerOf($('chain'));
+      burst(cxp, cyp, 30, [css('--muted'), css('--line')], 1.2);
+      floatText('Chain of ' + broken + ' broken', cxp, cyp + 30, css('--muted'), 22);
+    }
+    retry.push({ a: cur.a, b: cur.b, due: qCount + 3 + Math.floor(Math.random() * 3) });
+    renderChain(false);
+    renderHud();
+    setTimeout(() => {
+      typed = String(ans); renderAns('reveal');
+      $('revealNote').textContent = cur.a + ' × ' + cur.b + ' = ' + ans;
+    }, 380);
+    setTimeout(nextQ, 1700);
+  }
+}
+function renderChain(bump) {
+  $('chainNum').textContent = chain;
+  const m = multFor(chain);
+  $('mult').textContent = '×' + m;
+  const next = [5, 10, 20].find(n => n > chain);
+  const prev = [0, 5, 10, 20].filter(n => n <= chain).pop();
+  $('chainFill').style.width = next ? ((chain - prev) / (next - prev) * 100) + '%' : '100%';
+  $('chainNext').textContent = next ? (next - chain) + ' more for ×' + multFor(next) : 'Max multiplier. Keep it going!';
+  const fever = chain >= 20;
+  $('chain').classList.toggle('fever', fever);
+  $('card').classList.toggle('fever', fever && !RM);
+  if (bump) retrigger($('chain'), 'bump');
+  setHeat(Math.min(1, chain / 30));
+}
+function renderHud() {
+  const left = triesLeft();
+  $('pTries').textContent = left;
+  $('pEarned').textContent = fmtClock(sess ? sess.earned : 0);
+  $('pBank').textContent = fmtClock(S.bank);
+  $('triesFill').style.width = (left / S.settings.tries * 100) + '%';
+}
+function showDone() {
+  const d = today();
+  show('done');
+  $('dRight').textContent = d.correct + ' / ' + d.tries;
+  $('dEarned').textContent = fmtMS(d.earned);
+  $('dChain').textContent = d.bestChain;
+  $('dLight').textContent = d.lightning;
+  const worst = Object.entries(S.facts).filter(([, f]) => f.n >= 2).map(([k, f]) => [k, f.ok / f.n]).sort((a, b) => a[1] - b[1]).slice(0, 3).filter(e => e[1] < 0.8);
+  $('dTip').textContent = worst.length ? 'Tricky ones to practise: ' + worst.map(e => e[0].replace('x', ' × ')).join(', ') + '. They will come up more tomorrow.' : 'Your fact map shows which facts are gold already.';
+}
+$('dShop').addEventListener('click', () => show('shop'));
+$('dMap').addEventListener('click', () => show('map'));
+$('dHome').addEventListener('click', () => show('home'));
+
+/* keypad: pointerdown for speed, keyboard too */
+$('pad').addEventListener('pointerdown', e => {
+  const b = e.target.closest('.key'); if (!b) return;
+  e.preventDefault();
+  b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 90);
+  press(b.dataset.k);
+});
+$('pad').addEventListener('click', e => { if (e.detail === 0) { const b = e.target.closest('.key'); if (b) press(b.dataset.k); } });
+document.addEventListener('keydown', e => {
+  if ($('play').hidden || e.metaKey || e.ctrlKey) return;
+  if (/^[0-9]$/.test(e.key)) { press(e.key); e.preventDefault(); }
+  else if (e.key === 'Backspace') { press('B'); e.preventDefault(); }
+  else if (e.key === 'Escape') show('home');
+});
+
+/* wake lock */
+let wake = null;
+function requestWake() { try { navigator.wakeLock && navigator.wakeLock.request('screen').then(w => { wake = w; }).catch(() => {}); } catch (e) {} }
+function releaseWake() { try { wake && wake.release(); } catch (e) {} wake = null; }
+
+/* ---------------- shop ---------------- */
+let pickMin = 0;
+function availMin() { return Math.max(0, Math.min(Math.floor(S.bank / 60), capMin() - today().redeemed)); }
+function renderShop() {
+  const d = today(), av = availMin();
+  if (pickMin > av) pickMin = 0;
+  $('sBank').textContent = fmtMS(S.bank);
+  $('sCap').textContent = capMin() + 'm';
+  $('sUsed').textContent = d.redeemed + 'm';
+  $('sAvail').textContent = av + 'm';
+  const opts = [5, 10, 15, 20, 30, 45, 60, 90].filter(m => m <= capMin());
+  if (av > 0 && !opts.includes(av)) opts.push(av);
+  opts.sort((a, b) => a - b);
+  const box = $('choices'); box.innerHTML = '';
+  opts.forEach(m => {
+    const b = document.createElement('button');
+    b.className = 'choice' + (m === pickMin ? ' sel' : '');
+    b.disabled = m > av;
+    b.innerHTML = '<b>' + m + '</b><small>' + (m === av ? 'all you can' : 'minutes') + '</small>';
+    b.addEventListener('click', () => { pickMin = m; armed = false; renderShop(); });
+    box.appendChild(b);
+  });
+  const btn = $('redeemBtn');
+  btn.disabled = !pickMin;
+  btn.textContent = !pickMin ? 'Pick minutes' : (armed ? 'Tap again to cash in ' + pickMin + ' min' : 'Cash in ' + pickMin + ' minutes');
+  let hint = '';
+  if (d.redeemed >= capMin()) hint = 'You have used today\'s limit. Your bank keeps growing for tomorrow.';
+  else if (S.bank < 300) hint = 'Earn ' + fmtMS(300 - S.bank) + ' more to cash in 5 minutes.';
+  $('sHint').textContent = hint;
+  const list = $('ticketList'); list.innerHTML = '';
+  const todays = S.tickets.filter(t => todayKey(new Date(t.at)) === todayKey());
+  if (!todays.length) list.innerHTML = '<li class="empty-note">No tickets yet today. Cashed-in minutes show up here.</li>';
+  todays.slice().reverse().forEach(t => { const li = document.createElement('li'); li.innerHTML = '<span></span><b></b>'; li.firstChild.textContent = fmtTime(t.at); li.lastChild.textContent = t.min + ' min'; list.appendChild(li); });
+}
+let armed = false, armTimer = 0;
+$('redeemBtn').addEventListener('click', () => {
+  if (!pickMin) return;
+  if (!armed) { armed = true; renderShop(); clearTimeout(armTimer); armTimer = setTimeout(() => { armed = false; if (!$('shop').hidden) renderShop(); }, 4000); return; }
+  armed = false; clearTimeout(armTimer);
+  const m = Math.min(pickMin, availMin());
+  if (!m) { renderShop(); return; }
+  S.bank -= m * 60; today().redeemed += m;
+  const t = { id: Date.now().toString(36), at: Date.now(), min: m };
+  S.tickets.push(t); if (S.tickets.length > 80) S.tickets.splice(0, S.tickets.length - 80);
+  persist();
+  pickMin = 0; renderShop();
+  $('tMin').textContent = m; $('tWhen').textContent = fmtWhen(t.at);
+  $('ticket').hidden = false;
+  rain(160, [css('--gold'), css('--pink'), css('--cyan'), css('--good')]);
+  sfx.ticket();
+});
+$('shopBtn').addEventListener('click', () => { pickMin = 0; armed = false; show('shop'); });
+$('tClose').addEventListener('click', () => { $('ticket').hidden = true; });
+
+/* ---------------- fact map ---------------- */
+function mastery(f) {
+  if (!f || !f.n) return -1;
+  const acc = f.ok / f.n;
+  if (acc < 0.6) return 0;
+  if (acc < 0.85) return 1;
+  if (!f.ms || f.ms > 3500) return 2;
+  if (f.ms > 2000 || f.n < 3) return 3;
+  return 4;
+}
+function renderMap() {
+  const g = $('mapGrid'); g.innerHTML = '';
+  const add = (txt, cls, k) => { const el = document.createElement('div'); el.className = cls; el.textContent = txt; if (k) el.dataset.k = k; g.appendChild(el); };
+  add('×', 'h');
+  for (let b = 1; b <= 12; b++) add(b, 'h');
+  for (let a = 1; a <= 12; a++) {
+    add(a, 'h');
+    for (let b = 1; b <= 12; b++) { const m = mastery(S.facts[factKey(a, b)]); add(a * b, 'c' + (m >= 0 ? ' m' + m : ''), a + 'x' + b); }
+  }
+  $('mapInfo').textContent = 'Tap a square.';
+}
+$('mapGrid').addEventListener('click', e => {
+  const c = e.target.closest('.c'); if (!c) return;
+  $('mapGrid').querySelectorAll('.sel').forEach(s => s.classList.remove('sel'));
+  c.classList.add('sel');
+  const [a, b] = c.dataset.k.split('x');
+  const f = S.facts[c.dataset.k];
+  $('mapInfo').textContent = a + ' × ' + b + ' = ' + (a * b) + '.  ' + (f && f.n ? f.ok + ' right out of ' + f.n + (f.ms ? ', usually in ' + (f.ms / 1000).toFixed(1) + ' seconds.' : '.') : 'Not tried yet.');
+});
+$('mapBtn').addEventListener('click', () => show('map'));
+$('rulesBtn').addEventListener('click', () => show('rules'));
+
+/* ---------------- grown-ups ----------------
+   Each family chooses its own PIN the first time (typed twice), and it travels with the save. */
+let pinTyped = '', pinDraft = '';
+function renderPin() {
+  $('pinDots').querySelectorAll('i').forEach((d, i) => d.classList.toggle('on', i < pinTyped.length));
+  const setting = !S.settings.pin;
+  $('pinTitle').textContent = setting ? 'Choose a grown-up PIN' : 'Grown-ups only';
+  $('pinHint').textContent = !setting ? 'Enter the PIN.' : pinDraft ? 'Type it again to confirm.' : 'Pick 4 digits. You will need them to open this screen.';
+}
+function openPin() { pinTyped = ''; pinDraft = ''; renderPin(); $('pin').hidden = false; }
+function pinWrong() { retrigger($('pinDots'), 'shake'); setTimeout(() => { pinTyped = ''; renderPin(); }, 450); }
+function pinPress(k) {
+  if (k === 'X') { $('pin').hidden = true; return; }
+  if (k === 'B') { pinTyped = pinTyped.slice(0, -1); renderPin(); return; }
+  if (pinTyped.length >= 4) return;
+  pinTyped += k; renderPin();
+  if (pinTyped.length < 4) return;
+  const unlock = () => setTimeout(() => { $('pin').hidden = true; openParent(); }, 150);
+  if (S.settings.pin) { if (pinTyped === S.settings.pin) unlock(); else pinWrong(); return; }
+  if (!pinDraft) { pinDraft = pinTyped; setTimeout(() => { pinTyped = ''; renderPin(); }, 200); return; }
+  if (pinTyped === pinDraft) { S.settings.pin = pinDraft; pinDraft = ''; persist(); unlock(); }
+  else { pinDraft = ''; pinWrong(); }
+}
+$('parentBtn').addEventListener('click', openPin);
+$('pinPad').addEventListener('pointerdown', e => {
+  const b = e.target.closest('.key'); if (!b) return;
+  e.preventDefault();
+  b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 90);
+  pinPress(b.dataset.k);
+});
+$('pinPad').addEventListener('click', e => { if (e.detail === 0) { const b = e.target.closest('.key'); if (b) pinPress(b.dataset.k); } });
+document.addEventListener('keydown', e => {
+  if ($('pin').hidden) return;
+  if (/^[0-9]$/.test(e.key)) pinPress(e.key);
+  else if (e.key === 'Backspace') pinPress('B');
+  else if (e.key === 'Escape') pinPress('X');
+});
+let resetArmed = false;
+function openParent() {
+  $('setTries').value = S.settings.tries;
+  $('setWeekday').value = S.settings.weekdayCap;
+  $('setWeekend').value = S.settings.weekendCap;
+  resetArmed = false; $('resetTries').textContent = 'Reset today\'s tries';
+  wipeArmed = false; $('wipeAll').textContent = 'Start over';
+  renderParent();
+  $('parent').hidden = false;
+}
+function renderParent() {
+  $('pBankAdj').textContent = fmtMS(S.bank);
+  $('codeShow').textContent = KidSave.code() || 'Not connected yet';
+  const ul = $('allTickets'); ul.innerHTML = '';
+  if (!S.tickets.length) ul.innerHTML = '<li class="empty-note">No tickets cashed in yet.</li>';
+  S.tickets.slice(-10).reverse().forEach(t => { const li = document.createElement('li'); li.innerHTML = '<span></span><b></b>'; li.firstChild.textContent = fmtWhen(t.at); li.lastChild.textContent = t.min + ' min'; ul.appendChild(li); });
+}
+document.querySelectorAll('[data-adj]').forEach(b => b.addEventListener('click', () => { S.bank = Math.max(0, S.bank + Number(b.dataset.adj)); persist(); renderParent(); }));
+$('resetTries').addEventListener('click', () => {
+  if (!resetArmed) { resetArmed = true; $('resetTries').textContent = 'Tap again to reset'; return; }
+  today().tries = 0; persist(); resetArmed = false; $('resetTries').textContent = 'Tries reset';
+});
+let wipeArmed = false;
+$('wipeAll').addEventListener('click', () => {
+  if (!wipeArmed) { wipeArmed = true; $('wipeAll').textContent = 'Tap again to erase everything'; return; }
+  const keep = { ...S.settings }, merged = S.merged.slice();
+  S = fresh(); S.settings = keep; S.merged = merged;
+  persist(); wipeArmed = false; $('wipeAll').textContent = 'Erased';
+  renderParent();
+});
+$('pinChange').addEventListener('click', () => {
+  delete S.settings.pin; persist();
+  $('parent').hidden = true; openPin();
+});
+$('codeForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const msg = $('codeMsg'); msg.textContent = 'Checking…';
+  KidSave.switchTo($('codeInput').value).catch(err => { msg.textContent = err.message; });
+});
+function clampInt(v, lo, hi, dflt) { v = parseInt(v, 10); return isNaN(v) ? dflt : Math.max(lo, Math.min(hi, v)); }
+$('parentClose').addEventListener('click', () => {
+  S.settings.tries = clampInt($('setTries').value, 10, 300, S.settings.tries);
+  S.settings.weekdayCap = clampInt($('setWeekday').value, 0, 240, S.settings.weekdayCap);
+  S.settings.weekendCap = clampInt($('setWeekend').value, 0, 240, S.settings.weekendCap);
+  persist();
+  $('parent').hidden = true;
+  renderHome();
+});
+
+/* ---------------- boot ---------------- */
+renderHome();
+connect();
+setInterval(() => { if (!$('home').hidden) renderHome(); }, 60000);
+})();
+</script>
+
+</body></html>
