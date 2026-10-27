@@ -266,6 +266,30 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
   .home-top{grid-template-columns:1fr}
   .hud .stat b{font-size:20px}
   .chain-num b{font-size:30px}
+  /* Phone play screen: everything must fit without scrolling, or the bottom keypad row (0 included) lands under Safari's toolbar and the home-indicator swipe zone. The keypad keeps its size; the card gives way. */
+  #app{padding-block:8px}
+  #play{gap:8px;overflow:hidden}
+  .hud{flex-wrap:nowrap;gap:8px}
+  .hud .lab{font-size:10px;letter-spacing:.06em;white-space:nowrap}
+  .hud .btn.small{white-space:nowrap}
+  .hud .stat b{font-size:18px}
+  .hud .btn.small{min-height:36px;padding:0 10px;font-size:14px}
+  .arena{gap:8px;grid-template-rows:minmax(0,1fr) auto}
+  .stage{gap:8px}
+  .chain{padding:6px 12px;gap:2px 10px}
+  .chain .chain-num b{font-size:26px}
+  .mult{font-size:22px}
+  .chain-next{font-size:12px}
+  .card{min-height:0;padding:8px 12px;gap:2px;border-radius:22px}
+  .q{font-size:clamp(40px,12vw,72px)}
+  .ans{font-size:clamp(34px,9vw,56px)}
+  .reveal-note{font-size:16px;min-height:1.3em}
+  .speed{margin-top:2px}
+  .pad{grid-template-rows:repeat(4,58px);gap:8px}
+}
+@media (max-width:640px) and (max-height:600px){
+  .chain-next,.speed-lab{display:none}
+  .pad{grid-template-rows:repeat(4,54px)}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
