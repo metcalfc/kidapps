@@ -32,6 +32,15 @@ CREATE TABLE IF NOT EXISTS saves (
 	data       TEXT NOT NULL,
 	updated_at INTEGER NOT NULL,
 	PRIMARY KEY (code, doc)
+);
+-- Things a kid publishes for friends to open by code, such as a dungeon. Only the save code
+-- that published one may change it.
+CREATE TABLE IF NOT EXISTS shares (
+	code       TEXT PRIMARY KEY,
+	owner      TEXT NOT NULL REFERENCES codes(code) ON DELETE CASCADE,
+	data       TEXT NOT NULL,
+	created_at INTEGER NOT NULL,
+	updated_at INTEGER NOT NULL
 );`
 
 func OpenStore(file string) (*Store, error) {
@@ -78,11 +87,15 @@ func randInt(n int) int {
 	return int(v.Int64())
 }
 
+func newCodeString() string {
+	return fmt.Sprintf("%s-%04d", codeWords[randInt(len(codeWords))], randInt(10000))
+}
+
 // NewCode registers a fresh, unused save code.
 func (s *Store) NewCode(ctx context.Context) (string, error) {
 	now := time.Now().UnixMilli()
 	for i := 0; i < 20; i++ {
-		code := fmt.Sprintf("%s-%04d", codeWords[randInt(len(codeWords))], randInt(10000))
+		code := newCodeString()
 		res, err := s.db.ExecContext(ctx, `INSERT OR IGNORE INTO codes (code, created_at, last_seen) VALUES (?, ?, ?)`, code, now, now)
 		if err != nil {
 			return "", err
@@ -143,4 +156,57 @@ func (s *Store) Put(ctx context.Context, code, doc string, data []byte) error {
 func (s *Store) Backup(ctx context.Context, dst string) error {
 	_, err := s.db.ExecContext(ctx, `VACUUM INTO ?`, dst)
 	return err
+}
+
+// ErrNotOwner means a share exists but belongs to a different save code.
+var ErrNotOwner = errors.New("not the owner")
+
+// Publish stores data under a fresh share code owned by the save code owner.
+func (s *Store) Publish(ctx context.Context, owner string, data []byte) (string, error) {
+	ok, err := s.CodeExists(ctx, owner)
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return "", ErrNotFound
+	}
+	now := time.Now().UnixMilli()
+	for i := 0; i < 20; i++ {
+		code := newCodeString()
+		res, err := s.db.ExecContext(ctx, `INSERT OR IGNORE INTO shares (code, owner, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
+			code, owner, string(data), now, now)
+		if err != nil {
+			return "", err
+		}
+		if n, _ := res.RowsAffected(); n == 1 {
+			return code, nil
+		}
+	}
+	return "", errors.New("no free share code after 20 tries")
+}
+
+// Republish replaces a share's data, if owner published it.
+func (s *Store) Republish(ctx context.Context, code, owner string, data []byte) error {
+	var have string
+	err := s.db.QueryRowContext(ctx, `SELECT owner FROM shares WHERE code = ?`, code).Scan(&have)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	if have != owner {
+		return ErrNotOwner
+	}
+	_, err = s.db.ExecContext(ctx, `UPDATE shares SET data = ?, updated_at = ? WHERE code = ?`, string(data), time.Now().UnixMilli(), code)
+	return err
+}
+
+func (s *Store) Shared(ctx context.Context, code string) ([]byte, error) {
+	var data string
+	err := s.db.QueryRowContext(ctx, `SELECT data FROM shares WHERE code = ?`, code).Scan(&data)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return []byte(data), err
 }

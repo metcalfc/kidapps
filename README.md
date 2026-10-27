@@ -2,7 +2,7 @@
 
 Two practice games for kids, built as installable web apps for iPad and Mac:
 
-- **Pinehurst DM Academy** (`/dm/`): Dungeon Master training covering dice math, rules, encounter building, an initiative tracker and a dice lab.
+- **Pinehurst DM Academy** (`/dm/`): Dungeon Master training covering dice math, rules, encounter building, an initiative tracker and a dice lab. Its **Dungeon Forge** lets a kid build a dungeon on a gold budget, beat it, and share it with friends by code. The math is in the building (budgets, area, perimeter, splitting XP and treasure for the Guildmaster's commissions) and in the playing (saving throws, attack rolls, damage, counting loot). The story and signs are the builder's own writing, for friends to read.
 - **Chain Reaction** (`/chain/`): times tables up to 12 × 12, where right answers earn screen time.
 
 Live at https://kidapps.exe.xyz/.
@@ -15,6 +15,10 @@ There are no accounts. The first time a device opens an app, the server gives it
 - Each device keeps a working copy in `localStorage` and syncs it to the server. The apps keep working offline and catch up when they reconnect. Another device's progress shows up within about 20 seconds, or as soon as the app comes back to the front.
 - Each family chooses its own 4-digit parent PIN the first time they open the parent screen. The PIN is stored in their save. It keeps kids out of the settings; it is not real security.
 - On iOS a home-screen app does not share storage with Safari. To carry the save across, the manifest's `start_url` includes the device's code, so the installed app opens on the same save.
+
+### Sharing
+
+Apps with `Shares: true` (DM Academy's Forge) can publish an item under its own share code: `POST /<app>/api/shares` with `{owner, data}`, where `owner` is the device's save code. `GET /<app>/api/shares/<code>` reads it back. `PUT` replaces it, but only for the save code that published it. A share code reveals nothing about the publisher's save code.
 
 ### Under the hood
 

@@ -336,6 +336,88 @@ details.lesson[open] summary::after{content:"−"}
 .danger{border-top:1px solid var(--line); padding-top:16px; display:grid; gap:8px}
 .danger .btn.ghost{border-color:var(--bad); color:var(--bad); justify-self:start}
 
+/* Dungeon Forge: a home of three boxes; the editor is the map with a tool rail beside it (below it on phones); play is the map with the reading panel and encounter beside it. */
+.forge{display:grid; gap:16px}
+.forge-cols{display:grid; grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); gap:14px; align-items:start}
+.forge-box{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; display:grid; gap:10px; box-shadow:var(--shadow)}
+.forge-box h3{font-size:1rem; letter-spacing:.04em}
+.forge-box .help{margin:0; color:var(--muted); font-size:.9rem}
+.forge-list{display:grid; gap:8px}
+.forge-item{display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px 12px}
+.forge-item b{font-family:var(--display); font-size:.98rem; overflow-wrap:anywhere}
+.forge-item small{grid-column:1; color:var(--muted); font-size:.82rem}
+.forge-item .row{grid-row:span 2; grid-column:2; display:flex; gap:6px}
+.forge .sm{background:var(--surface); border:2px solid var(--line); border-radius:999px; padding:5px 12px; font-size:.85rem; font-weight:700}
+.forge .sm:hover{border-color:var(--brass)}
+.forge .sm[aria-pressed="true"]{border-color:var(--brass); background:var(--brass-soft)}
+.forge .sm.danger-btn{color:var(--bad); border-color:var(--bad)}
+.share-code{font-family:var(--display); font-weight:700; font-size:1.25rem; letter-spacing:.06em; color:var(--brass)}
+.commission{background:var(--bg); border:1px solid var(--line); border-left:4px solid var(--brass); border-radius:10px; padding:10px 12px; display:grid; gap:8px}
+.commission p{margin:0; font-size:.95rem}
+.commission .reward{color:var(--brass); font-weight:700; font-size:.85rem}
+.commission .ask{display:grid; gap:10px}
+
+.forge-bar{display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center}
+.forge-bar input{font:inherit; font-family:var(--display); font-weight:700; font-size:1.15rem; padding:6px 10px; border:2px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); flex:1 1 220px; min-width:0}
+.forge-bar .grow{flex:1}
+.forge-note{border-radius:10px; padding:8px 12px; font-size:.92rem; background:var(--brass-soft); border-left:4px solid var(--brass)}
+.forge-note.bad{background:var(--bad-soft); border-color:var(--bad)}
+.forge-note.good{background:var(--good-soft); border-color:var(--good)}
+.forge-edit-cols, .forge-play-cols{display:grid; gap:14px; align-items:start}
+@media (min-width:820px){ .forge-edit-cols{grid-template-columns:minmax(0,1fr) 290px} .forge-play-cols{grid-template-columns:minmax(0,1fr) 340px} }
+
+.fgrid{display:grid; grid-template-columns:repeat(12, 1fr); gap:2px; background:var(--line); border:2px solid var(--line); border-radius:12px; overflow:hidden; aspect-ratio:12 / 9; touch-action:none; user-select:none; -webkit-user-select:none; max-width:720px; width:100%}
+.fc{position:relative; border:0; padding:0; margin:0; display:grid; place-items:center; font-size:clamp(.9rem, 2.6vw, 1.5rem); font-weight:700; line-height:1; color:#1A2622; background:var(--surface); min-width:0; min-height:0}
+.fc.rock{background:#2B3631}
+.fc.floor, .fc.start, .fc.exit, .fc.key, .fc.mon, .fc.trap, .fc.chest, .fc.sign{background:#E9E2CC}
+.fc.door{background:#7A4A22; color:#F3D9A8}
+.fc.start{color:#2E6B4E} .fc.exit{color:#AE2F1C} .fc.key{color:#8F6610} .fc.trap{color:#A4321F} .fc.chest{color:#8F6610; font-size:clamp(.7rem, 1.9vw, 1.1rem); letter-spacing:-.08em} .fc.sign{color:#5A4630}
+.fc.sel{outline:3px solid var(--ember); outline-offset:-3px; z-index:1}
+.fc.fog{background:#0B100E}
+.fc.wall{background:#2B3631}
+.fc .fart{position:absolute; inset:8%; border-radius:50%; background:var(--ink); color:var(--brass); display:grid; place-items:center; font-family:var(--display); font-size:.8em}
+.fc .fart img{border-radius:50%}
+.fc .hero{position:absolute; inset:6%; border-radius:50%; background:var(--moss); border:2px solid var(--brass); z-index:2; overflow:hidden}
+.fc .hero img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.fgrid.play .fc{cursor:pointer}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .fc.floor, :root:not([data-theme="light"]) .fc.start, :root:not([data-theme="light"]) .fc.exit, :root:not([data-theme="light"]) .fc.key, :root:not([data-theme="light"]) .fc.mon, :root:not([data-theme="light"]) .fc.trap, :root:not([data-theme="light"]) .fc.chest, :root:not([data-theme="light"]) .fc.sign{background:#C9C0A6} }
+
+.tools{display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); gap:6px}
+.tools button{display:grid; gap:2px; justify-items:center; background:var(--surface); border:2px solid var(--line); border-radius:10px; padding:6px 4px; font-size:.78rem; font-weight:700; line-height:1.15}
+.tools button span{font-size:1.15rem}
+.tools button small{color:var(--muted); font-weight:400; font-size:.72rem}
+.tools button[aria-pressed="true"]{border-color:var(--brass); background:var(--brass-soft)}
+.inspect{display:grid; gap:8px; font-size:.92rem}
+.inspect label{font-weight:700; font-size:.85rem; color:var(--muted)}
+.inspect select, .inspect textarea, .forge-box textarea{font:inherit; padding:8px 10px; border:2px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink); width:100%}
+.inspect textarea, .forge-box textarea{min-height:84px; resize:vertical}
+.budget{display:grid; gap:6px}
+.budget table{width:100%; border-collapse:collapse; font-size:.86rem; font-variant-numeric:tabular-nums}
+.budget td{padding:3px 0; border-bottom:1px solid var(--line)}
+.budget td:nth-child(2){color:var(--muted); text-align:center}
+.budget td:last-child{text-align:right; font-weight:700}
+.budget .total{display:flex; justify-content:space-between; font-weight:700; font-variant-numeric:tabular-nums}
+.budget .bar i{background:var(--moss)}
+.budget.over .bar i{background:var(--bad)} .budget.over .total{color:var(--bad)}
+
+.fstats{display:flex; flex-wrap:wrap; gap:6px 14px; font-variant-numeric:tabular-nums; font-size:.92rem}
+.fstats b{font-family:var(--display)}
+.reading{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:12px 14px; display:grid; gap:6px}
+.reading h3{font-size:1rem}
+.reading p{margin:0; font-size:1.02rem; line-height:1.55; max-width:60ch; overflow-wrap:anywhere; white-space:pre-line}
+.reading small{color:var(--muted)}
+.flog{font-size:.9rem; color:var(--muted); display:grid; gap:2px; max-height:6.2em; overflow:auto}
+.flog div:first-child{color:var(--ink); font-weight:700}
+.dpad{display:grid; grid-template-columns:repeat(3, 56px); grid-template-rows:repeat(2, 48px); gap:6px; justify-content:center}
+.dpad button{background:var(--surface); border:2px solid var(--line); border-radius:12px; font-size:1.2rem; font-weight:700}
+.dpad .up{grid-column:2}
+.dpad .left{grid-column:1; grid-row:2} .dpad .down{grid-column:2; grid-row:2} .dpad .right{grid-column:3; grid-row:2}
+.enc{background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:14px; display:grid; gap:12px}
+.enc .q{margin:0; font-weight:700; font-size:1.05rem; max-width:60ch}
+.enc .foe{display:flex; align-items:center; gap:10px; font-variant-numeric:tabular-nums}
+.enc .foe .sigil{width:44px; height:44px; border-radius:50%; background:var(--ink); color:var(--brass); border:2px solid var(--brass); display:grid; place-items:center; font-family:var(--display); font-weight:700}
+.enc .foe .bar{flex:1; height:9px} .enc .foe .bar i{background:var(--ember)}
+
 .toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(20px); opacity:0;
   background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-weight:700; font-family:var(--display); font-size:.9rem; letter-spacing:.03em;
   transition:opacity .3s, transform .3s; pointer-events:none; max-width:calc(100vw - 32px); text-align:center; z-index:20}
@@ -356,6 +438,7 @@ details.lesson[open] summary::after{content:"−"}
   <nav aria-label="Sections">
     <button id="nav-home" data-view="home" aria-current="page">Guild Hall</button>
     <button id="nav-boss" data-view="boss">Boss Fight</button>
+    <button id="nav-forge" data-view="forge">Forge</button>
     <button id="nav-tracker" data-view="tracker">Tracker</button>
     <button id="nav-dice" data-view="dice-tray">Dice</button>
     <button id="nav-parent" data-view="parent">Parent</button>
@@ -415,6 +498,86 @@ details.lesson[open] summary::after{content:"−"}
       </div>
       <div class="boss-log" id="boss-log" aria-live="polite"></div>
       <div id="boss-end" hidden></div>
+    </div>
+  </section>
+
+  <!-- Dungeon Forge: build a dungeon, test it, share it -->
+  <section id="view-forge" hidden>
+    <div class="forge" id="forge-home">
+      <div class="greet"><h2>Dungeon Forge</h2><p>Build a dungeon on a gold budget, beat it yourself, then give a friend the code to play it.</p></div>
+      <div class="forge-cols">
+        <div class="forge-box">
+          <h3>Your dungeons</h3>
+          <div class="forge-list" id="forge-list"></div>
+          <div class="actions"><button class="btn" id="forge-new" type="button">New dungeon</button></div>
+        </div>
+        <div class="forge-box">
+          <h3>Guildmaster's commissions</h3>
+          <p class="help">Build what the job asks for in any of your dungeons, then answer the Guildmaster's question about it.</p>
+          <div class="forge-list" id="forge-board"></div>
+        </div>
+        <div class="forge-box">
+          <h3>Play a friend's dungeon</h3>
+          <p class="help">Ask a friend for their dungeon's code.</p>
+          <form class="pin-form" id="forge-join">
+            <input id="forge-code" class="code-input" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="OTTER-4821" aria-label="Dungeon code">
+            <button class="btn ghost" type="submit">Play</button>
+          </form>
+          <p class="help" id="forge-join-msg"></p>
+          <div class="forge-list" id="forge-played"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="forge" id="forge-edit" hidden>
+      <div class="forge-bar">
+        <button class="back" id="fe-back" type="button">← Forge</button>
+        <input id="fe-title" type="text" maxlength="40" autocomplete="off" aria-label="Dungeon name">
+        <button class="btn" id="fe-test" type="button">Test it</button>
+        <button class="btn ghost" id="fe-share" type="button">Share</button>
+      </div>
+      <div id="fe-note" hidden></div>
+      <div class="forge-edit-cols">
+        <div style="display:grid; gap:12px">
+          <div class="fgrid" id="fe-grid" role="grid" aria-label="Dungeon map"></div>
+          <div class="forge-box">
+            <label for="fe-intro"><b>The story</b></label>
+            <p class="help">What players read before they go in. Set the scene: where is this dungeon, and why are the heroes here?</p>
+            <textarea id="fe-intro" maxlength="400"></textarea>
+          </div>
+        </div>
+        <div style="display:grid; gap:12px">
+          <div class="forge-box"><h3>Build</h3><div class="tools" id="fe-tools"></div></div>
+          <div class="forge-box inspect" id="fe-inspect"></div>
+          <div class="forge-box budget" id="fe-budget"></div>
+          <div class="actions"><button class="btn ghost" id="fe-delete" type="button" style="border-color:var(--bad);color:var(--bad)">Delete dungeon</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="forge" id="forge-play" hidden>
+      <div class="forge-bar">
+        <button class="back" id="fp-leave" type="button">Leave</button>
+        <h2 id="fp-title" style="font-size:1.25rem">Dungeon</h2>
+        <span class="grow"></span>
+        <div class="fstats" id="fp-stats" aria-live="polite"></div>
+      </div>
+      <div class="forge-play-cols">
+        <div style="display:grid; gap:12px">
+          <div class="fgrid play" id="fp-grid" role="grid" aria-label="Dungeon map"></div>
+          <div class="dpad" id="fp-dpad">
+            <button class="up" type="button" data-d="up" aria-label="Up">▲</button>
+            <button class="left" type="button" data-d="left" aria-label="Left">◀</button>
+            <button class="down" type="button" data-d="down" aria-label="Down">▼</button>
+            <button class="right" type="button" data-d="right" aria-label="Right">▶</button>
+          </div>
+        </div>
+        <div style="display:grid; gap:12px">
+          <div class="reading" id="fp-read"></div>
+          <div class="enc" id="fp-enc" hidden></div>
+          <div class="flog" id="fp-log" aria-live="polite"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -643,14 +806,14 @@ function save(key, val){
 // Everything in SYNC_KEYS is also kept in one private document in the viewer's Claude account
 // (data/users/<id>/pda-save). localStorage stays the working copy; the account copy restores a
 // device whose browser was cleared and keeps two devices in step. Never rename CLOUD_DOC.
-const SYNC_KEYS = ['pda-settings','pda-progress','pda-tracker'];
+const SYNC_KEYS = ['pda-settings','pda-progress','pda-tracker','pda-forge'];
 const CLOUD_DOC = 'pda-save';
 const cloud = { ref:null, timer:0, writing:false, dirty:false, state:'connecting', unsub:null };
 function stampGet(k){ try{ return +localStorage.getItem(k) || 0; }catch(e){ return 0; } }
 function stampSet(k, v){ try{ localStorage.setItem(k, String(v)); }catch(e){} }
 function hasLocalData(){ try{ return SYNC_KEYS.some(k => localStorage.getItem(k) !== null); }catch(e){ return false; } }
 function activity(p){ p = p || {}; return (p.xp || 0) + Object.values(p.modules || {}).reduce((a,m)=>a+(m.tries||0),0); }
-function snapshotLocal(){ return { settings, progress, tracker: trk, updatedAt: stampGet('pda-updatedAt') || Date.now() }; }
+function snapshotLocal(){ return { settings, progress, tracker: trk, forge, updatedAt: stampGet('pda-updatedAt') || Date.now() }; }
 function cloudSchedule(){ cloud.dirty = true; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 1500); }
 async function cloudFlush(){
   if(!cloud.ref || !cloud.dirty) return;
@@ -679,13 +842,15 @@ function applyRemote(r){
   settings = Object.assign({}, DEFAULT_SETTINGS, r.settings || {});
   progress = Object.assign({xp:0, modules:{}, bestStreak:0}, r.progress || {});
   trk = Object.assign({round:1, turn:0, open:null, list:[]}, r.tracker || {});
-  try{ localStorage.setItem('pda-settings', JSON.stringify(settings)); localStorage.setItem('pda-progress', JSON.stringify(progress)); localStorage.setItem('pda-tracker', JSON.stringify(trk)); }catch(e){}
+  forge = Object.assign(forgeDefaults(), r.forge || {});
+  try{ localStorage.setItem('pda-settings', JSON.stringify(settings)); localStorage.setItem('pda-progress', JSON.stringify(progress)); localStorage.setItem('pda-tracker', JSON.stringify(trk)); localStorage.setItem('pda-forge', JSON.stringify(forge)); }catch(e){}
   stampSet('pda-updatedAt', r.updatedAt || 0); stampSet('pda-syncedAt', r.updatedAt || 0);
   renderRank(); fillSettings();
   if(!$('view-home').hidden){ renderDaily(); renderHall(); }
   else if(!$('view-tracker').hidden) renderTracker();
   else if(!$('view-parent').hidden) renderParent();
   else if(!$('view-boss').hidden && !boss.active) renderBossPick();
+  else forgeRefresh();
 }
 // Started offline: try again when the network or the app comes back.
 function cloudRetry(){ if(!cloud.ref && cloud.state !== 'connecting' && document.visibilityState === 'visible'){ cloud.state = 'connecting'; cloudConnect(); } }
@@ -1571,12 +1736,13 @@ let toastTimer;
 function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 3200); }
 
 // ---------- Views ----------
-const VIEWS = ['home','module','boss','tracker','dice-tray','parent'];
+const VIEWS = ['home','module','boss','forge','tracker','dice-tray','parent'];
 function show(view){
   VIEWS.forEach(v => { $('view-'+v).hidden = v !== view; });
   document.querySelectorAll('nav button').forEach(b => { if(b.dataset.view === view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if(view === 'home'){ renderDaily(); renderHall(); }
   if(view === 'boss' && !boss.active) renderBossPick();
+  if(view === 'forge') renderForge();
   if(view === 'tracker') renderTracker();
   if(view === 'dice-tray') renderLab();
   if(view === 'parent') renderParent();
@@ -1851,6 +2017,579 @@ function bossLeave(){
 }
 $('boss-flee').addEventListener('click', bossLeave);
 
+// ---------- Dungeon Forge ----------
+// Build a dungeon on a gold budget, beat it yourself, then publish it under a share code that a
+// friend types in to play it. The math is in the building (the budget, and the Guildmaster's
+// commissions: area, perimeter, splitting XP and treasure) and in the playing (saving throws,
+// attack rolls, damage, counting loot). The story and the signs are the builder's own writing,
+// read by whoever plays.
+//
+// A dungeon: { id, title, intro, cells, things, rev, tested, share }
+//   cells   FORGE_W × FORGE_H characters, row by row, keys of PIECES (' ' is solid rock)
+//   things  { cellIndex: {mon:'Goblin'} | {size:'s'|'m'|'l'} | {text:'...'} } for m, $ and s
+//   rev     bumped on every edit; tested is the rev the builder last beat, and sharing needs both equal
+//   share   the share code, once published
+const FORGE_W = 12, FORGE_H = 9, FORGE_MAX = 12;
+const PIECES = {
+  ' ': { name:'Rock', glyph:'' },
+  '.': { name:'Floor', cost:1, glyph:'', tip:'Drag across the map to paint rooms and halls. A room is floor squares joined side by side, with rock or locked doors around it.' },
+  'S': { name:'Start', cost:0, glyph:'★', tip:'Where the heroes come in. One per dungeon.' },
+  'E': { name:'Exit', cost:0, glyph:'▼', tip:'Reach it to win. One per dungeon.' },
+  'D': { name:'Locked door', cost:5, glyph:'▮', tip:'Blocks the way until a hero has a key. A door also separates two rooms.' },
+  'k': { name:'Key', cost:5, glyph:'⚷', tip:'Opens one locked door.' },
+  'm': { name:'Monster', glyph:'', tip:'A monster costs one fifth of its XP in gold. Bigger monsters unlock as you rank up.' },
+  't': { name:'Trap', cost:10, glyph:'✶', tip:'Whoever steps here makes a Dexterity saving throw.' },
+  '$': { name:'Chest', glyph:'◆', tip:'Treasure for players to count.' },
+  's': { name:'Sign', cost:2, glyph:'✎', tip:'Write a message for whoever finds it: a clue, a warning, a riddle.' },
+};
+const CHESTS = { s:{ name:'Small chest', cost:10, gold:20 }, m:{ name:'Medium chest', cost:25, gold:50 }, l:{ name:'Large chest', cost:50, gold:100 } };
+const TOOLS = [['.','Floor','▢'],['S','Start','★'],['E','Exit','▼'],['D','Door','▮'],['k','Key','⚷'],['m','Monster','☠'],['t','Trap','✶'],['$','Chest','◆'],['s','Sign','✎'],['select','Change','☝'],['erase','Rock','✕']];
+const TILE_CLASS = { ' ':'rock', '.':'floor', S:'start', E:'exit', D:'door', k:'key', m:'mon', t:'trap', $:'chest', s:'sign' };
+const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
+const forgeBudget = () => 150 + 100 * rankFor(progress.xp).idx;
+const monCost = n => { const m = MONSTERS.find(x => x.n === n); return m ? Math.max(5, m.xp / 5) : 10; };
+const forgeDefaults = () => ({ dungeons:[], board:[], played:{}, stats:{ right:0, tries:0, commissions:0 } });
+let forge = load('pda-forge', forgeDefaults());
+function forgeSave(){ save('pda-forge', forge); }
+
+// ----- Rules every dungeon follows -----
+function neighbors(i){
+  const x = i % FORGE_W, y = Math.floor(i / FORGE_W), out = [];
+  if(y > 0) out.push(i - FORGE_W); if(x < FORGE_W-1) out.push(i + 1); if(y < FORGE_H-1) out.push(i + FORGE_W); if(x > 0) out.push(i - 1);
+  return out;
+}
+// Rooms are floor squares joined side by side. Rock and locked doors split them apart.
+function forgeRooms(cells){
+  const roomOf = new Array(cells.length).fill(-1), rooms = [];
+  for(let i = 0; i < cells.length; i++){
+    if(roomOf[i] >= 0 || cells[i] === ' ' || cells[i] === 'D') continue;
+    const r = { cells:[], minX:FORGE_W, maxX:-1, minY:FORGE_H, maxY:-1 }, stack = [i];
+    roomOf[i] = rooms.length;
+    while(stack.length){
+      const j = stack.pop(), x = j % FORGE_W, y = Math.floor(j / FORGE_W);
+      r.cells.push(j); r.minX = Math.min(r.minX, x); r.maxX = Math.max(r.maxX, x); r.minY = Math.min(r.minY, y); r.maxY = Math.max(r.maxY, y);
+      neighbors(j).forEach(n => { if(roomOf[n] < 0 && cells[n] !== ' ' && cells[n] !== 'D'){ roomOf[n] = rooms.length; stack.push(n); } });
+    }
+    r.w = r.maxX - r.minX + 1; r.h = r.maxY - r.minY + 1; r.rect = r.cells.length === r.w * r.h;
+    rooms.push(r);
+  }
+  return { rooms, roomOf };
+}
+// What the budget panel lists: [label, count, each, total].
+function forgeCosts(d){
+  const lines = [], add = (label, n, each) => { if(n) lines.push([label, n, each, n * each]); };
+  const count = ch => [...d.cells].filter(c => c === ch).length;
+  add('Floor squares', [...d.cells].filter(c => c !== ' ' && c !== 'D').length, 1);
+  add('Locked doors', count('D'), PIECES.D.cost); add('Keys', count('k'), PIECES.k.cost);
+  add('Traps', count('t'), PIECES.t.cost); add('Signs', count('s'), PIECES.s.cost);
+  const mons = {}, chests = {};
+  [...d.cells].forEach((c, i) => {
+    const t = d.things[i] || {};
+    if(c === 'm'){ mons[t.mon] = (mons[t.mon] || 0) + 1; }
+    if(c === '$'){ const s = t.size || 's'; chests[s] = (chests[s] || 0) + 1; }
+  });
+  Object.keys(mons).sort((a,b) => monCost(a) - monCost(b)).forEach(n => add(mons[n] === 1 ? n : (MONSTERS.find(m => m.n === n) || {pl:n}).pl, mons[n], monCost(n)));
+  ['s','m','l'].forEach(s => add(CHESTS[s].name + 's', chests[s] || 0, CHESTS[s].cost));
+  return { lines, total: lines.reduce((a, l) => a + l[3], 0) };
+}
+function forgeProblems(d){
+  const out = [], n = ch => [...d.cells].filter(c => c === ch).length;
+  if(n('S') !== 1) out.push('Put a Start square on the map.');
+  if(n('E') !== 1) out.push('Put an Exit square on the map.');
+  const cost = forgeCosts(d).total, budget = forgeBudget();
+  if(cost > budget) out.push(`It costs ${cost} gold and your budget is ${budget}. Take something out.`);
+  return out;
+}
+function chestGold(d){ return [...d.cells].reduce((a, c, i) => a + (c === '$' ? CHESTS[(d.things[i] || {}).size || 's'].gold : 0), 0); }
+function roomXp(d, room){ return room.cells.reduce((a, i) => { if(d.cells[i] !== 'm') return a; const m = MONSTERS.find(x => x.n === (d.things[i] || {}).mon); return a + (m ? m.xp : 0); }, 0); }
+// "4", "4 and 5", "4, 5 and 2": dice the way a person reads them out.
+function saidList(xs){ return xs.length < 2 ? String(xs[0]) : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1]; }
+function sentences(t){ return (String(t).match(/[^.!?]*[a-z][^.!?]*[.!?]+/gi) || []).length; }
+
+// A dungeon that came from someone else's device: keep only what the rules allow.
+function forgeClean(raw){
+  const d = raw && typeof raw === 'object' ? raw : {};
+  let cells = typeof d.cells === 'string' ? d.cells : '';
+  cells = [...cells.slice(0, FORGE_W * FORGE_H).padEnd(FORGE_W * FORGE_H, ' ')].map(c => PIECES[c] ? c : ' ').join('');
+  const things = {};
+  [...cells].forEach((c, i) => {
+    const t = (d.things && d.things[i]) || {};
+    if(c === 'm') things[i] = { mon: MONSTERS.some(m => m.n === t.mon) ? t.mon : 'Goblin' };
+    if(c === '$') things[i] = { size: CHESTS[t.size] ? t.size : 's' };
+    if(c === 's') things[i] = { text: String(t.text || '').slice(0, 160) };
+  });
+  return { title: String(d.title || 'A dungeon').slice(0, 40), intro: String(d.intro || '').slice(0, 400), author: String(d.author || '').slice(0, 30), cells, things };
+}
+
+// ----- Asking a question (used by commissions and by play) -----
+// Resolves 'first', 'second' or 'missed'. Two tries, with a hint after the first, like the lessons.
+function forgeAsk(box, st){
+  return new Promise(resolve => {
+    box.textContent = ''; box.hidden = false;
+    box.append(mk('p', 'q', st.q));
+    let tries = 0, choice = null, inp = null;
+    const row = mk('div', st.choices ? 'choices' : 'answer'); box.append(row);
+    if(st.choices) st.choices.forEach(c => {
+      const b = mk('button', '', c); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => { choice = c; row.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+      row.append(b);
+    });
+    else {
+      inp = mk('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.autocomplete = 'off'; inp.setAttribute('aria-label', 'Your answer');
+      inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); check(); } });
+      row.append(inp); setTimeout(() => inp.focus(), 50);
+    }
+    const fb = mk('div', 'feedback'); fb.hidden = true;
+    const act = mk('div', 'actions'), btn = mk('button', 'btn', 'Check'); btn.type = 'button'; btn.addEventListener('click', check); act.append(btn);
+    box.append(fb, act);
+    function say(kind, title, body){ fb.hidden = false; fb.className = 'feedback ' + kind; fb.textContent = ''; fb.append(mk('b', '', title)); if(body) fb.append(mk('div', 'sol', body)); }
+    function check(){
+      let ok;
+      if(st.choices){ if(choice === null){ say('hint', 'Pick one of the choices first.'); return; } ok = choice === st.answer; }
+      else {
+        const v = parseAnswer(inp.value);
+        if(v === null){ say('hint', 'Type a number.'); inp.focus(); return; }
+        ok = Math.abs(v - st.answer) < 0.011; inp.classList.remove('ok', 'no'); inp.classList.add(ok ? 'ok' : 'no');
+      }
+      if(st.choices) row.querySelectorAll('button').forEach(b => { if(b.textContent === choice) b.classList.add(ok ? 'ok' : 'no'); });
+      if(!ok && tries === 0){ tries = 1; say('hint', 'Not quite. Hint:', st.hint); if(inp){ inp.select(); inp.focus(); } return; }
+      forge.stats.tries++; if(ok) forge.stats.right++;
+      if(ok){ const gain = tries === 0 ? 5 : 2; addXp(gain); say('good', pick(PRAISE), st.solution + ` +${gain} XP`); }
+      else say('bad', 'Here is how the Guildmaster works it out:', st.solution);
+      if(inp) inp.disabled = true; row.querySelectorAll('button').forEach(b => b.disabled = true);
+      act.textContent = ''; forgeSave();
+      const next = mk('button', 'btn', st.next || 'Continue'); next.type = 'button';
+      next.addEventListener('click', () => resolve(ok ? (tries === 0 ? 'first' : 'second') : 'missed'));
+      act.append(next); next.focus();
+    }
+  });
+}
+
+// ----- The Guildmaster's commissions -----
+// Each one is built to a spec; claiming it asks a second question about what was built, so
+// knowing the spec is not enough to answer.
+const COMMISSION_XP = 40;
+const COMMISSIONS = {
+  area: {
+    make: () => ({ n: pick([12, 15, 16, 18, 20, 24, 28, 30]) }),
+    text: c => `The Duke wants a throne room: a rectangular room with an area of exactly ${c.n} squares.`,
+    find: c => { for(const d of forge.dungeons){ const r = forgeRooms(d.cells).rooms.find(r => r.rect && r.cells.length === c.n); if(r) return { d, r }; } return null; },
+    miss: c => `None of your dungeons has a rectangular room of exactly ${c.n} squares yet.`,
+    ask: (c, f) => { const p = 2 * (f.r.w + f.r.h); return { q:`Your throne room in “${f.d.title}” is ${f.r.w} squares by ${f.r.h}. Every square is 5 feet. How many feet of wall go all the way around it?`, answer: p * 5,
+      hint:'Go around the edge: length + width + length + width, in squares. Then change squares into feet.', solution:`${f.r.w} + ${f.r.h} + ${f.r.w} + ${f.r.h} = ${p} squares, and ${p} × 5 = ${p * 5} feet.` }; },
+  },
+  perimeter: {
+    make: () => ({ p: pick([12, 14, 16, 18, 20, 22]) }),
+    text: c => `The miners want a hall with a perimeter of exactly ${c.p} squares: a rectangle whose four sides add up to ${c.p}.`,
+    find: c => { for(const d of forge.dungeons){ const r = forgeRooms(d.cells).rooms.find(r => r.rect && 2 * (r.w + r.h) === c.p); if(r) return { d, r }; } return null; },
+    miss: c => `None of your dungeons has a rectangular room whose sides add up to ${c.p} yet.`,
+    ask: (c, f) => ({ q:`Your hall in “${f.d.title}” is ${f.r.w} squares by ${f.r.h}. How many squares of floor does it have?`, answer: f.r.w * f.r.h,
+      hint:'That is its area: length times width.', solution:`${f.r.w} × ${f.r.h} = ${f.r.w * f.r.h} squares.` }),
+  },
+  xp: {
+    make: () => { const n = partySize(); return { n, xp: n * 25 * rand(2, 4) }; },
+    text: c => `Bandits are bothering the miller. Put monsters worth exactly ${c.xp} XP in all into one room, for your party of ${c.n}.`,
+    find: c => { for(const d of forge.dungeons){ const r = forgeRooms(d.cells).rooms.find(r => roomXp(d, r) === c.xp); if(r) return { d, r }; } return null; },
+    miss: c => `None of your rooms has monsters adding up to exactly ${c.xp} XP yet. Add up each monster's XP.`,
+    ask: c => ({ q:`Your ${c.n} heroes beat the room and share the ${c.xp} XP equally. How much XP does each hero get?`, answer: c.xp / c.n,
+      hint:'Sharing equally means dividing.', solution:`${c.xp} ÷ ${c.n} = ${c.xp / c.n} XP each.` }),
+  },
+  treasure: {
+    make: () => {
+      const n = partySize();
+      for(let i = 0; i < 60; i++){ const g = Array.from({ length: rand(2, 4) }).reduce(a => a + CHESTS[pick(['s','m','l'])].gold, 0); if(g % n === 0) return { n, g }; }
+      return { n, g: n * 20 };
+    },
+    text: c => `The king's tax collector lost his gold. Hide chests worth exactly ${c.g} gold pieces in one dungeon (small 20, medium 50, large 100).`,
+    find: c => { const d = forge.dungeons.find(d => chestGold(d) === c.g); return d ? { d } : null; },
+    miss: c => `None of your dungeons has chests worth exactly ${c.g} gold in all yet.`,
+    ask: c => ({ q:`Your party of ${c.n} finds all ${c.g} gold pieces and splits it equally. How much does each hero get?`, answer: c.g / c.n,
+      hint:'Sharing equally means dividing.', solution:`${c.g} ÷ ${c.n} = ${c.g / c.n} gold pieces each.` }),
+  },
+  budget: {
+    make: () => { const b = forgeBudget(); return { b, spend: b - 5 * rand(3, 12) }; },
+    text: c => `The Guildmaster is watching the money. Build a dungeon that costs exactly ${c.spend} gold.`,
+    find: c => { const d = forge.dungeons.find(d => forgeCosts(d).total === c.spend); return d ? { d } : null; },
+    miss: c => `None of your dungeons costs exactly ${c.spend} gold yet. Check the budget panel while you build.`,
+    ask: c => ({ q:`Your budget was ${c.b} gold and you spent ${c.spend}. How much is left over?`, answer: c.b - c.spend,
+      hint:'Take what you spent away from the budget.', solution:`${c.b} − ${c.spend} = ${c.b - c.spend} gold left.` }),
+  },
+  story: {
+    make: () => ({}),
+    text: () => 'The bard wants a tale. Give one dungeon a story of at least three sentences, and put up at least two signs with something written on them.',
+    find: () => { const d = forge.dungeons.find(d => sentences(d.intro) >= 3 && [...d.cells].filter((c, i) => c === 's' && String((d.things[i] || {}).text || '').trim().split(/\s+/).length >= 3).length >= 2); return d ? { d } : null; },
+    miss: () => 'Not yet: one dungeon needs a story of three sentences or more and two signs that say something (at least three words each).',
+    ask: null,
+  },
+};
+// Tops the board up to three jobs; true when it had to add one (so there is something to save).
+function forgeBoard(){
+  forge.board = (forge.board || []).filter(c => COMMISSIONS[c.kind]);
+  let added = false;
+  while(forge.board.length < 3){
+    added = true;
+    const taken = forge.board.map(c => c.kind), kinds = Object.keys(COMMISSIONS).filter(k => !taken.includes(k));
+    const kind = pick(kinds);
+    forge.board.push(Object.assign({ kind, id: Date.now().toString(36) + rand(0, 999) }, COMMISSIONS[kind].make()));
+  }
+  return added;
+}
+function renderBoard(){
+  const box = $('forge-board'); box.textContent = '';
+  if(forgeBoard()) forgeSave();
+  forge.board.forEach(c => {
+    const C = COMMISSIONS[c.kind], card = mk('div', 'commission');
+    card.append(mk('p', '', C.text(c)), mk('span', 'reward', `Reward: ${COMMISSION_XP} XP`));
+    const ask = mk('div', 'ask'), act = mk('div', 'actions'), btn = mk('button', 'sm', 'Check my dungeons'); btn.type = 'button';
+    act.append(btn); card.append(act, ask);
+    btn.addEventListener('click', async () => {
+      const found = C.find(c);
+      if(!found){ ask.textContent = ''; ask.append(mk('div', 'forge-note', C.miss(c))); return; }
+      act.hidden = true;
+      if(C.ask) await forgeAsk(ask, Object.assign({ next:'Collect the reward' }, C.ask(c, found)));
+      forge.board = forge.board.filter(x => x.id !== c.id); forge.stats.commissions = (forge.stats.commissions || 0) + 1;
+      forgeSave(); addXp(COMMISSION_XP); toast(`Commission done! +${COMMISSION_XP} XP.`);
+      renderBoard();
+    });
+    box.append(card);
+  });
+}
+
+// ----- Forge home -----
+function forgeStatus(d){
+  const cost = forgeCosts(d).total;
+  return `${cost} gold · ` + (d.share ? (d.tested === d.rev ? 'Shared' : 'Shared, changed since') : d.tested === d.rev ? 'Tested, ready to share' : 'Not tested yet');
+}
+function renderForge(){
+  ['forge-home','forge-edit','forge-play'].forEach(id => $(id).hidden = id !== 'forge-home');
+  const list = $('forge-list'); list.textContent = '';
+  if(!forge.dungeons.length) list.append(mk('p', 'help', 'No dungeons yet. Start one!'));
+  forge.dungeons.forEach(d => {
+    const item = mk('div', 'forge-item'), row = mk('div', 'row');
+    const edit = mk('button', 'sm', 'Edit'); edit.type = 'button'; edit.addEventListener('click', () => forgeEdit(d.id));
+    const play = mk('button', 'sm', 'Play'); play.type = 'button'; play.addEventListener('click', () => { const p = forgeProblems(d); if(p.length){ forgeEdit(d.id); forgeNote(p.join(' '), 'bad'); } else forgePlay(d, 'test'); });
+    row.append(edit, play);
+    item.append(mk('b', '', d.title), row, mk('small', '', forgeStatus(d)));
+    if(d.share){ const s = mk('small', '', 'Code: '); s.append(mk('span', 'share-code', d.share)); item.append(s); }
+    list.append(item);
+  });
+  $('forge-new').disabled = forge.dungeons.length >= FORGE_MAX;
+  renderBoard();
+  const played = $('forge-played'); played.textContent = '';
+  Object.entries(forge.played || {}).slice(-6).reverse().forEach(([code, p]) => {
+    const item = mk('div', 'forge-item'), row = mk('div', 'row'), again = mk('button', 'sm', 'Play'); again.type = 'button';
+    again.addEventListener('click', () => forgeJoin(code)); row.append(again);
+    item.append(mk('b', '', p.title), row, mk('small', '', `${code}${p.by ? ' · by DM ' + p.by : ''} · ${p.cleared ? 'Beaten' : 'Not beaten yet'}`));
+    played.append(item);
+  });
+}
+$('forge-new').addEventListener('click', () => {
+  const d = { id: Date.now().toString(36), title: `Dungeon ${forge.dungeons.length + 1}`, intro:'', cells: ' '.repeat(FORGE_W * FORGE_H), things:{}, rev:1, tested:0, share:null };
+  forge.dungeons.push(d); forgeSave(); forgeEdit(d.id);
+  forgeNote('Pick Floor and drag across the map to dig out your first room. Then add a Start and an Exit.');
+});
+async function forgeJoin(raw){
+  const code = KidSave.normalize(raw), msg = $('forge-join-msg');
+  if(!code){ msg.textContent = 'Dungeon codes look like OTTER-4821.'; return; }
+  msg.textContent = 'Opening…';
+  let res;
+  try{ res = await fetch('api/shares/' + encodeURIComponent(code), { cache:'no-store' }); }
+  catch(e){ msg.textContent = 'Could not reach the Academy. Try again when online.'; return; }
+  if(res.status === 404){ msg.textContent = 'No dungeon has that code. Check it with your friend.'; return; }
+  if(res.status === 429){ msg.textContent = 'Too many wrong codes. Wait a few minutes and try again.'; return; }
+  if(!res.ok){ msg.textContent = 'Something went wrong. Try again.'; return; }
+  const d = forgeClean(await res.json());
+  if(!d.cells.includes('S') || !d.cells.includes('E')){ msg.textContent = 'That dungeon is not finished yet.'; return; }
+  msg.textContent = '';
+  forge.played = forge.played || {};
+  forge.played[code] = Object.assign({ cleared:false }, forge.played[code], { title: d.title, by: d.author });
+  forgeSave();
+  forgePlay(d, 'friend', code);
+}
+$('forge-join').addEventListener('submit', e => { e.preventDefault(); forgeJoin($('forge-code').value); });
+
+// ----- Editor -----
+const ed = { d:null, tool:'.', sel:-1, mon:'Goblin', size:'s', painting:false, changed:false };
+function forgeNote(text, kind){ const n = $('fe-note'); n.hidden = !text; n.className = 'forge-note' + (kind ? ' ' + kind : ''); n.textContent = text || ''; }
+function forgeEdit(id){
+  ed.d = forge.dungeons.find(d => d.id === id); if(!ed.d) return renderForge();
+  ed.sel = -1; ed.tool = '.'; forgeNote('');
+  if(!MON().some(m => m.n === ed.mon)) ed.mon = MON()[0].n;
+  ['forge-home','forge-edit','forge-play'].forEach(x => $(x).hidden = x !== 'forge-edit');
+  $('fe-title').value = ed.d.title; $('fe-intro').value = ed.d.intro || '';
+  const grid = $('fe-grid'); grid.textContent = '';
+  for(let i = 0; i < FORGE_W * FORGE_H; i++){ const c = mk('button', 'fc'); c.type = 'button'; c.dataset.i = i; c.setAttribute('aria-label', `Square ${i % FORGE_W + 1}, ${Math.floor(i / FORGE_W) + 1}`); grid.append(c); }
+  renderTools(); renderEditor();
+  window.scrollTo(0, 0);
+}
+function drawCell(c, ch, thing){
+  c.className = 'fc ' + TILE_CLASS[ch]; c.textContent = '';
+  if(ch === 'm'){ const n = thing.mon || 'Goblin', a = mk('span', 'fart'); setArt(a, monSlug(n), n.charAt(0)); c.append(a); c.title = n; }
+  else if(ch === '$'){ const z = CHESTS[thing.size] ? thing.size : 's'; c.append(mk('span', '', { s:'◆', m:'◆◆', l:'◆◆◆' }[z])); c.title = CHESTS[z].name; }
+  else { if(PIECES[ch].glyph) c.append(mk('span', '', PIECES[ch].glyph)); c.title = ch === ' ' ? '' : PIECES[ch].name; }
+}
+function renderEditor(){
+  const d = ed.d, cells = $('fe-grid').children;
+  for(let i = 0; i < cells.length; i++){ drawCell(cells[i], d.cells[i], d.things[i] || {}); if(i === ed.sel) cells[i].classList.add('sel'); }
+  renderInspect(); renderBudget();
+}
+function renderTools(){
+  const box = $('fe-tools'); box.textContent = '';
+  TOOLS.forEach(([key, name, glyph]) => {
+    const b = mk('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(ed.tool === key));
+    const cost = key === '.' ? '1 gp' : key === 'm' ? 'XP ÷ 5' : key === '$' ? '10–50 gp' : PIECES[key] && PIECES[key].cost ? PIECES[key].cost + ' gp' : key === 'S' || key === 'E' ? '1 gp' : '';
+    b.append(mk('span', '', glyph), document.createTextNode(name)); if(cost) b.append(mk('small', '', cost));
+    b.addEventListener('click', () => { ed.tool = key; if(key !== 'select') ed.sel = -1; renderTools(); renderEditor(); });
+    box.append(b);
+  });
+}
+function renderInspect(){
+  const box = $('fe-inspect'), d = ed.d; box.textContent = '';
+  const ch = ed.sel >= 0 ? d.cells[ed.sel] : null, t = ed.sel >= 0 ? d.things[ed.sel] : null;
+  const monPicker = (value, onPick) => {
+    const lab = mk('label', '', 'Which monster?'), sel = mk('select'); lab.htmlFor = sel.id = 'fe-mon';
+    MON().slice().sort((a, b) => a.xp - b.xp).forEach(m => { const o = mk('option', '', `${m.n}: ${m.xp} XP, costs ${monCost(m.n)} gold`); o.value = m.n; sel.append(o); });
+    if(!MON().some(m => m.n === value)){ const o = mk('option', '', value); o.value = value; sel.append(o); }
+    sel.value = value; sel.addEventListener('change', () => onPick(sel.value)); box.append(lab, sel);
+  };
+  const sizePicker = (value, onPick) => {
+    box.append(mk('label', '', 'How big a chest?'));
+    const row = mk('div', 'choices');
+    ['s','m','l'].forEach(s => { const b = mk('button', 'sm', `${CHESTS[s].name.split(' ')[0]}: ${CHESTS[s].gold} gold inside, costs ${CHESTS[s].cost}`); b.type = 'button'; b.setAttribute('aria-pressed', String(value === s)); b.addEventListener('click', () => onPick(s)); row.append(b); });
+    box.append(row);
+  };
+  if(ch === 'm'){ box.append(mk('h3', '', 'Monster')); monPicker(t.mon, v => { t.mon = v; ed.mon = v; edChanged(); renderEditor(); }); return; }
+  if(ch === '$'){ box.append(mk('h3', '', 'Chest')); sizePicker(t.size, v => { t.size = v; ed.size = v; edChanged(); renderEditor(); }); return; }
+  if(ch === 's'){
+    box.append(mk('h3', '', 'Sign'));
+    const lab = mk('label', '', 'What does it say?'), ta = mk('textarea'); lab.htmlFor = ta.id = 'fe-sign'; ta.maxLength = 160; ta.value = t.text || '';
+    ta.placeholder = 'Beware: the third step is a trap…';
+    ta.addEventListener('input', () => { t.text = ta.value; edChanged(); });
+    box.append(lab, ta); return;
+  }
+  const tool = TOOLS.find(x => x[0] === ed.tool);
+  box.append(mk('h3', '', tool[1]));
+  box.append(mk('p', 'help', ed.tool === 'select' ? 'Tap a monster, chest or sign on the map to change it.' : ed.tool === 'erase' ? 'Tap or drag to turn squares back into solid rock.' : PIECES[ed.tool].tip));
+  if(ed.tool === 'm') monPicker(ed.mon, v => { ed.mon = v; renderInspect(); });
+  if(ed.tool === '$') sizePicker(ed.size, v => { ed.size = v; renderInspect(); });
+}
+function renderBudget(){
+  const box = $('fe-budget'), { lines, total } = forgeCosts(ed.d), budget = forgeBudget();
+  box.textContent = ''; box.className = 'forge-box budget' + (total > budget ? ' over' : '');
+  box.append(mk('h3', '', 'Budget'));
+  const tbl = mk('table');
+  if(!lines.length){ const tr = mk('tr'); tr.append(mk('td', '', 'Nothing built yet')); tbl.append(tr); }
+  lines.forEach(([label, n, each, sum]) => { const tr = mk('tr'); tr.append(mk('td', '', label), mk('td', '', `${n} × ${each}`), mk('td', '', sum)); tbl.append(tr); });
+  const tot = mk('div', 'total'); tot.append(mk('span', '', 'Spent'), mk('span', '', `${total} of ${budget} gold`));
+  const bar = mk('div', 'bar'), fill = mk('i'); fill.style.width = Math.min(100, total / budget * 100) + '%'; bar.append(fill);
+  box.append(tbl, tot, bar);
+  if(total > budget) box.append(mk('p', 'help', 'Over budget. Take something out before you test it.'));
+  else box.append(mk('p', 'help', `Your budget grows as you rank up.`));
+}
+function edChanged(){ ed.d.rev = (ed.d.rev || 0) + 1; ed.changed = true; forgeSave(); forgeNote(''); }
+function setCell(i, ch){
+  const d = ed.d, cells = [...d.cells];
+  if(ch === 'S' || ch === 'E') cells.forEach((c, j) => { if(c === ch && j !== i) cells[j] = '.'; });
+  cells[i] = ch; d.cells = cells.join('');
+  if(ch === 'm') d.things[i] = { mon: ed.mon }; else if(ch === '$') d.things[i] = { size: ed.size }; else if(ch === 's') d.things[i] = { text:'' }; else delete d.things[i];
+}
+function paint(i, first){
+  const d = ed.d, cur = d.cells[i], t = ed.tool;
+  if(t === 'select'){ if(first){ ed.sel = 'm$s'.includes(cur) ? i : -1; renderEditor(); } return; }
+  if(t === 'erase'){ if(cur !== ' '){ setCell(i, ' '); ed.changed = true; if(ed.sel === i) ed.sel = -1; } }
+  else if(t === '.'){ if(cur === ' ' || (first && cur !== '.')){ setCell(i, '.'); ed.changed = true; } }
+  else if(first){
+    if(cur === t && !'m$s'.includes(t)) return;
+    setCell(i, t); ed.changed = true; ed.sel = 'm$s'.includes(t) ? i : -1;
+  }
+  else return;
+  const c = $('fe-grid').children[i]; drawCell(c, d.cells[i], d.things[i] || {}); if(i === ed.sel) c.classList.add('sel');
+  if(t === 'S' || t === 'E' || first) renderEditor(); else renderBudget();
+}
+(function(){
+  const grid = $('fe-grid');
+  const at = e => { const t = document.elementFromPoint(e.clientX, e.clientY); const c = t && t.closest ? t.closest('.fc') : null; return c && grid.contains(c) ? +c.dataset.i : -1; };
+  grid.addEventListener('pointerdown', e => { const i = at(e); if(i < 0) return; e.preventDefault(); ed.painting = true; ed.changed = false; try{ grid.setPointerCapture(e.pointerId); }catch(x){} paint(i, true); });
+  grid.addEventListener('pointermove', e => { if(!ed.painting) return; const i = at(e); if(i >= 0) paint(i, false); });
+  const end = () => { if(!ed.painting) return; ed.painting = false; if(ed.changed){ edChanged(); ed.changed = false; } renderEditor(); };
+  grid.addEventListener('pointerup', end); grid.addEventListener('pointercancel', end);
+})();
+$('fe-title').addEventListener('input', () => { ed.d.title = $('fe-title').value.trim() || 'Untitled dungeon'; edChanged(); });
+$('fe-intro').addEventListener('input', () => { ed.d.intro = $('fe-intro').value; edChanged(); });
+$('fe-back').addEventListener('click', renderForge);
+$('fe-test').addEventListener('click', () => { const p = forgeProblems(ed.d); if(p.length) return forgeNote(p.join(' '), 'bad'); forgePlay(ed.d, 'test'); });
+$('fe-share').addEventListener('click', async () => {
+  const d = ed.d, p = forgeProblems(d);
+  if(p.length) return forgeNote(p.join(' '), 'bad');
+  if(d.tested !== d.rev) return forgeNote('Beat your own dungeon first (Test it), so you know your friends can finish it. Any change means testing it again.', 'bad');
+  const owner = KidSave.code();
+  if(!owner) return forgeNote('This device is not connected to the Academy yet. Try again in a moment.', 'bad');
+  const body = JSON.stringify({ owner, data: { v:1, title:d.title, intro:d.intro || '', author: settings.dm || '', cells:d.cells, things:d.things } });
+  forgeNote('Sharing…');
+  try{
+    let res = d.share ? await fetch('api/shares/' + encodeURIComponent(d.share), { method:'PUT', headers:{ 'Content-Type':'application/json' }, body }) : null;
+    if(!res || res.status === 404 || res.status === 403) res = await fetch('api/shares', { method:'POST', headers:{ 'Content-Type':'application/json' }, body });
+    if(res.status === 429) return forgeNote('You have shared a lot today. Try again later.', 'bad');
+    if(!res.ok) return forgeNote('Could not share it right now. Try again.', 'bad');
+    if(res.status === 201) d.share = (await res.json()).code;
+    forgeSave();
+    forgeNote(`Shared! Give your friends this code: ${d.share}. If you change the dungeon, test it and share again; the code stays the same.`, 'good');
+  }catch(e){ forgeNote('Could not reach the Academy. Try again when online.', 'bad'); }
+});
+let deleteArmed = false;
+$('fe-delete').addEventListener('click', () => {
+  if(!deleteArmed){ deleteArmed = true; $('fe-delete').textContent = 'Tap again to delete it'; setTimeout(() => { deleteArmed = false; $('fe-delete').textContent = 'Delete dungeon'; }, 4000); return; }
+  deleteArmed = false; $('fe-delete').textContent = 'Delete dungeon';
+  forge.dungeons = forge.dungeons.filter(d => d !== ed.d); forgeSave(); renderForge();
+});
+
+// ----- Playing a dungeon -----
+// Rooms light up as a hero walks into them. Keys open locked doors; traps, chests and monsters
+// are questions. Monsters have a third of their usual hit points so a fight is a few rounds.
+const fp = { d:null, mode:'test', code:null, cells:null, pos:0, hp:0, max:0, keys:0, gold:0, kills:0, seen:null, busy:false, over:false };
+const HERO_AC = 14;
+function forgePlay(d, mode, code){
+  Object.assign(fp, { d, mode, code: code || null, cells:[...d.cells], keys:0, gold:0, kills:0, seen:new Set(), busy:false, over:false });
+  fp.pos = fp.cells.indexOf('S'); fp.max = fp.hp = 20 + 6 * rankFor(progress.xp).idx;
+  ['forge-home','forge-edit','forge-play'].forEach(x => $(x).hidden = x !== 'forge-play');
+  $('fp-title').textContent = d.title; $('fp-log').textContent = ''; $('fp-enc').hidden = true;
+  const grid = $('fp-grid'); grid.textContent = '';
+  for(let i = 0; i < FORGE_W * FORGE_H; i++){ const c = mk('button', 'fc fog'); c.type = 'button'; c.dataset.i = i; c.tabIndex = -1; grid.append(c); }
+  const read = $('fp-read'); read.textContent = '';
+  read.append(mk('h3', '', d.title));
+  if(mode === 'friend' && d.author) read.append(mk('small', '', `A dungeon by DM ${d.author}`));
+  read.append(mk('p', '', d.intro || 'No story was written for this dungeon. Find the exit!'));
+  fpReveal(fp.pos); fpRender();
+  fpLog(mode === 'test' ? 'Testing your dungeon. Beat it to unlock sharing.' : 'Find the exit. Tap a square next to you, or use the arrows.');
+  window.scrollTo(0, 0);
+}
+function fpLog(line){ const log = $('fp-log'); const d = mk('div', '', line); log.prepend(d); while(log.children.length > 8) log.lastChild.remove(); }
+function fpReveal(i){
+  const R = forgeRooms(fp.cells), room = R.roomOf[i];
+  const cells = room >= 0 ? R.rooms[room].cells : [i];
+  cells.forEach(j => { fp.seen.add(j); neighbors(j).forEach(n => fp.seen.add(n)); });
+}
+function fpRender(){
+  const cells = $('fp-grid').children;
+  for(let i = 0; i < cells.length; i++){
+    const c = cells[i];
+    if(!fp.seen.has(i)){ c.className = 'fc fog'; c.textContent = ''; continue; }
+    drawCell(c, fp.cells[i], fp.d.things[i] || {});
+    if(fp.cells[i] === ' ') c.className = 'fc wall';
+    if(i === fp.pos){ const h = mk('span', 'hero'); setArt(h, 'hero', ''); c.append(h); }
+  }
+  const st = $('fp-stats'); st.textContent = '';
+  [['HP', `${Math.max(0, fp.hp)} / ${fp.max}`], ['Keys', fp.keys], ['Gold', fp.gold]].forEach(([k, v]) => { const s = mk('span', '', k + ' '); s.append(mk('b', '', v)); st.append(s); });
+}
+function fpHurt(n){ fp.hp -= n; fpRender(); }
+async function fpMove(to){
+  if(fp.busy || fp.over || to < 0) return;
+  const ch = fp.cells[to];
+  if(ch === ' '){ fpLog('Solid rock.'); return; }
+  if(ch === 'D'){
+    if(!fp.keys){ fpLog('A locked door. You need a key.'); return; }
+    fp.keys--; fp.cells[to] = '.'; fpLog('You unlock the door.');
+  }
+  fp.pos = to; fpReveal(to); fpRender();
+  const thing = fp.d.things[to] || {}, enc = $('fp-enc');
+  if(ch === 'k'){ fp.keys++; fp.cells[to] = '.'; fpLog('You pick up a key.'); fpRender(); }
+  else if(ch === 's'){ fpLog('You found a sign.'); const read = $('fp-read'); read.textContent = ''; read.append(mk('h3', '', 'A sign reads:'), mk('p', '', thing.text || '(It is blank.)')); }
+  else if('t$m'.includes(ch)){
+    fp.busy = true;
+    if(ch === 't') await fpTrap(enc);
+    if(ch === '$') await fpChest(enc, thing);
+    if(ch === 'm') await fpFight(enc, thing.mon);
+    enc.hidden = true; fp.busy = false;
+    if(fp.hp <= 0) return fpEnd(false);
+    fp.cells[to] = '.'; fpRender();
+  }
+  else if(ch === 'E') fpEnd(true);
+}
+async function fpTrap(box){
+  const dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
+  fpLog('Click! A spike trap.');
+  await forgeAsk(box, { q:`Click! A spike trap. Make a Dexterity saving throw, DC ${dc}. You rolled ${roll} on the d20, and your Dexterity bonus is +${bonus}. Do you make the save?`,
+    choices:['Made it', 'Failed'], answer: made ? 'Made it' : 'Failed', next:'Next',
+    hint:'Add your bonus to the roll. You make the save if the total is the DC or higher.',
+    solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}. You ${made ? 'make' : 'fail'} the save.` });
+  const a = rand(1, 6), b = rand(1, 6), full = a + b, dmg = made ? Math.floor(full / 2) : full;
+  await forgeAsk(box, made
+    ? { q:`You twist away, so you take half damage. The spikes rolled 2d6: ${a} and ${b}. How much damage is half of that, rounded down?`, answer: dmg, hint:'Add the two dice, then cut it in half. If there is a half left over, drop it.', solution:`${a} + ${b} = ${full}, and half of ${full} rounded down is ${dmg}.` }
+    : { q:`The spikes get you. They rolled 2d6: ${a} and ${b}. How much damage do you take?`, answer: dmg, hint:'Add the two dice.', solution:`${a} + ${b} = ${dmg}.` });
+  fpHurt(dmg); fpLog(`The trap deals ${dmg} damage.`);
+}
+async function fpChest(box, thing){
+  const gold = CHESTS[thing.size || 's'].gold, v = pick([5, 10]), n = rand(1, Math.max(1, Math.floor(gold * 0.6 / v))), coins = gold - n * v;
+  await forgeAsk(box, { q:`The chest holds ${coins} gold pieces and ${n} ${n === 1 ? 'gem' : 'gems'} worth ${v} gold each. How much treasure is that in all?`, answer: gold,
+    hint:'Work out what the gems are worth (how many times their value), then add the coins.', solution:`${n} × ${v} = ${n * v} for the gems, and ${n * v} + ${coins} = ${gold} gold in all.` });
+  fp.gold += gold; fpRender(); fpLog(`You take ${gold} gold.`);
+}
+async function fpFight(box, name){
+  const mon = MONSTERS.find(m => m.n === name) || MONSTERS.find(m => m.n === 'Goblin');
+  const max = Math.max(4, Math.round(mon.hp / 3)), lvl = level(), bonus = 3 + 2 + Math.floor((lvl - 1) / 4);
+  const [wname, wtext] = pick(HERO_WEAPONS), wd = parseDice(wtext);
+  let hp = max;
+  fpLog(`${an(mon.n)} attacks!`);
+  const foe = () => { const f = mk('div', 'foe'), s = mk('div', 'sigil'), bar = mk('div', 'bar'), fill = mk('i'); setArt(s, monSlug(mon.n), mon.n.charAt(0)); fill.style.width = Math.max(0, hp / max * 100) + '%'; bar.append(fill); f.append(s, mk('b', '', mon.n), bar, mk('span', '', `${Math.max(0, hp)} / ${max} HP · AC ${mon.ac}`)); return f; };
+  while(hp > 0 && fp.hp > 0){
+    const roll = rand(2, 19), tot = roll + bonus, hit = tot >= mon.ac;
+    const p1 = forgeAsk(box, { q:`You swing your ${wname}. Your d20 roll is ${roll} and your attack bonus is +${bonus}. The ${mon.n}'s Armor Class is ${mon.ac}. Hit or miss?`,
+      choices:['Hit', 'Miss'], answer: hit ? 'Hit' : 'Miss', next:'Next',
+      hint:'Add the bonus to the roll. You hit if the total is the Armor Class or higher.',
+      solution:`${roll} + ${bonus} = ${tot}, which is ${hit ? 'at least' : 'less than'} AC ${mon.ac}: ${hit ? 'a hit' : 'a miss'}.` });
+    box.prepend(foe()); await p1;
+    if(hit){
+      const r = rollDice(wd);
+      const p2 = forgeAsk(box, { q:`Your ${wname} does ${wd.text} damage. The ${r.rolls.length === 1 ? 'die shows' : 'dice show'} ${saidList(r.rolls)}${wd.m ? `, and you add ${wd.m}` : ''}. How much damage?`, answer: r.total,
+        hint: wd.m ? 'Add up the dice, then add the bonus.' : 'Add up the dice.', solution:`${r.rolls.join(' + ')}${wd.m ? ' + ' + wd.m : ''} = ${r.total}.` });
+      box.prepend(foe()); await p2;
+      hp -= r.total; fpLog(`You hit the ${mon.n} for ${r.total}.`);
+    } else fpLog(`You miss the ${mon.n}.`);
+    if(hp <= 0) break;
+    const mroll = rand(1, 20) + 4;
+    if(mroll >= HERO_AC){ const ad = rollDice(parseDice(mon.atk)); fpHurt(ad.total); fpLog(`The ${mon.n}'s ${mon.weapon} hits you for ${ad.total}.`); }
+    else fpLog(`The ${mon.n} attacks and misses.`);
+  }
+  if(fp.hp > 0){ fp.kills++; fpLog(`The ${mon.n} is defeated!`); }
+}
+function fpEnd(won){
+  fp.over = true;
+  const box = $('fp-enc'); box.hidden = false; box.textContent = '';
+  if(won){
+    box.append(mk('h3', '', 'You made it out!'), mk('p', '', `Gold found: ${fp.gold}. Monsters beaten: ${fp.kills}. HP left: ${fp.hp} of ${fp.max}.`));
+    if(fp.mode === 'test'){ fp.d.tested = fp.d.rev; box.append(mk('p', '', 'Your dungeon can be beaten. You can share it now.')); }
+    else {
+      const p = forge.played[fp.code] || {};
+      if(!p.cleared){ p.cleared = true; forge.played[fp.code] = p; addXp(30); box.append(mk('p', 'xpgain', 'First time beating it: +30 XP.')); }
+    }
+    forgeSave();
+  } else box.append(mk('h3', '', 'You are down!'), mk('p', '', 'The Guildmaster drags you back to the inn. Rest up and try again.'));
+  const act = mk('div', 'actions'), again = mk('button', 'btn', 'Play again'), back = mk('button', 'btn ghost', fp.mode === 'test' ? 'Back to building' : 'Back to the Forge');
+  again.type = back.type = 'button';
+  again.addEventListener('click', () => forgePlay(fp.d, fp.mode, fp.code));
+  back.addEventListener('click', () => fp.mode === 'test' ? forgeEdit(fp.d.id) : renderForge());
+  act.append(again, back); box.append(act); again.focus();
+}
+function fpStep(dir){
+  const x = fp.pos % FORGE_W, y = Math.floor(fp.pos / FORGE_W);
+  const to = dir === 'up' ? (y > 0 ? fp.pos - FORGE_W : -1) : dir === 'down' ? (y < FORGE_H-1 ? fp.pos + FORGE_W : -1) : dir === 'left' ? (x > 0 ? fp.pos - 1 : -1) : (x < FORGE_W-1 ? fp.pos + 1 : -1);
+  fpMove(to);
+}
+$('fp-dpad').addEventListener('click', e => { const b = e.target.closest('button'); if(b) fpStep(b.dataset.d); });
+$('fp-grid').addEventListener('click', e => { const c = e.target.closest('.fc'); if(!c) return; const i = +c.dataset.i; if(neighbors(fp.pos).includes(i)) fpMove(i); });
+document.addEventListener('keydown', e => {
+  if($('view-forge').hidden || $('forge-play').hidden || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  const dir = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' }[e.key];
+  if(dir){ e.preventDefault(); fpStep(dir); }
+});
+$('fp-leave').addEventListener('click', () => { if(fp.busy && !fp.over) $('fp-enc').hidden = true; fp.busy = false; fp.mode === 'test' ? forgeEdit(fp.d.id) : renderForge(); });
+// Another device's progress arrived: point the editor at the fresh copy, and redraw unless mid-game.
+function forgeRefresh(){
+  if($('view-forge').hidden || !$('forge-play').hidden) return;
+  if(!$('forge-edit').hidden && ed.d){ const d = forge.dungeons.find(x => x.id === ed.d.id); if(d){ ed.d = d; renderEditor(); return; } }
+  renderForge();
+}
+
 // ---------- Initiative tracker ----------
 // Saved in this browser so a fight survives a page refresh. Each combatant: name, init, hp/max, ac, kind, conditions, death saves.
 let trk = load('pda-tracker', {round:1, turn:0, open:null, list:[]});
@@ -2052,7 +2791,7 @@ function renderParent(){
   const tries = Object.values(mods).reduce((a,m)=>a+m.tries,0), correct = Object.values(mods).reduce((a,m)=>a+m.correct,0);
   const d = daily(), trophies = Object.values(progress.bosses || {}).reduce((a,b)=>a+b,0);
   const st = $('p-stats'); st.textContent = '';
-  [[r.name,'Rank'],[progress.xp,'XP'],[tries,'Questions'],[tries ? Math.round(correct/tries*100)+'%' : '–','Correct'],[progress.bestStreak,'Best streak'],[d.streak,'Quest days'],[trophies,'Boss trophies']].forEach(([v,k]) => {
+  [[r.name,'Rank'],[progress.xp,'XP'],[tries,'Questions'],[tries ? Math.round(correct/tries*100)+'%' : '–','Correct'],[progress.bestStreak,'Best streak'],[d.streak,'Quest days'],[trophies,'Boss trophies'],[forge.dungeons.length,'Dungeons built'],[forge.stats.commissions || 0,'Commissions'],[forge.stats.tries ? Math.round(forge.stats.right/forge.stats.tries*100)+'%' : '–','Forge correct']].forEach(([v,k]) => {
     const t = document.createElement('div'); t.className = 'tile'; const b = document.createElement('b'); b.textContent = v; if(typeof v === 'string' && v.length > 6) b.className = 'text'; const sp = document.createElement('span'); sp.textContent = k; t.append(b, sp); st.append(t); });
   const days = $('p-days'), labels = $('p-days-labels'); days.textContent = ''; labels.textContent = '';
   const series = []; for(let i=13;i>=0;i--){ const dt = new Date(); dt.setDate(dt.getDate()-i); const key = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); series.push([key, (progress.days||{})[key] || 0, dt]); }

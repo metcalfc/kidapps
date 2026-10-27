@@ -49,6 +49,17 @@
 			events 20
 			window 1h
 		}
+		# Publishing a dungeon for friends. A kid tinkering republishes, which is a PUT and not
+		# counted here; this only caps how many new share codes one place can mint.
+		zone new_shares {
+			match {
+				method POST
+				path /*/api/shares
+			}
+			key {client_ip}
+			events 30
+			window 1h
+		}
 		# Looking up codes is how someone would guess at other families' saves.
 		zone code_lookups {
 			match {

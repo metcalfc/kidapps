@@ -42,10 +42,12 @@ type App struct {
 	Background string
 	// Docs are the document names the app saves; anything else is refused.
 	Docs []string
+	// Shares turns on /<ID>/api/shares, for publishing something friends open by code.
+	Shares bool
 }
 
 var apps = []App{
-	{ID: "dm", Name: "Pinehurst DM Academy", ShortName: "DM Academy", Theme: "#1A2622", Background: "#ECEFE4", Docs: []string{"pda-save"}},
+	{ID: "dm", Name: "Pinehurst DM Academy", ShortName: "DM Academy", Theme: "#1A2622", Background: "#ECEFE4", Docs: []string{"pda-save"}, Shares: true},
 	{ID: "chain", Name: "Chain Reaction", ShortName: "Chain Reaction", Theme: "#160d2c", Background: "#160d2c", Docs: []string{"game-v2", "game"}},
 }
 
@@ -138,6 +140,11 @@ func newServer(web fs.FS, stores map[string]*Store) http.Handler {
 		mux.HandleFunc("GET "+p+"/api/codes/{code}", func(w http.ResponseWriter, r *http.Request) { s.checkCode(w, r, st) })
 		mux.HandleFunc("GET "+p+"/api/saves/{code}/{doc}", func(w http.ResponseWriter, r *http.Request) { s.getSave(w, r, a, st) })
 		mux.HandleFunc("PUT "+p+"/api/saves/{code}/{doc}", func(w http.ResponseWriter, r *http.Request) { s.putSave(w, r, a, st) })
+		if a.Shares {
+			mux.HandleFunc("POST "+p+"/api/shares", func(w http.ResponseWriter, r *http.Request) { s.publish(w, r, a, st) })
+			mux.HandleFunc("GET "+p+"/api/shares/{code}", func(w http.ResponseWriter, r *http.Request) { s.getShare(w, r, a, st) })
+			mux.HandleFunc("PUT "+p+"/api/shares/{code}", func(w http.ResponseWriter, r *http.Request) { s.republish(w, r, a, st) })
+		}
 		mux.HandleFunc("GET "+p+"/manifest.webmanifest", func(w http.ResponseWriter, r *http.Request) { s.manifest(w, r, a) })
 		mux.HandleFunc("GET "+p+"/sw.js", func(w http.ResponseWriter, r *http.Request) { s.serviceWorker(w, r, a) })
 	}
@@ -264,6 +271,93 @@ func (s *server) putSave(w http.ResponseWriter, r *http.Request, a App, st *Stor
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// MaxShare bounds one shared item. A full dungeon with every sign written is about 10 KB.
+const MaxShare = 64 << 10
+
+// shareBody is what a client sends to publish: its own save code, and the item itself.
+type shareBody struct {
+	Owner string          `json:"owner"`
+	Data  json.RawMessage `json:"data"`
+}
+
+func readShare(w http.ResponseWriter, r *http.Request) (shareBody, bool) {
+	var b shareBody
+	raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, MaxShare+1024))
+	if err != nil {
+		http.Error(w, "too large", http.StatusRequestEntityTooLarge)
+		return b, false
+	}
+	var obj map[string]any
+	if json.Unmarshal(raw, &b) != nil || !validCode(b.Owner) || json.Unmarshal(b.Data, &obj) != nil || len(b.Data) > MaxShare {
+		http.Error(w, "want {owner, data} with data a JSON object", http.StatusBadRequest)
+		return b, false
+	}
+	return b, true
+}
+
+func (s *server) publish(w http.ResponseWriter, r *http.Request, a App, st *Store) {
+	b, ok := readShare(w, r)
+	if !ok {
+		return
+	}
+	code, err := st.Publish(r.Context(), b.Owner, b.Data)
+	if errors.Is(err, ErrNotFound) {
+		s.misses.record(r)
+		http.Error(w, "unknown save code", http.StatusForbidden)
+		return
+	}
+	if err != nil {
+		log.Printf("publish %s: %v", a.ID, err)
+		http.Error(w, "error", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]string{"code": code})
+}
+
+func (s *server) republish(w http.ResponseWriter, r *http.Request, a App, st *Store) {
+	code := r.PathValue("code")
+	if !validCode(code) {
+		http.NotFound(w, r)
+		return
+	}
+	b, ok := readShare(w, r)
+	if !ok {
+		return
+	}
+	switch err := st.Republish(r.Context(), code, b.Owner, b.Data); {
+	case errors.Is(err, ErrNotFound):
+		http.NotFound(w, r)
+	case errors.Is(err, ErrNotOwner):
+		http.Error(w, "only the save that published this can change it", http.StatusForbidden)
+	case err != nil:
+		log.Printf("republish %s: %v", a.ID, err)
+		http.Error(w, "error", http.StatusInternalServerError)
+	default:
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func (s *server) getShare(w http.ResponseWriter, r *http.Request, a App, st *Store) {
+	if s.tooManyMisses(w, r) {
+		return
+	}
+	code := r.PathValue("code")
+	data, err := st.Shared(r.Context(), code)
+	if errors.Is(err, ErrNotFound) || (err == nil && !validCode(code)) {
+		s.misses.record(r)
+		http.NotFound(w, r)
+		return
+	}
+	if err != nil {
+		log.Printf("share %s: %v", a.ID, err)
+		http.Error(w, "error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Write(data)
 }
 
 func (s *server) manifest(w http.ResponseWriter, r *http.Request, a App) {
