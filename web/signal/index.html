@@ -220,6 +220,15 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
 
 /* ---------- notebook ---------- */
 .clues{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+/* Glossary: a dotted word shows its English meaning in a small card above it. */
+.gl{font:inherit;color:inherit;padding:0;margin:0;background:none;border:0;cursor:help;text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent)}
+.gl:hover,.gl.on{background:color-mix(in srgb,var(--amber) 28%,transparent);border-radius:3px}
+.gloss{position:fixed;z-index:60;max-width:min(320px,calc(100vw - 24px));background:#fff8e6;color:#2a1800;border-radius:12px;padding:8px 12px;font-size:17px;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.45);pointer-events:none}
+.gloss b{display:block;font-size:15px;color:#7a5200}
+.gl-note{font-size:14px;color:var(--muted);margin:6px 2px 0}
+.lang-pick{display:grid;gap:10px;width:100%}
+.lang-pick .btn{min-height:64px;font-size:22px}
+.lang-row .btn[aria-pressed="true"]{background:var(--amber);color:#2a1800}
 .clues li{background:var(--surface);border-radius:12px;padding:12px 14px;font-size:18px;display:flex;gap:10px}
 .clues li span{color:var(--amber);font-family:var(--crt);font-size:22px;line-height:1.1}
 .doclist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
@@ -286,26 +295,26 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
     <div class="home-top">
       <div class="brand">
         <h1>SIGNAL</h1>
-        <p>A Static Club mystery. Larkspur Falls, 1986.</p>
+        <p data-t="tagline">A Static Club mystery. Larkspur Falls, 1986.</p>
       </div>
       <div class="progress">
-        <span class="lab">Case progress</span>
+        <span class="lab" data-t="progress">Case progress</span>
         <b id="hDone">0 of 6</b>
         <div class="meter"><i id="hMeter" style="width:0"></i></div>
         <span class="hint-txt" id="hStars">0 stars</span>
       </div>
     </div>
-    <div class="intro" id="intro">You're the newest member of the <b>Static Club</b>, and you keep the club notebook. Every night at 9:10, a strange signal comes over the walkie-talkies. <b>Read every document closely</b>: the answers are hiding in them. Stuck? A hint costs one star, and you can always keep going.</div>
+    <div class="intro" id="intro" data-th="intro">You're the newest member of the <b>Static Club</b>, and you keep the club notebook. Every night at 9:10, a strange signal comes over the walkie-talkies. <b>Read every document closely</b>: the answers are hiding in them. Stuck? A hint costs one star, and you can always keep going.</div>
     <button class="btn go" id="continueBtn" style="min-height:72px;font-size:22px">Start the case</button>
     <div class="cases" id="cases"></div>
     <div class="home-row">
-      <button class="btn" id="notebookBtn">Club notebook</button>
+      <button class="btn" id="notebookBtn" data-t="notebook">Club notebook</button>
     </div>
     <div class="foot">
       <span id="syncNote">Progress saves on this device.</span>
       <span class="row">
         <button class="btn ghost small" id="muteBtn">Sound on</button>
-        <button class="btn ghost small" id="parentBtn">Grown-ups</button>
+        <button class="btn ghost small" id="parentBtn" data-t="grownups">Grown-ups</button>
       </span>
     </div>
   </section>
@@ -313,7 +322,7 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
   <!-- CHAPTER -->
   <section id="chapter" class="screen" hidden>
     <div class="bar">
-      <button class="btn small" id="chBack">Case files</button>
+      <button class="btn small" id="chBack" data-t="caseFiles">Case files</button>
       <h2><small id="chNum">Chapter 1</small><span id="chTitle"></span></h2>
       <span class="stars" id="chStars"></span>
     </div>
@@ -331,13 +340,13 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
 
   <!-- NOTEBOOK -->
   <section id="notebook" class="screen" hidden>
-    <div class="bar"><button class="btn small" data-go="home">Back</button><h2>Club notebook</h2></div>
+    <div class="bar"><button class="btn small" data-go="home" data-t="back">Back</button><h2 data-t="notebook">Club notebook</h2></div>
     <div>
-      <span class="lab">Clues found</span>
+      <span class="lab" data-t="cluesFound">Clues found</span>
       <ul class="clues" id="clueList" style="margin-top:8px"></ul>
     </div>
     <div>
-      <span class="lab">Documents</span>
+      <span class="lab" data-t="documents">Documents</span>
       <div class="doclist" id="docList" style="margin-top:8px"></div>
     </div>
   </section>
@@ -350,18 +359,28 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
     <div class="big-stars" id="doneStars"></div>
     <p class="story" id="doneStory"></p>
     <div class="row">
-      <button class="btn go" id="doneNext">Next chapter</button>
-      <button class="btn ghost" id="doneHome">Case files</button>
+      <button class="btn go" id="doneNext" data-t="nextChapter">Next chapter</button>
+      <button class="btn ghost" id="doneHome" data-t="caseFiles">Case files</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="readerOverlay" hidden>
   <div class="sheet reader">
-    <button class="btn small close" id="readerClose">Close</button>
+    <button class="btn small close" id="readerClose" data-t="close">Close</button>
     <article id="readerDoc"></article>
   </div>
 </div>
+
+<div class="overlay" id="langOverlay" hidden>
+  <div class="pin-box">
+    <h2>Choose a language</h2>
+    <p>Choisis une langue · Elige un idioma</p>
+    <div class="lang-pick" id="langPick"></div>
+  </div>
+</div>
+
+<div class="gloss" id="gloss" hidden></div>
 
 <div class="overlay" id="pin" hidden>
   <div class="pin-box">
@@ -382,13 +401,18 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
     <h2>Grown-ups</h2>
     <div class="tiles" id="pTiles"></div>
     <div>
-      <span class="lab">Skills, right on the first try without a hint</span>
+      <span class="lab" id="pSkillsLab">Skills, right on the first try without a hint</span>
       <table class="ptable" id="pSkills" style="margin-top:6px"></table>
     </div>
     <div>
       <span class="lab">Reading time, last 14 days (minutes)</span>
       <div class="days" id="pDays" style="margin-top:8px"></div>
       <div class="days-labels"><span id="pDayFirst"></span><span>today</span></div>
+    </div>
+    <div>
+      <span class="lab">Story language</span>
+      <div class="row lang-row" id="langRow" style="margin-top:8px"></div>
+      <p class="hint-txt" style="margin-top:6px">French and Spanish are written for kids learning the language: shorter, simpler sentences, and tapping a dotted word shows it in English. Each language keeps its own progress; this screen shows the progress for the language that is on now.</p>
     </div>
     <div>
       <span class="lab">Save code</span>
@@ -408,6 +432,8 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
   </div>
 </div>
 
+<script src="story-fr.js"></script>
+<script src="story-es.js"></script>
 <script>
 (() => {
 'use strict';
@@ -459,7 +485,7 @@ const MAP = { cols: 'ABCDEF', rows: 6, places: {
   A1: ['🏫', 'School'], B2: ['📚', 'Library'], D2: ['🔧', 'Grady Hardware'], C3: ['⛲', 'Town Square'],
   F3: ['🏠', 'Birch St.'], A5: ['🎹', 'Maple & 3rd'], E5: ['📡', 'Hollow Hill'] } };
 
-const CHAPTERS = [
+const STORY_EN = [
 {
   id: 'c1', title: 'The Nine-Ten Signal',
   docs: [
@@ -726,16 +752,107 @@ const CHAPTERS = [
 ];
 
 const $ = id => document.getElementById(id);
+/* ---------------- languages ----------------
+   English is the story above. French and Spanish come from story-fr.js and story-es.js, written
+   for kids learning the language, each with a glossary of English meanings. Each language keeps
+   its own progress. The kid-facing words of the app are in T; the grown-ups screen stays English. */
+const STORIES = Object.assign({ en: { chapters: STORY_EN, glossary: null } }, window.SIGNAL_STORIES || {});
+const LANG_NAMES = { en: 'English', fr: 'Français', es: 'Español' };
+const LANGS = Object.keys(LANG_NAMES).filter(l => STORIES[l]);
+const T = {
+  en: {
+    tagline: 'A Static Club mystery. Larkspur Falls, 1986.', progress: 'Case progress',
+    intro: 'You\'re the newest member of the <b>Static Club</b>, and you keep the club notebook. Every night at 9:10, a strange signal comes over the walkie-talkies. <b>Read every document closely</b>: the answers are hiding in them. Stuck? A hint costs one star, and you can always keep going.',
+    ofN: (a, b) => a + ' of ' + b, stars: (a, b) => a + ' of ' + b + ' stars', closed: 'Case closed!',
+    start: 'Start the case', cont: n => 'Continue: Chapter ' + n, again: 'Read the last chapter again',
+    locked: n => 'Locked: solve chapter ' + n + ' first', solvedOf: (a, b) => a + ' of ' + b + ' puzzles solved', fresh: 'New',
+    notebook: 'Club notebook', back: 'Back', soundOn: 'Sound on', soundOff: 'Sound off', grownups: 'Grown-ups',
+    caseFiles: 'Case files', chapterOf: (a, b) => 'Chapter ' + a + ' of ' + b, chSolved: 'Chapter solved.', nextChapter: 'Next chapter',
+    backToCases: 'Back to case files', puzzleOf: (a, b) => 'Puzzle ' + a + ' of ' + b, puzzleN: a => 'Puzzle ' + a, solvedWord: 'solved',
+    coded: 'Coded message', notQuite: 'Not quite. Look back at the documents.', typeAnswer: 'Type your answer', yourAnswer: 'Your answer',
+    check: 'Check', notYetHint: 'Not yet. A hint might help: it costs one star.', notYet: 'Not yet. Look back at the clue and try again.',
+    hint: 'Hint (−1 ★)', anotherHint: 'Another hint (−1 ★)', worth: s => 'Worth ' + s,
+    caseClosed: 'Case closed', chNSolved: n => 'Chapter ' + n + ' solved',
+    morseCard: 'Morse card', numberStrip: 'Number strip', letterGrid: 'Letter grid (from the back of the map)', keypad: 'Phone keypad', wheel: 'Cipher wheel',
+    notTurned: 'Not turned', fwd: n => 'Forward ' + n, bck: n => 'Back ' + n, sameAs: x => ' (same as ' + x + ')', tapGreen: 'Tap a green letter to see where it lands.',
+    cluesFound: 'Clues found', documents: 'Documents', chTab: (n, tab) => 'Chapter ' + n + ' · ' + tab,
+    noClues: 'No clues yet. Solve puzzles to collect them.', noDocs: 'Documents you read show up here.', close: 'Close',
+    townMap: 'Town map.', at: 'at',
+    sync: { connecting: 'Loading saved progress…', ok: 'Progress saves on this device and on the server.',
+      retry: 'Saved on this device. Will back up to the server when it reconnects.', local: 'Saved on this device only for now. It backs up to the server once this device is online.' },
+    skills: {},
+  },
+  fr: {
+    tagline: 'Un mystère du Static Club. Larkspur Falls, 1986.', progress: 'L\'enquête',
+    intro: 'Bienvenue au <b>Static Club</b> ! C\'est toi qui écris dans le carnet du club. Chaque soir, à la même heure, un signal bizarre passe dans les talkies-walkies. <b>Lis bien chaque document</b> : les réponses sont cachées dedans. Tu bloques ? Un indice coûte une étoile, et tu peux toujours continuer.',
+    ofN: (a, b) => a + ' sur ' + b, stars: (a, b) => a + ' étoiles sur ' + b, closed: 'Enquête résolue !',
+    start: 'Commencer l\'enquête', cont: n => 'Continuer : chapitre ' + n, again: 'Relire le dernier chapitre',
+    locked: n => 'Fermé : finis d\'abord le chapitre ' + n, solvedOf: (a, b) => a + ' énigmes sur ' + b + ' résolues', fresh: 'Nouveau',
+    notebook: 'Carnet du club', back: 'Retour', soundOn: 'Son activé', soundOff: 'Son coupé', grownups: 'Parents',
+    caseFiles: 'Dossiers', chapterOf: (a, b) => 'Chapitre ' + a + ' sur ' + b, chSolved: 'Chapitre résolu.', nextChapter: 'Chapitre suivant',
+    backToCases: 'Retour aux dossiers', puzzleOf: (a, b) => 'Énigme ' + a + ' sur ' + b, puzzleN: a => 'Énigme ' + a, solvedWord: 'résolue',
+    coded: 'Message codé', notQuite: 'Pas tout à fait. Relis les documents.', typeAnswer: 'Écris ta réponse', yourAnswer: 'Ta réponse',
+    check: 'Vérifier', notYetHint: 'Pas encore. Un indice peut aider : il coûte une étoile.', notYet: 'Pas encore. Relis les documents et essaie encore.',
+    hint: 'Indice (−1 ★)', anotherHint: 'Un autre indice (−1 ★)', worth: s => 'Vaut ' + s,
+    caseClosed: 'Enquête résolue', chNSolved: n => 'Chapitre ' + n + ' résolu',
+    morseCard: 'Carte du morse', numberStrip: 'Bande de nombres', letterGrid: 'Grille de lettres (au dos du plan)', keypad: 'Clavier du téléphone', wheel: 'Roue de code',
+    notTurned: 'Pas tournée', fwd: n => 'En avant ' + n, bck: n => 'En arrière ' + n, sameAs: x => ' (pareil que ' + x + ')', tapGreen: 'Touche une lettre verte pour voir où elle arrive.',
+    cluesFound: 'Indices trouvés', documents: 'Documents', chTab: (n, tab) => 'Chapitre ' + n + ' · ' + tab,
+    noClues: 'Pas encore d\'indices. Résous des énigmes pour en trouver.', noDocs: 'Les documents que tu lis arrivent ici.', close: 'Fermer',
+    townMap: 'Plan de la ville.', at: 'en',
+    sync: { connecting: 'Chargement…', ok: 'Ta progression est enregistrée sur cet appareil et sur le serveur.',
+      retry: 'Enregistré sur cet appareil. Le serveur sera mis à jour plus tard.', local: 'Enregistré sur cet appareil pour le moment.' },
+    skills: { detail: 'Trouver les détails', inference: 'Lire entre les lignes', vocab: 'Le sens des mots', math: 'Les maths de l\'histoire',
+      morse: 'Code morse', shift: 'Code à décalage', number: 'Code des nombres', grid: 'Code de la grille', keypad: 'Code du clavier' },
+  },
+  es: {
+    tagline: 'Un misterio del Static Club. Larkspur Falls, 1986.', progress: 'El caso',
+    intro: '¡Te damos la bienvenida al <b>Static Club</b>! Tú escribes en el cuaderno del club. Cada noche, a la misma hora, llega una señal extraña por los walkie-talkies. <b>Lee bien cada documento</b>: las respuestas están escondidas ahí. ¿No sabes qué hacer? Una pista cuesta una estrella, y siempre puedes seguir.',
+    ofN: (a, b) => a + ' de ' + b, stars: (a, b) => a + ' de ' + b + ' estrellas', closed: '¡Caso resuelto!',
+    start: 'Empezar el caso', cont: n => 'Seguir: capítulo ' + n, again: 'Leer otra vez el último capítulo',
+    locked: n => 'Cerrado: primero termina el capítulo ' + n, solvedOf: (a, b) => a + ' de ' + b + ' acertijos resueltos', fresh: 'Nuevo',
+    notebook: 'Cuaderno del club', back: 'Volver', soundOn: 'Sonido: sí', soundOff: 'Sonido: no', grownups: 'Adultos',
+    caseFiles: 'Expedientes', chapterOf: (a, b) => 'Capítulo ' + a + ' de ' + b, chSolved: 'Capítulo resuelto.', nextChapter: 'Siguiente capítulo',
+    backToCases: 'Volver a los expedientes', puzzleOf: (a, b) => 'Acertijo ' + a + ' de ' + b, puzzleN: a => 'Acertijo ' + a, solvedWord: 'resuelto',
+    coded: 'Mensaje en clave', notQuite: 'Casi. Vuelve a leer los documentos.', typeAnswer: 'Escribe tu respuesta', yourAnswer: 'Tu respuesta',
+    check: 'Comprobar', notYetHint: 'Todavía no. Una pista puede ayudar: cuesta una estrella.', notYet: 'Todavía no. Vuelve a leer los documentos e inténtalo otra vez.',
+    hint: 'Pista (−1 ★)', anotherHint: 'Otra pista (−1 ★)', worth: s => 'Vale ' + s,
+    caseClosed: 'Caso resuelto', chNSolved: n => 'Capítulo ' + n + ' resuelto',
+    morseCard: 'Tarjeta de morse', numberStrip: 'Tira de números', letterGrid: 'Cuadrícula de letras (detrás del mapa)', keypad: 'Teclado del teléfono', wheel: 'Rueda de cifrado',
+    notTurned: 'Sin girar', fwd: n => 'Adelante ' + n, bck: n => 'Atrás ' + n, sameAs: x => ' (igual que ' + x + ')', tapGreen: 'Toca una letra verde para ver dónde cae.',
+    cluesFound: 'Pistas encontradas', documents: 'Documentos', chTab: (n, tab) => 'Capítulo ' + n + ' · ' + tab,
+    noClues: 'Todavía no hay pistas. Resuelve acertijos para encontrarlas.', noDocs: 'Aquí aparecen los documentos que lees.', close: 'Cerrar',
+    townMap: 'Mapa del pueblo.', at: 'en',
+    sync: { connecting: 'Cargando…', ok: 'Tu progreso se guarda en este dispositivo y en el servidor.',
+      retry: 'Guardado en este dispositivo. Se copiará al servidor más tarde.', local: 'Guardado en este dispositivo por ahora.' },
+    skills: { detail: 'Encontrar detalles', inference: 'Leer entre líneas', vocab: 'El significado de las palabras', math: 'Matemáticas en la historia',
+      morse: 'Código morse', shift: 'Cifrado por desplazamiento', number: 'Código de números', grid: 'Código de la cuadrícula', keypad: 'Código del teclado' },
+  },
+};
+let lang = 'en', CHAPTERS = STORY_EN, GLOSS = null, L = T.en;
+function wantedLang() { const l = S.settings.lang; return l && STORIES[l] ? l : 'en'; }
+// Point the app at the save's language: its story, glossary and words.
+function applyLang() {
+  const l = wantedLang();
+  if (l !== lang) { wheelK = {}; wheelSel = {}; curCh = 0; }
+  lang = l; CHAPTERS = STORIES[l].chapters; GLOSS = STORIES[l].glossary; L = T[l];
+  document.documentElement.lang = l;
+  document.querySelectorAll('[data-t]').forEach(e => { e.textContent = L[e.dataset.t]; });
+  document.querySelectorAll('[data-th]').forEach(e => { e.innerHTML = L[e.dataset.th]; });
+}
+const skillName = k => L.skills[k] || SKILLS[k].name;
+
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const LS_KEY = 'signal:v1';
 const MAX_STARS = 3;
 
 /* ---------------- state ---------------- */
-function fresh() { return { v: 1, updatedAt: 0, settings: { sound: true }, chapters: {}, days: {} }; }
+// English progress lives in chapters (saves from before there were languages); others in byLang.
+function fresh() { return { v: 1, updatedAt: 0, settings: { sound: true }, chapters: {}, byLang: {}, days: {} }; }
 function normalize(s) {
   const f = fresh();
   if (!s || typeof s !== 'object') return f;
-  return { ...f, ...s, settings: { ...f.settings, ...(s.settings || {}) }, chapters: s.chapters || {}, days: s.days || {} };
+  return { ...f, ...s, settings: { ...f.settings, ...(s.settings || {}) }, chapters: s.chapters || {}, byLang: s.byLang || {}, days: s.days || {} };
 }
 const clone = o => JSON.parse(JSON.stringify(o));
 function loadLocal() { try { const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
@@ -753,17 +870,19 @@ function today() {
   }
   return S.days[k];
 }
+function prog() { if (lang === 'en') return S.chapters; return S.byLang[lang] || (S.byLang[lang] = {}); }
 function chState(ch) {
-  return S.chapters[ch.id] || (S.chapters[ch.id] = { docs: [], puzzles: {}, done: false });
+  const P = prog();
+  return P[ch.id] || (P[ch.id] = { docs: [], puzzles: {}, done: false });
 }
 function pState(ch, p) {
   const c = chState(ch);
   return c.puzzles[p.id] || (c.puzzles[p.id] = { solved: false, tries: 0, hints: 0, first: false });
 }
 function starsFor(ps) { return ps && ps.solved ? Math.max(0, MAX_STARS - ps.hints) : 0; }
-function chStars(ch) { const c = S.chapters[ch.id]; return c ? ch.puzzles.reduce((a, p) => a + starsFor(c.puzzles[p.id]), 0) : 0; }
-function unlocked(i) { return i === 0 || !!(S.chapters[CHAPTERS[i - 1].id] || {}).done; }
-function nextIndex() { const i = CHAPTERS.findIndex(ch => !(S.chapters[ch.id] || {}).done); return i < 0 ? CHAPTERS.length - 1 : i; }
+function chStars(ch) { const c = prog()[ch.id]; return c ? ch.puzzles.reduce((a, p) => a + starsFor(c.puzzles[p.id]), 0) : 0; }
+function unlocked(i) { return i === 0 || !!(prog()[CHAPTERS[i - 1].id] || {}).done; }
+function nextIndex() { const i = CHAPTERS.findIndex(ch => !(prog()[ch.id] || {}).done); return i < 0 ? CHAPTERS.length - 1 : i; }
 
 /* ---------------- saving: device always, the server when available ----------------
    Same pattern as Chain Reaction. DOC_ID and LS_KEY must never be renamed. */
@@ -797,14 +916,10 @@ async function flush() {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(saveTimer); flush(); } });
 addEventListener('pagehide', () => { clearTimeout(saveTimer); flush(); });
 function setSync() {
-  $('syncNote').textContent = {
-    connecting: 'Loading saved progress…',
-    ok: 'Progress saves on this device and on the server.',
-    retry: 'Saved on this device. Will back up to the server when it reconnects.',
-    local: 'Saved on this device only for now. It backs up to the server once this device is online.',
-  }[syncState];
+  $('syncNote').textContent = L.sync[syncState];
 }
 function rerender() {
+  applyLang();
   if (!$('home').hidden) renderHome();
   else if (!$('notebook').hidden) renderNotebook();
   else if (!$('chapter').hidden) renderChapter();
@@ -865,18 +980,20 @@ const sfx = {
   done() { [0, 4, 7, 12].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.25, 'triangle', 0.12, i * 0.12)); },
   click() { tone(1400, 0.02, 'square', 0.03); },
 };
-function renderMute() { $('muteBtn').textContent = S.settings.sound ? 'Sound on' : 'Sound off'; }
+function renderMute() { $('muteBtn').textContent = S.settings.sound ? L.soundOn : L.soundOff; }
 $('muteBtn').addEventListener('click', () => { S.settings.sound = !S.settings.sound; renderMute(); persist(); });
 
 /* ---------------- small helpers ---------------- */
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
 const dits = m => m.replace(/\./g, '•').replace(/-/g, '–').split('').join(' ');
 function starText(n, of) { return '★'.repeat(n) + '☆'.repeat(Math.max(0, of - n)); }
-// Compare typed answers ignoring case, spaces and most punctuation.
-function norm(s) { return String(s || '').toLowerCase().replace(/\$/g, '').replace(/\s+/g, '').replace(/[^a-z0-9.:/]/g, '').replace(/\.$/, ''); }
-// Read "1.5", "1 1/2", "3/2", "$7.00", "7 dollars" as numbers.
+// Compare typed answers ignoring case, spaces, accents (é = e, ñ = n) and most punctuation.
+function norm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\$/g, '').replace(/\s+/g, '').replace(/[^a-z0-9.:/]/g, '').replace(/\.$/, ''); }
+// Read "1.5", "1,5", "1 1/2", "3/2", "$7.00", "7 dollars", "7 dólares" as numbers.
 function parseNum(raw) {
-  const s = String(raw || '').toLowerCase().replace(/[$,]/g, '').replace(/dollars?|miles?|minutes?|mins?|years?/g, '').trim();
+  let s = String(raw || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[$€]/g, '')
+    .replace(/dollars?|dolares?|milles?|miles?|millas?|minutes?|minutos?|mins?|years?|ans|anos|heures?|horas?/g, '').trim();
+  s = /^\d+,\d{1,2}$/.test(s) ? s.replace(',', '.') : s.replace(/,/g, '');
   let m = s.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
   if (m) return +m[1] + (+m[2]) / (+m[3]);
   m = s.match(/^(\d+)\s*\/\s*(\d+)$/);
@@ -884,6 +1001,45 @@ function parseNum(raw) {
   m = s.match(/^-?\d+(\.\d+)?$/);
   return m ? parseFloat(s) : NaN;
 }
+/* Glossary: in French and Spanish, words with an English meaning in GLOSS become dotted buttons.
+   "l'école" is looked up whole, then as "école". */
+const WORD_RE = /[\p{L}]+(?:['’][\p{L}]+)*/gu;
+function glossKey(w) {
+  const k = w.toLowerCase().replace(/’/g, "'");
+  if (GLOSS[k]) return k;
+  const tail = k.split("'").pop();
+  return GLOSS[tail] ? tail : null;
+}
+function glossed(tag, cls, text) {
+  const e = el(tag, cls);
+  text = String(text);
+  if (!GLOSS) { e.textContent = text; return e; }
+  let last = 0;
+  text.replace(WORD_RE, (w, at) => {
+    const k = glossKey(w);
+    if (!k) return w;
+    if (at > last) e.append(document.createTextNode(text.slice(last, at)));
+    const b = el('button', 'gl', w); b.type = 'button'; b.dataset.k = k; b.setAttribute('aria-label', w + ': ' + GLOSS[k]);
+    e.append(b); last = at + w.length; return w;
+  });
+  if (last < text.length) e.append(document.createTextNode(text.slice(last)));
+  return e;
+}
+let glossOn = null;
+function hideGloss() { $('gloss').hidden = true; if (glossOn) glossOn.classList.remove('on'); glossOn = null; }
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.gl');
+  if (!b) { hideGloss(); return; }
+  e.stopPropagation(); e.preventDefault();
+  if (glossOn === b) { hideGloss(); return; }
+  hideGloss();
+  const g = $('gloss'); g.textContent = ''; g.append(el('b', '', b.textContent), document.createTextNode(GLOSS[b.dataset.k]));
+  g.hidden = false; glossOn = b; b.classList.add('on');
+  const r = b.getBoundingClientRect(), w = g.offsetWidth, h = g.offsetHeight;
+  g.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + 'px';
+  g.style.top = (r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8) + 'px';
+}, true);
+addEventListener('scroll', hideGloss, { passive: true, capture: true });
 function isRight(p, raw) {
   if (p.num !== undefined && Math.abs(parseNum(raw) - p.num) < 1e-9) return true;
   const n = norm(raw);
@@ -901,26 +1057,27 @@ function show(name) {
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => show(b.dataset.go)));
 
 function renderHome() {
-  const done = CHAPTERS.filter(ch => (S.chapters[ch.id] || {}).done).length;
+  if (!connecting && !S.settings.lang && LANGS.length > 1 && !Object.keys(S.chapters).length) showLangPick();
+  const P = prog(), done = CHAPTERS.filter(ch => (P[ch.id] || {}).done).length;
   const stars = CHAPTERS.reduce((a, ch) => a + chStars(ch), 0), maxStars = CHAPTERS.reduce((a, ch) => a + ch.puzzles.length * MAX_STARS, 0);
-  $('hDone').textContent = done + ' of ' + CHAPTERS.length;
+  $('hDone').textContent = L.ofN(done, CHAPTERS.length);
   $('hMeter').style.width = (done / CHAPTERS.length * 100) + '%';
-  $('hStars').textContent = stars + ' of ' + maxStars + ' stars' + (done === CHAPTERS.length ? ' · Case closed!' : '');
-  const started = Object.keys(S.chapters).length > 0;
+  $('hStars').textContent = L.stars(stars, maxStars) + (done === CHAPTERS.length ? ' · ' + L.closed : '');
+  const started = Object.keys(P).length > 0;
   $('intro').hidden = started;
   const ni = nextIndex();
-  $('continueBtn').textContent = done === CHAPTERS.length ? 'Read the last chapter again' : started ? 'Continue: Chapter ' + (ni + 1) : 'Start the case';
+  $('continueBtn').textContent = done === CHAPTERS.length ? L.again : started ? L.cont(ni + 1) : L.start;
   const list = $('cases'); list.textContent = '';
   CHAPTERS.forEach((ch, i) => {
-    const c = S.chapters[ch.id], open = unlocked(i);
+    const c = P[ch.id], open = unlocked(i);
     const b = el('button', 'case' + (c && c.done ? ' done' : '') + (open && i === ni && !(c && c.done) ? ' next' : ''));
     b.disabled = !open;
     b.append(el('span', 'num', String(i + 1)), el('h3', '', ch.title));
     const solvedN = c ? ch.puzzles.filter(p => (c.puzzles[p.id] || {}).solved).length : 0;
     const sm = el('small');
-    if (!open) sm.textContent = 'Locked: solve chapter ' + i + ' first';
+    if (!open) sm.textContent = L.locked(i);
     else if (c && c.done) { const s = el('span', 'stars', starText(chStars(ch), ch.puzzles.length * MAX_STARS)); sm.append(s); }
-    else sm.textContent = solvedN ? solvedN + ' of ' + ch.puzzles.length + ' puzzles solved' : 'New';
+    else sm.textContent = solvedN ? L.solvedOf(solvedN, ch.puzzles.length) : L.fresh;
     b.append(sm);
     b.addEventListener('click', () => openChapter(i));
     list.append(b);
@@ -937,10 +1094,10 @@ function renderDoc(doc, host) {
   if (doc.meta) a.append(el('div', 'meta', doc.meta));
   if (doc.title) a.append(el('h3', '', doc.title));
   doc.body.forEach(b => {
-    if (typeof b === 'string') { a.append(el('p', '', b)); return; }
+    if (typeof b === 'string') { a.append(glossed('p', '', b)); return; }
     if (b.code) { a.append(el('div', 'codeline' + (b.dits ? ' dits' : ''), b.code)); return; }
-    if (b.lines) { const d = el('div', 'lines'); b.lines.forEach(l => d.append(el('div', '', l))); a.append(d); return; }
-    if (b.pencil) { a.append(el('p', 'pencil', b.pencil)); return; }
+    if (b.lines) { const d = el('div', 'lines'); b.lines.forEach(l => d.append(glossed('div', '', l))); a.append(d); return; }
+    if (b.pencil) { a.append(glossed('p', 'pencil', b.pencil)); return; }
     if (b.table) {
       const w = el('div', 'tablewrap'), t = el('table');
       b.table.forEach((row, ri) => { const tr = el('tr'); row.forEach(c => tr.append(el(ri ? 'td' : 'th', '', c))); t.append(tr); });
@@ -948,7 +1105,7 @@ function renderDoc(doc, host) {
     }
     if (b.map) {
       const m = el('div', 'map'); m.setAttribute('role', 'img');
-      m.setAttribute('aria-label', 'Town map. ' + Object.entries(b.map.places).map(([k, v]) => v[1] + ' at ' + k).join(', '));
+      m.setAttribute('aria-label', L.townMap + ' ' + Object.entries(b.map.places).map(([k, v]) => v[1] + ' ' + L.at + ' ' + k).join(', '));
       m.append(el('div', 'h', ''));
       b.map.cols.split('').forEach(c => m.append(el('div', 'h', c)));
       for (let r = 1; r <= b.map.rows; r++) {
@@ -963,6 +1120,7 @@ function renderDoc(doc, host) {
     }
   });
   host.append(a);
+  if (GLOSS) host.append(el('p', 'gl-note', 'Tap a dotted word to see it in English.'));
 }
 function markRead(ch, doc) {
   const c = chState(ch);
@@ -985,7 +1143,7 @@ $('chBack').addEventListener('click', () => show('home'));
 
 function renderChapter() {
   const ch = CHAPTERS[curCh], c = chState(ch);
-  $('chNum').textContent = 'Chapter ' + (curCh + 1) + ' of ' + CHAPTERS.length;
+  $('chNum').textContent = L.chapterOf(curCh + 1, CHAPTERS.length);
   $('chTitle').textContent = ch.title;
   $('chStars').textContent = chStars(ch) + ' of ' + ch.puzzles.length * MAX_STARS + ' ★';
   markRead(ch, curDoc);
@@ -1003,7 +1161,7 @@ function renderChapter() {
   ch.puzzles.forEach((p, i) => {
     const ps = c.puzzles[p.id];
     if (!ps || !ps.solved) return;
-    const d = el('div'); d.append(el('b', '', '✓'), document.createTextNode('Puzzle ' + (i + 1) + ': ' + (ps.answer || 'solved')), el('span', 'stars', ' ' + starText(starsFor(ps), MAX_STARS)));
+    const d = el('div'); d.append(el('b', '', '✓'), document.createTextNode(L.puzzleN(i + 1) + ': ' + (ps.answer || L.solvedWord)), el('span', 'stars', ' ' + starText(starsFor(ps), MAX_STARS)));
     sl.append(d);
   });
   renderPuzzle();
@@ -1016,18 +1174,18 @@ function renderPuzzle() {
   box.textContent = '';
   const p = currentPuzzle();
   if (!p) {
-    box.append(el('p', 'q', 'Chapter solved.'));
-    const b = el('button', 'btn go', curCh + 1 < CHAPTERS.length ? 'Next chapter' : 'Back to case files');
+    box.append(el('p', 'q', L.chSolved));
+    const b = el('button', 'btn go', curCh + 1 < CHAPTERS.length ? L.nextChapter : L.backToCases);
     b.addEventListener('click', () => curCh + 1 < CHAPTERS.length ? openChapter(curCh + 1) : show('home'));
     box.append(b);
     return;
   }
   const ps = pState(ch, p), idx = ch.puzzles.indexOf(p);
   const top = el('div', 'ptop');
-  top.append(el('span', 'lab', 'Puzzle ' + (idx + 1) + ' of ' + ch.puzzles.length), el('span', 'chip', SKILLS[p.skill].name));
-  box.append(top, el('p', 'q', p.q));
+  top.append(el('span', 'lab', L.puzzleOf(idx + 1, ch.puzzles.length)), el('span', 'chip', skillName(p.skill)));
+  box.append(top, glossed('p', 'q', p.q));
   if (p.code) {
-    const cd = el('div', 'code'); cd.setAttribute('aria-label', 'Coded message');
+    const cd = el('div', 'code'); cd.setAttribute('aria-label', L.coded);
     const toks = Array.isArray(p.code) ? p.code : p.code.split('');
     toks.forEach(t => {
       if (t === ' ') { cd.append(el('span', 'gap', '')); return; }
@@ -1043,13 +1201,16 @@ function renderPuzzle() {
   if (p.choices) {
     const wrap = el('div', 'choices');
     p.choices.forEach(choice => {
-      const b = el('button', 'choice', choice.t);
+      // A div, not a button, so the glossary's word buttons can sit inside it.
+      const b = glossed('div', 'choice', choice.t);
+      b.setAttribute('role', 'button'); b.tabIndex = 0;
+      b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.click(); } });
       b.addEventListener('click', () => {
-        if (b.classList.contains('no')) return;
+        if (b.classList.contains('no') || b.classList.contains('ok')) return;
         ps.tries++;
         if (choice.ok) { b.classList.add('ok'); solve(ch, p, ps, choice.t); return; }
         b.classList.add('no'); sfx.wrong();
-        fb.className = 'feedback bad'; fb.textContent = choice.why || 'Not quite. Look back at the documents.'; fb.hidden = false;
+        fb.className = 'feedback bad'; fb.textContent = ''; fb.append(glossed('span', '', choice.why || L.notQuite)); fb.hidden = false;
         persist();
       });
       wrap.append(b);
@@ -1060,9 +1221,9 @@ function renderPuzzle() {
     inp.type = 'text'; inp.autocomplete = 'off'; inp.spellcheck = false;
     inp.setAttribute('autocorrect', 'off'); inp.setAttribute('autocapitalize', p.aid ? 'characters' : 'off'); inp.setAttribute('enterkeyhint', 'done');
     if (p.input === 'decimal') inp.inputMode = 'decimal';
-    inp.placeholder = p.placeholder || 'Type your answer';
-    inp.setAttribute('aria-label', 'Your answer');
-    const go = el('button', 'btn go', 'Check'); go.type = 'submit';
+    inp.placeholder = p.placeholder || L.typeAnswer;
+    inp.setAttribute('aria-label', L.yourAnswer);
+    const go = el('button', 'btn go', L.check); go.type = 'submit';
     form.append(inp, go);
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -1071,7 +1232,7 @@ function renderPuzzle() {
       if (isRight(p, inp.value)) { inp.className = 'ok'; solve(ch, p, ps, inp.value.trim().toUpperCase()); return; }
       inp.className = 'no'; sfx.wrong();
       fb.className = 'feedback bad';
-      fb.textContent = ps.tries >= 2 && ps.hints < p.hints.length ? 'Not yet. A hint might help: it costs one star.' : 'Not yet. Look back at the clue and try again.';
+      fb.textContent = ps.tries >= 2 && ps.hints < p.hints.length ? L.notYetHint : L.notYet;
       fb.hidden = false;
       persist();
     });
@@ -1080,15 +1241,15 @@ function renderPuzzle() {
   }
   box.append(fb);
   const hints = el('div', 'hints');
-  p.hints.slice(0, ps.hints).forEach(h => hints.append(el('p', '', h)));
+  p.hints.slice(0, ps.hints).forEach(h => hints.append(glossed('p', '', h)));
   box.append(hints);
   const acts = el('div', 'pactions');
   if (ps.hints < p.hints.length) {
-    const hb = el('button', 'btn small', ps.hints ? 'Another hint (−1 ★)' : 'Hint (−1 ★)');
+    const hb = el('button', 'btn small', ps.hints ? L.anotherHint : L.hint);
     hb.addEventListener('click', () => { ps.hints++; sfx.click(); persist(); renderPuzzle(); });
     acts.append(hb);
   }
-  acts.append(el('span', 'note', 'Worth ' + starText(Math.max(0, MAX_STARS - ps.hints), MAX_STARS)));
+  acts.append(el('span', 'note', L.worth(starText(Math.max(0, MAX_STARS - ps.hints), MAX_STARS))));
   box.append(acts);
 }
 
@@ -1111,10 +1272,10 @@ function solve(ch, p, ps, shown) {
 
 function showDone(ch) {
   const i = CHAPTERS.indexOf(ch), last = i === CHAPTERS.length - 1;
-  $('doneLab').textContent = last ? 'Case closed' : 'Chapter ' + (i + 1) + ' solved';
+  $('doneLab').textContent = last ? L.caseClosed : L.chNSolved(i + 1);
   $('doneTitle').textContent = ch.title;
   $('doneStars').textContent = starText(chStars(ch), ch.puzzles.length * MAX_STARS);
-  $('doneStory').textContent = ch.outro;
+  $('doneStory').textContent = ''; $('doneStory').append(...glossed('span', '', ch.outro).childNodes);
   $('doneNext').hidden = last;
   $('doneOverlay').hidden = false;
   sfx.done();
@@ -1126,17 +1287,17 @@ $('doneHome').addEventListener('click', () => { $('doneOverlay').hidden = true; 
 function renderAid(p) {
   const box = el('div', 'aid');
   if (p.aid === 'morse') {
-    box.append(el('span', 'lab', 'Morse card'));
+    box.append(el('span', 'lab', L.morseCard));
     const g = el('div', 'morse');
     Object.entries(MORSE).forEach(([k, v]) => { const d = el('div'); d.append(el('b', '', k), el('span', '', dits(v))); g.append(d); });
     box.append(g);
   } else if (p.aid === 'numbers') {
-    box.append(el('span', 'lab', 'Number strip'));
+    box.append(el('span', 'lab', L.numberStrip));
     const g = el('div', 'strip');
     for (let i = 0; i < 26; i++) { const d = el('div'); d.append(el('b', '', String.fromCharCode(65 + i)), el('span', '', String(i + 1))); g.append(d); }
     box.append(g);
   } else if (p.aid === 'grid') {
-    box.append(el('span', 'lab', 'Letter grid (from the back of the map)'));
+    box.append(el('span', 'lab', L.letterGrid));
     const t = el('table', 'lgrid'), hr = el('tr');
     hr.append(el('th', '', ''));
     'ABCDE'.split('').forEach(c => hr.append(el('th', '', c)));
@@ -1144,12 +1305,12 @@ function renderAid(p) {
     GRID.forEach((row, r) => { const tr = el('tr'); tr.append(el('th', '', String(r + 1))); row.split('').forEach(ch => tr.append(el('td', '', ch === 'I' ? 'I/J' : ch))); t.append(tr); });
     box.append(t);
   } else if (p.aid === 'keypad') {
-    box.append(el('span', 'lab', 'Phone keypad'));
+    box.append(el('span', 'lab', L.keypad));
     const g = el('div', 'keypad');
     KEYPAD.forEach(([k, l]) => { const d = el('div'); d.append(el('b', '', k), el('span', '', l)); g.append(d); });
     box.append(g);
   } else if (p.aid === 'wheel') {
-    box.append(el('span', 'lab', 'Cipher wheel'));
+    box.append(el('span', 'lab', L.wheel));
     box.append(renderWheel(p));
   }
   return box;
@@ -1200,17 +1361,17 @@ function renderWheel(p) {
   function readout() {
     const k = wheelK[key], kk = ((k % 26) + 26) % 26;
     read.textContent = '';
-    const dir = k === 0 ? 'Not turned' : (k > 0 ? 'Forward ' + k : 'Back ' + (-k));
-    const same = k !== 0 && Math.abs(k) > 13 ? ' (same as ' + (k > 0 ? 'back ' + (26 - k) : 'forward ' + (26 + k)) + ')' : '';
+    const dir = k === 0 ? L.notTurned : (k > 0 ? L.fwd(k) : L.bck(-k));
+    const same = k !== 0 && Math.abs(k) > 13 ? L.sameAs((k > 0 ? L.bck(26 - k) : L.fwd(26 + k)).toLowerCase()) : '';
     read.append(el('b', '', dir), document.createTextNode(same));
     const sel = wheelSel[key];
-    const line = sel === undefined ? 'Tap a green letter to see where it lands.' : String.fromCharCode(65 + sel) + ' → ' + String.fromCharCode(65 + (sel + kk) % 26);
+    const line = sel === undefined ? L.tapGreen : String.fromCharCode(65 + sel) + ' → ' + String.fromCharCode(65 + (sel + kk) % 26);
     read.append(el('div', '', line));
     mid.textContent = k === 0 ? '0' : (k > 0 ? '+' + k : String(k));
-    svg.setAttribute('aria-label', 'Cipher wheel turned ' + dir + '. ' + line);
+    svg.setAttribute('aria-label', L.wheel + ': ' + dir + '. ' + line);
   }
   const ctl = el('div', 'wheel-ctl');
-  [['Back 5', -5], ['Back 1', -1], ['Forward 1', 1], ['Forward 5', 5]].forEach(([label, d]) => {
+  [[L.bck(5), -5], [L.bck(1), -1], [L.fwd(1), 1], [L.fwd(5), 5]].forEach(([label, d]) => {
     const b = el('button', 'btn small', label); b.type = 'button';
     b.addEventListener('click', () => {
       let k = wheelK[key] + d;
@@ -1230,20 +1391,20 @@ function renderNotebook() {
   const dl = $('docList'); dl.textContent = '';
   let clues = 0, docs = 0;
   CHAPTERS.forEach((ch, i) => {
-    const c = S.chapters[ch.id]; if (!c) return;
+    const c = prog()[ch.id]; if (!c) return;
     ch.puzzles.forEach(p => {
       if (!p.clue || !(c.puzzles[p.id] || {}).solved) return;
-      const li = el('li'); li.append(el('span', '', String(i + 1)), document.createTextNode(p.clue)); ul.append(li); clues++;
+      const li = el('li'); li.append(el('span', '', String(i + 1)), glossed('span', '', p.clue)); ul.append(li); clues++;
     });
     ch.docs.forEach(d => {
       if (!c.docs.includes(d.id)) return;
-      const b = el('button'); b.append(el('b', '', d.title), el('small', '', 'Chapter ' + (i + 1) + ' · ' + d.tab));
+      const b = el('button'); b.append(el('b', '', d.title), el('small', '', L.chTab(i + 1, d.tab)));
       b.addEventListener('click', () => { renderDoc(d, $('readerDoc')); $('readerOverlay').hidden = false; $('readerOverlay').scrollTop = 0; });
       dl.append(b); docs++;
     });
   });
-  if (!clues) ul.append(el('li', 'empty', 'No clues yet. Solve puzzles to collect them.'));
-  if (!docs) dl.append(el('p', 'empty', 'Documents you read show up here.'));
+  if (!clues) ul.append(el('li', 'empty', L.noClues));
+  if (!docs) dl.append(el('p', 'empty', L.noDocs));
 }
 $('readerClose').addEventListener('click', () => { $('readerOverlay').hidden = true; });
 $('readerOverlay').addEventListener('click', e => { if (e.target === $('readerOverlay')) $('readerOverlay').hidden = true; });
@@ -1292,12 +1453,13 @@ document.addEventListener('keydown', e => {
 });
 
 let wipeArmed = false;
-function openParent() { wipeArmed = false; $('wipeAll').textContent = 'Start the case over'; renderParent(); $('parent').hidden = false; }
+function wipeLabel() { return LANGS.length > 1 ? 'Start the ' + LANG_NAMES[lang] + ' case over' : 'Start the case over'; }
+function openParent() { wipeArmed = false; $('wipeAll').textContent = wipeLabel(); renderParent(); $('parent').hidden = false; }
 function renderParent() {
   let docs = 0, solved = 0, first = 0, hints = 0, done = 0;
   const bySkill = {};
   CHAPTERS.forEach(ch => {
-    const c = S.chapters[ch.id]; if (!c) return;
+    const c = prog()[ch.id]; if (!c) return;
     if (c.done) done++;
     docs += c.docs.length;
     ch.puzzles.forEach(p => {
@@ -1332,6 +1494,25 @@ function renderParent() {
   series.forEach(([d, m]) => { const b = el('div'); b.style.height = (m / mx * 100) + '%'; b.title = d.toLocaleDateString() + ': ' + m + ' min'; days.append(b); });
   $('pDayFirst').textContent = series[0][0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   $('codeShow').textContent = KidSave.code() || 'Not connected yet';
+  $('pSkillsLab').textContent = 'Skills, right on the first try without a hint' + (LANGS.length > 1 ? ' (' + LANG_NAMES[lang] + ' story)' : '');
+  const row = $('langRow'); row.textContent = '';
+  row.closest('div').hidden = LANGS.length < 2;
+  LANGS.forEach(l => {
+    const b = el('button', 'btn small', LANG_NAMES[l]); b.type = 'button'; b.setAttribute('aria-pressed', String(l === lang));
+    b.addEventListener('click', () => { setLang(l); renderParent(); });
+    row.append(b);
+  });
+}
+function setLang(l) { S.settings.lang = l; persist(); applyLang(); wipeArmed = false; $('wipeAll').textContent = wipeLabel(); }
+// First launch on a fresh save: pick the story's language.
+function showLangPick() {
+  const box = $('langPick'); box.textContent = '';
+  LANGS.forEach(l => {
+    const b = el('button', 'btn' + (l === 'en' ? ' go' : ''), LANG_NAMES[l]); b.type = 'button';
+    b.addEventListener('click', () => { setLang(l); $('langOverlay').hidden = true; show('home'); });
+    box.append(b);
+  });
+  $('langOverlay').hidden = false;
 }
 $('pinChange').addEventListener('click', () => { delete S.settings.pin; persist(); $('parent').hidden = true; openPin(); });
 $('codeForm').addEventListener('submit', e => {
@@ -1341,8 +1522,7 @@ $('codeForm').addEventListener('submit', e => {
 });
 $('wipeAll').addEventListener('click', () => {
   if (!wipeArmed) { wipeArmed = true; $('wipeAll').textContent = 'Tap again to erase all progress'; return; }
-  const keep = { ...S.settings };
-  S = fresh(); S.settings = keep;
+  if (lang === 'en') S.chapters = {}; else S.byLang[lang] = {};
   persist(); wipeArmed = false; $('wipeAll').textContent = 'Erased';
   renderParent();
 });
@@ -1350,6 +1530,7 @@ $('parentClose').addEventListener('click', () => { $('parent').hidden = true; re
 
 /* ---------------- boot ---------------- */
 // For testing in a browser console: the accepted answer to the open puzzle.
+applyLang();
 window.SIGNAL_DEV = { answer: () => { const p = currentPuzzle(); return p && (p.choices ? p.choices.find(c => c.ok).t : p.answers[0]); } };
 show('home');
 connect();
