@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Kid Apps",
+  "short_name": "Kid Apps",
+  "description": "Practice games that sneak in math and reading.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#16120E",
+  "theme_color": "#1E1A15",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

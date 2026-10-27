@@ -19,6 +19,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"os/signal"
@@ -50,6 +51,12 @@ var apps = []App{
 	{ID: "dm", Name: "Pinehurst DM Academy", ShortName: "DM Academy", Theme: "#1A2622", Background: "#ECEFE4", Docs: []string{"pda-save"}, Shares: true},
 	{ID: "chain", Name: "Chain Reaction", ShortName: "Chain Reaction", Theme: "#160d2c", Background: "#160d2c", Docs: []string{"game-v2", "game"}},
 	{ID: "signal", Name: "Signal", ShortName: "Signal", Theme: "#0b1020", Background: "#0b1020", Docs: []string{"signal-save"}},
+}
+
+func init() {
+	// Not in Go's built-in table, and the VM's /etc/mime.types may not have them either.
+	mime.AddExtensionType(".webmanifest", "application/manifest+json")
+	mime.AddExtensionType(".ico", "image/x-icon")
 }
 
 func main() {

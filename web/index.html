@@ -4,7 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Kid Apps</title>
-<meta name="description" content="Pinehurst DM Academy, Chain Reaction and Signal.">
+<meta name="description" content="Practice games that sneak in math and reading: Pinehurst DM Academy, Chain Reaction and Signal.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kid Apps">
+<meta property="og:title" content="Kid Apps">
+<meta property="og:description" content="Practice games that sneak in math and reading: Pinehurst DM Academy, Chain Reaction and Signal.">
+<meta property="og:url" content="https://kidapps.exe.xyz/">
+<meta property="og:image" content="https://kidapps.exe.xyz/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F1EA">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#15130F">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Kid Apps">
 <link rel="stylesheet" href="/shared/fonts/fonts.css">
 <style>
 :root{--bg:#F4F1EA;--surface:#FFFFFF;--ink:#1F1B16;--muted:#6B6358;--line:#DDD6C9}
@@ -13,13 +29,15 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,sans-serif;
   padding:max(32px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
 main{max-width:720px;margin:0 auto;display:grid;gap:20px}
-h1{font-size:1.6rem;margin:0}
+h1{font-size:1.6rem;margin:0;display:flex;align-items:center;gap:14px}
+h1 img{width:56px;height:56px;border-radius:13px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 6px 16px rgba(0,0,0,.14)}
 p{margin:0;color:var(--muted)}
-.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-a.app{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:center;text-decoration:none;color:inherit;
+.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+a.app{display:grid;gap:6px;align-content:start;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s;
   background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
-a.app:hover{border-color:var(--muted)}
-a.app img{grid-row:span 2;width:72px;height:72px;border-radius:16px}
+a.app:hover{border-color:var(--muted);transform:translateY(-2px)}
+@media (prefers-reduced-motion: reduce){a.app{transition:none}a.app:hover{transform:none}}
+a.app img{width:72px;height:72px;border-radius:16px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 6px 16px rgba(0,0,0,.14)}
 a.app b{font-size:1.1rem}
 a.app span{color:var(--muted);font-size:.95rem;line-height:1.35}
 .how{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
@@ -30,7 +48,7 @@ a.app span{color:var(--muted);font-size:.95rem;line-height:1.35}
 </head>
 <body>
 <main>
-  <h1>Kid Apps</h1>
+  <h1><img src="/icons/icon-192.png" alt="">Kid Apps</h1>
   <p>Three practice games. Each one saves its progress on this server, so it carries over between devices.</p>
   <div class="apps">
     <a class="app" href="/dm/"><img src="/dm/icons/icon-192.png" alt=""><b>Pinehurst DM Academy</b><span>Dungeon Master training: dice math, rules, and a Forge to build dungeons for friends.</span></a>

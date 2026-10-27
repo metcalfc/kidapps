@@ -33,6 +33,7 @@ web/dm/, web/chain/            the two apps (single-file HTML plus icons and lau
 web/shared/                    save.js, the service worker template, self-hosted fonts
 deploy/                        Caddyfile, systemd units, deploy.sh
 tools/gen-icons.sh             regenerates icons and iPad launch screens (needs rsvg-convert)
+tools/gen-site.sh              landing page icons, favicons, and link-preview cards (run after gen-icons.sh)
 ```
 
 ## Running locally

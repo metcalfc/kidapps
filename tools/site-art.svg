@@ -1,0 +1,27 @@
+<!-- The landing page's artwork on a 1024 square, without background: the three apps as fanned
+     cards (Chain Reaction, DM Academy in front, Signal). tools/gen-site.sh wraps it. -->
+<defs>
+  <linearGradient id="sx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset=".55" stop-color="#ff8a3d"/><stop offset="1" stop-color="#ff4f9a"/></linearGradient>
+  <filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity=".5"/></filter>
+</defs>
+<g transform="translate(762 548) rotate(12)" filter="url(#sh)">
+  <rect x="-150" y="-190" width="300" height="380" rx="56" fill="#0d1430"/>
+  <g transform="translate(34 -30)">
+    <path d="M-70 -64 a99 99 0 0 1 140 0" fill="none" stroke="#5be3a0" stroke-width="24" stroke-linecap="round"/>
+    <path d="M-38 -28 a54 54 0 0 1 76 0" fill="none" stroke="#5be3a0" stroke-width="24" stroke-linecap="round"/>
+    <path d="M0 8 L-52 144 M0 8 L52 144 M-22 64 L22 64 M-36 104 L36 104" stroke="#ff9a3d" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="0" cy="6" r="18" fill="#ff5a6a"/>
+  </g>
+</g>
+<g transform="translate(262 548) rotate(-12)" filter="url(#sh)">
+  <rect x="-150" y="-190" width="300" height="380" rx="56" fill="#2a1c64"/>
+  <g transform="translate(-30 0) rotate(45)">
+    <rect x="-22" y="-100" width="44" height="200" rx="22" fill="url(#sx)"/>
+    <rect x="-100" y="-22" width="200" height="44" rx="22" fill="url(#sx)"/>
+  </g>
+</g>
+<g transform="translate(512 500)" filter="url(#sh)">
+  <rect x="-160" y="-205" width="320" height="410" rx="60" fill="#1A2622" stroke="#C9971F" stroke-width="10"/>
+  <path d="M0 -136 L108 -94 L108 8 C108 82 56 128 0 156 C-56 128 -108 82 -108 8 L-108 -94 Z" fill="none" stroke="#D9A82C" stroke-width="20" stroke-linejoin="round"/>
+  <path d="M0 -70 L48 -42 L48 14 L0 42 L-48 14 L-48 -42 Z M0 -70 L0 42 M-48 -42 L48 14 M48 -42 L-48 14" fill="none" stroke="#D9A82C" stroke-width="11" stroke-linejoin="round"/>
+</g>
