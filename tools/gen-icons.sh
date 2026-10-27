@@ -45,12 +45,38 @@ art() {
 <circle cx="190" cy="800" r="11" fill="#ffd23f"/>
 SVG
       ;;
+    signal)
+      # A radio tower on a hill at night, sending signal arcs.
+      cat <<'SVG'
+<defs>
+  <radialGradient id="sky" cx=".5" cy=".3" r=".8">
+    <stop offset="0" stop-color="#1c2b55"/><stop offset="1" stop-color="#0b1020" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1024" height="1024" fill="url(#sky)"/>
+<circle cx="250" cy="220" r="9" fill="#eef1f8"/>
+<circle cx="800" cy="300" r="7" fill="#eef1f8"/>
+<circle cx="170" cy="520" r="6" fill="#7fb8ff"/>
+<path d="M0 860 Q512 700 1024 860 L1024 1024 L0 1024 Z" fill="#132a1f"/>
+<g fill="none" stroke="#7ef0a3" stroke-width="34" stroke-linecap="round">
+  <path d="M427.7 289.3 A110 110 0 0 1 596.3 289.3" opacity=".95"/>
+  <path d="M366.5 237.9 A190 190 0 0 1 657.5 237.9" opacity=".7"/>
+  <path d="M305.2 186.4 A270 270 0 0 1 718.8 186.4" opacity=".45"/>
+</g>
+<g stroke="#ffb640" stroke-width="30" stroke-linecap="round" fill="none">
+  <path d="M512 360 L392 840 M512 360 L632 840"/>
+  <path d="M482 480 L542 480 M452 600 L572 600 M422 720 L602 720"/>
+  <path d="M452 600 L602 720 M572 600 L422 720"/>
+</g>
+<circle cx="512" cy="352" r="34" fill="#ff7a7a"/>
+SVG
+      ;;
   esac
 }
 
-bg() { case "$1" in dm) echo '#1A2622' ;; chain) echo '#160d2c' ;; esac; }
+bg() { case "$1" in dm) echo '#1A2622' ;; chain) echo '#160d2c' ;; signal) echo '#0b1020' ;; esac; }
 
-for app in dm chain; do
+for app in dm chain signal; do
   out=web/$app/icons
   mkdir -p "$out" "web/$app/splash"
   rm -f "web/$app/splash/"*.png

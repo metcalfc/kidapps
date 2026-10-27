@@ -47,6 +47,7 @@ type App struct {
 var apps = []App{
 	{ID: "dm", Name: "Pinehurst DM Academy", ShortName: "DM Academy", Theme: "#1A2622", Background: "#ECEFE4", Docs: []string{"pda-save"}},
 	{ID: "chain", Name: "Chain Reaction", ShortName: "Chain Reaction", Theme: "#160d2c", Background: "#160d2c", Docs: []string{"game-v2", "game"}},
+	{ID: "signal", Name: "Signal", ShortName: "Signal", Theme: "#0b1020", Background: "#0b1020", Docs: []string{"signal-save"}},
 }
 
 func main() {

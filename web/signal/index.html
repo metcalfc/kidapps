@@ -1,0 +1,1349 @@
+<!doctype html>
+<html lang="en" data-app="signal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Signal</title>
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Signal">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<!-- splash:start -->
+<link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-744x1133-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-744x1133-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-768x1024-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-768x1024-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-810x1080-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-810x1080-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-820x1180-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-820x1180-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1112-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1112-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1194-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1194-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-834x1210-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-834x1210-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-1024x1366-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-1024x1366-landscape.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/ipad-1032x1376-portrait.png">
+<link rel="apple-touch-startup-image" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="splash/ipad-1032x1376-landscape.png">
+<!-- splash:end -->
+<link rel="stylesheet" href="/shared/fonts/fonts.css">
+<script src="/shared/save.js"></script>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Home-screen app polish for iPad and Mac: no long-press callouts or double-tap zoom on controls. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,img,.key,.card,.choice{-webkit-touch-callout:none;touch-action:manipulation}
+img{-webkit-user-drag:none}
+</style>
+</head>
+<body>
+<style>
+/* Layout: a kid's desk at night. Case files on the home screen; a chapter is documents on one side
+   (paper on a dark desk, so the reading itself is dark ink on light paper) and the puzzle on the other.
+   Side by side in landscape, stacked in portrait. Deliberately a single dark theme: 1986, after dark. */
+:root{
+  --bg:#0b1020; --bg2:#10172b; --surface:#161f38; --surface2:#1f2a4a; --line:#2e3b63;
+  --ink:#eef1f8; --muted:#a3add0; --amber:#ffb640; --green:#7ef0a3; --red:#ff7a7a; --blue:#7fb8ff;
+  --paper:#f6efdf; --paper-ink:#262019; --paper-muted:#6b5f4e; --paper-line:#d9ccb2; --news:#eeeae1;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,sans-serif;
+  --type:"Courier Prime","Courier New",ui-monospace,monospace;
+  --crt:"VT323",ui-monospace,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
+.sky{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(90% 60% at 80% -10%,rgba(127,184,255,.16),transparent 60%),radial-gradient(70% 50% at 0% 110%,rgba(126,240,163,.08),transparent 60%)}
+#app{position:relative;z-index:1;height:100%;box-sizing:border-box;max-width:1240px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:18px;padding-bottom:24px}
+.lab{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:14px;
+  background:var(--surface2);font-weight:700;font-size:18px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.go{background:var(--amber);color:#2a1800}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 2px var(--line);color:var(--muted)}
+.btn.small{min-height:44px;font-size:16px;padding:0 14px;border-radius:12px}
+
+/* ---------- home ---------- */
+.home-top{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:end}
+.brand h1{font-family:var(--crt);font-weight:400;font-size:clamp(64px,11vw,120px);letter-spacing:.06em;color:var(--green);line-height:.9;
+  text-shadow:0 0 18px rgba(126,240,163,.45)}
+.brand p{margin:8px 0 0;color:var(--muted);font-size:19px;max-width:34ch}
+.progress{background:var(--surface);border-radius:18px;padding:16px 18px;display:grid;gap:8px}
+.progress b{font-family:var(--crt);font-weight:400;font-size:40px;line-height:1;color:var(--amber)}
+.meter{height:10px;border-radius:10px;background:var(--bg2);overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--amber));border-radius:10px}
+.intro{background:var(--surface);border-radius:18px;padding:16px 18px;color:var(--muted);font-size:17px;max-width:70ch}
+.intro b{color:var(--ink)}
+.cases{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.case{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:center;text-align:left;background:var(--surface);border-radius:18px;padding:16px;
+  box-shadow:inset 0 0 0 2px transparent;min-height:96px}
+.case:not([disabled]):hover{box-shadow:inset 0 0 0 2px var(--line)}
+.case .num{grid-row:span 2;width:56px;height:56px;border-radius:14px;background:var(--bg2);display:grid;place-items:center;font-family:var(--crt);font-size:34px;color:var(--green)}
+.case h3{font-size:19px}
+.case small{color:var(--muted);font-size:15px}
+.case.done .num{background:var(--green);color:#06250f}
+.case.next{box-shadow:inset 0 0 0 2px var(--amber)}
+.case[disabled]{opacity:.45;cursor:default}
+.stars{color:var(--amber);letter-spacing:.08em}
+.home-row{display:flex;flex-wrap:wrap;gap:10px}
+.home-row .btn{flex:1 1 200px}
+.foot{margin-top:auto;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;color:var(--muted);font-size:15px}
+
+/* ---------- chapter ---------- */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h2{font-size:clamp(22px,3.4vw,30px);margin-right:auto}
+.bar h2 small{display:block;font-size:14px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:2px}
+.chapter-body{display:grid;gap:18px}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (orientation:landscape) and (min-width:900px){
+  #chapter{overflow:hidden}
+  .chapter-body{flex:1;min-height:0;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+  .col{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:24px}
+}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{min-height:44px;padding:0 14px;border-radius:999px;background:var(--surface);color:var(--muted);font-weight:700;font-size:16px;display:inline-flex;align-items:center;gap:6px}
+.tab[aria-selected="true"]{background:var(--paper);color:var(--paper-ink)}
+.tab .dot{width:8px;height:8px;border-radius:50%;background:var(--amber)}
+
+/* ---------- documents ---------- */
+.doc{background:var(--paper);color:var(--paper-ink);border-radius:6px;padding:22px 24px 26px;box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:19px;line-height:1.62}
+.doc p{margin:0 0 .8em;max-width:62ch}
+.doc p:last-child{margin-bottom:0}
+.doc .meta{font-family:var(--type);font-size:15px;color:var(--paper-muted);margin-bottom:10px;letter-spacing:.02em}
+.doc h3{font-family:var(--type);font-weight:700;font-size:24px;margin:0 0 12px;letter-spacing:.01em}
+.doc.notebook{border-left:6px solid #e7a3a3}
+.doc.paper{background:#fbf8f0}
+.doc.clipping{background:var(--news);border-radius:2px;font-size:18.5px}
+.doc.clipping h3{font-size:clamp(24px,3.6vw,32px);text-transform:uppercase;letter-spacing:.02em;border-bottom:3px double var(--paper-ink);padding-bottom:8px}
+.doc.transcript{background:#0d1f17;color:#dff7e8;box-shadow:inset 0 0 0 2px #1d4a33,0 10px 30px rgba(0,0,0,.45)}
+.doc.transcript .meta{color:#8ccaa4}
+.doc.transcript h3{color:var(--green);font-family:var(--crt);font-weight:400;font-size:30px;letter-spacing:.04em}
+.doc.card{background:#fdfbf4;border-top:5px solid #c95b5b;font-family:var(--type);font-size:18px}
+.doc.card .lines{display:grid;gap:2px;margin-bottom:12px}
+.doc.card .pencil{font-family:var(--body);font-style:italic;color:#4a4a52;border-top:1px dashed var(--paper-line);padding-top:12px}
+.doc.letter{background:#fbf6ea;font-size:19px}
+.doc.letter p{font-family:var(--type);font-size:18.5px;line-height:1.6}
+.doc .codeline{font-family:var(--crt);font-size:32px;line-height:1.2;letter-spacing:.06em;background:rgba(0,0,0,.08);border-radius:8px;padding:8px 14px;margin:0 0 .8em;white-space:pre-wrap;overflow-wrap:anywhere}
+.doc .codeline.dits,.code span.dits,.morse span{font-family:var(--body);font-weight:700;letter-spacing:.12em}
+.doc .codeline.dits{font-size:30px}
+.code span.dits{font-size:30px}
+.doc.transcript .codeline{background:rgba(126,240,163,.08);color:var(--green)}
+.doc table{border-collapse:collapse;width:100%;margin:4px 0 14px;font-variant-numeric:tabular-nums;font-size:18px}
+.doc th,.doc td{border:1px solid var(--paper-line);padding:8px 10px;text-align:left}
+.doc th{background:rgba(0,0,0,.06);font-family:var(--type)}
+.doc .tablewrap{overflow-x:auto}
+.map{display:grid;grid-template-columns:32px repeat(6,minmax(0,1fr));gap:3px;margin:4px 0 14px}
+.map div{min-height:66px;border-radius:4px;background:#e7dcc4;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:13px;line-height:1.15;padding:2px}
+.map .h{background:none;min-height:28px;font-family:var(--type);font-weight:700;font-size:16px}
+.map .p{background:#fff4d4;box-shadow:inset 0 0 0 2px #c9a24a}
+.map .p span{font-size:24px;line-height:1}
+
+/* ---------- puzzles ---------- */
+.solved{display:grid;gap:8px}
+.solved div{background:var(--surface);border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:baseline;color:var(--muted);font-size:16px}
+.solved div b{color:var(--green)}
+.puzzle{background:var(--surface);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.ptop{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.chip{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--bg2);color:var(--blue);border-radius:999px;padding:4px 10px}
+.q{font-size:21px;line-height:1.45;font-weight:700;margin:0;max-width:52ch}
+.code{display:flex;flex-wrap:wrap;gap:8px}
+.code span{font-family:var(--crt);font-size:34px;line-height:1;background:var(--bg2);color:var(--green);border-radius:10px;padding:8px 12px;min-width:1.4em;text-align:center}
+.code span.gap{background:none;min-width:.6em;padding:8px 0}
+.choices{display:grid;gap:10px}
+.choice{text-align:left;min-height:56px;border-radius:14px;background:var(--surface2);padding:12px 16px;font-size:18px;line-height:1.35;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.choice.no{background:transparent;box-shadow:inset 0 0 0 2px var(--line);color:var(--muted);text-decoration:line-through;text-decoration-color:var(--red)}
+.choice.ok{background:var(--green);color:#06250f}
+.answer{display:flex;flex-wrap:wrap;gap:10px}
+.answer input{flex:1 1 200px;min-width:0;font:inherit;font-size:24px;font-weight:700;padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:var(--bg2);color:var(--ink);letter-spacing:.04em}
+.answer input.no{border-color:var(--red)}
+.answer input.ok{border-color:var(--green);color:var(--green)}
+.feedback{border-radius:12px;padding:10px 14px;font-size:17px;line-height:1.4}
+.feedback.bad{background:rgba(255,122,122,.12);color:#ffd0d0}
+.feedback.good{background:rgba(126,240,163,.14);color:#c9fbd9}
+.hints{display:grid;gap:8px}
+.hints p{margin:0;background:rgba(255,182,64,.1);border-left:4px solid var(--amber);border-radius:8px;padding:8px 12px;font-size:17px}
+.pactions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pactions .note{color:var(--muted);font-size:15px}
+
+/* aids */
+.aid{background:var(--bg2);border-radius:16px;padding:12px}
+.aid .lab{display:block;margin-bottom:8px}
+.morse{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.morse div{background:var(--surface);border-radius:8px;padding:4px 6px;display:flex;flex-direction:column;align-items:center}
+.morse b{font-size:20px}
+.morse span{font-size:19px;color:var(--green);line-height:1.1;white-space:nowrap;letter-spacing:.02em}
+.strip{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:4px}
+.strip div{background:var(--surface);border-radius:6px;text-align:center;padding:4px 0;line-height:1.1}
+.strip b{display:block;font-size:18px}
+.strip span{font-family:var(--crt);font-size:20px;color:var(--green)}
+.lgrid{border-collapse:separate;border-spacing:4px;margin:0 auto}
+.lgrid th{color:var(--blue);font-size:17px;width:44px;height:30px}
+.lgrid td{background:var(--surface);border-radius:8px;width:50px;height:46px;text-align:center;font-size:22px;font-weight:700}
+.keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-width:330px;margin:0 auto}
+.keypad div{background:var(--surface);border-radius:12px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.keypad b{font-size:24px;line-height:1}
+.keypad span{font-size:15px;letter-spacing:.2em;color:var(--green);font-weight:700}
+.wheel{display:flex;flex-direction:column;align-items:center;gap:10px}
+.wheel svg{width:min(100%,330px);height:auto;touch-action:manipulation}
+.wheel text{font-family:var(--body);font-weight:700;text-anchor:middle;dominant-baseline:central;user-select:none;-webkit-user-select:none}
+.wheel .outer{fill:var(--amber);font-size:19px}
+.wheel .inner{fill:var(--green);font-size:17px;cursor:pointer}
+.wheel .sel{fill:#fff}
+.wheel-ctl{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+.wheel-read{font-weight:700;font-size:18px;text-align:center;min-height:1.5em}
+.wheel-read b{color:var(--amber);font-family:var(--crt);font-size:26px;font-weight:400}
+
+/* ---------- notebook ---------- */
+.clues{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.clues li{background:var(--surface);border-radius:12px;padding:12px 14px;font-size:18px;display:flex;gap:10px}
+.clues li span{color:var(--amber);font-family:var(--crt);font-size:22px;line-height:1.1}
+.doclist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.doclist button{text-align:left;background:var(--surface);border-radius:14px;padding:12px 14px;min-height:64px;display:flex;flex-direction:column}
+.doclist small{color:var(--muted);font-size:14px}
+.empty{color:var(--muted)}
+
+/* ---------- overlays ---------- */
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(5,8,18,.86);display:flex;align-items:center;justify-content:center;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sheet{background:var(--surface);border-radius:22px;padding:22px;width:100%;max-width:620px;max-height:100%;overflow-y:auto;box-sizing:border-box;display:flex;flex-direction:column;gap:14px}
+.sheet h2{font-size:26px}
+.sheet .story{font-size:19px;line-height:1.6;margin:0}
+.big-stars{font-size:40px;color:var(--amber);letter-spacing:.1em;text-align:center}
+.reader{max-width:760px;background:transparent;padding:0;gap:12px}
+.reader .close{align-self:flex-end}
+.pin-box{background:var(--surface);border-radius:22px;padding:22px;width:100%;max-width:340px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.pin-box h2{font-size:24px}
+.pin-box p{margin:0;color:var(--muted)}
+.pin-dots{display:flex;gap:16px}
+.pin-dots i{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 3px var(--line)}
+.pin-dots i.on{background:var(--amber);box-shadow:none}
+.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(3px)}}
+.pin-pad{width:100%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,60px);gap:8px}
+.pin-pad button{border-radius:14px;background:var(--surface2);font-size:26px;font-weight:700}
+.pin-pad button.fn{font-size:17px;color:var(--muted);background:var(--bg2)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{background:var(--bg2);border-radius:14px;padding:10px 12px}
+.tile b{display:block;font-family:var(--crt);font-weight:400;font-size:32px;line-height:1.05;color:var(--amber)}
+.tile span{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ptable{width:100%;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums}
+.ptable th,.ptable td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right}
+.ptable th:first-child,.ptable td:first-child{text-align:left}
+.ptable th{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+.ptable td small{display:block;color:var(--muted);font-size:13px}
+.days{display:flex;gap:4px;align-items:flex-end;height:70px}
+.days div{flex:1;background:var(--green);border-radius:4px 4px 0 0;min-height:2px;opacity:.85}
+.days-labels{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.code-show{margin:0;font-family:var(--crt);font-size:36px;color:var(--amber);letter-spacing:.04em}
+.code-row{display:flex;flex-wrap:wrap;gap:8px}
+.code-row input{flex:1 1 150px;min-width:0;font:inherit;font-weight:700;font-size:20px;padding:8px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg2);color:var(--ink);text-transform:uppercase}
+.hint-txt{color:var(--muted);font-size:15px;margin:0;line-height:1.4}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+
+@media (max-width:640px){
+  .home-top{grid-template-columns:1fr}
+  .doc{padding:18px 16px 20px;font-size:18px}
+  .q{font-size:19px}
+  .map div{min-height:54px;font-size:11px}
+  .map .p span{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div class="sky"></div>
+<div id="app">
+
+  <!-- HOME -->
+  <section id="home" class="screen">
+    <div class="home-top">
+      <div class="brand">
+        <h1>SIGNAL</h1>
+        <p>A Static Club mystery. Larkspur Falls, 1986.</p>
+      </div>
+      <div class="progress">
+        <span class="lab">Case progress</span>
+        <b id="hDone">0 of 6</b>
+        <div class="meter"><i id="hMeter" style="width:0"></i></div>
+        <span class="hint-txt" id="hStars">0 stars</span>
+      </div>
+    </div>
+    <div class="intro" id="intro">You're the newest member of the <b>Static Club</b>, and you keep the club notebook. Every night at 9:10, a strange signal comes over the walkie-talkies. <b>Read every document closely</b>: the answers are hiding in them. Stuck? A hint costs one star, and you can always keep going.</div>
+    <button class="btn go" id="continueBtn" style="min-height:72px;font-size:22px">Start the case</button>
+    <div class="cases" id="cases"></div>
+    <div class="home-row">
+      <button class="btn" id="notebookBtn">Club notebook</button>
+    </div>
+    <div class="foot">
+      <span id="syncNote">Progress saves on this device.</span>
+      <span class="row">
+        <button class="btn ghost small" id="muteBtn">Sound on</button>
+        <button class="btn ghost small" id="parentBtn">Grown-ups</button>
+      </span>
+    </div>
+  </section>
+
+  <!-- CHAPTER -->
+  <section id="chapter" class="screen" hidden>
+    <div class="bar">
+      <button class="btn small" id="chBack">Case files</button>
+      <h2><small id="chNum">Chapter 1</small><span id="chTitle"></span></h2>
+      <span class="stars" id="chStars"></span>
+    </div>
+    <div class="chapter-body">
+      <div class="col">
+        <div class="tabs" id="docTabs" role="tablist" aria-label="Documents"></div>
+        <article id="docView"></article>
+      </div>
+      <div class="col">
+        <div class="solved" id="solvedList"></div>
+        <div class="puzzle" id="puzzle"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOTEBOOK -->
+  <section id="notebook" class="screen" hidden>
+    <div class="bar"><button class="btn small" data-go="home">Back</button><h2>Club notebook</h2></div>
+    <div>
+      <span class="lab">Clues found</span>
+      <ul class="clues" id="clueList" style="margin-top:8px"></ul>
+    </div>
+    <div>
+      <span class="lab">Documents</span>
+      <div class="doclist" id="docList" style="margin-top:8px"></div>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="doneOverlay" hidden>
+  <div class="sheet">
+    <span class="lab" id="doneLab">Chapter solved</span>
+    <h2 id="doneTitle"></h2>
+    <div class="big-stars" id="doneStars"></div>
+    <p class="story" id="doneStory"></p>
+    <div class="row">
+      <button class="btn go" id="doneNext">Next chapter</button>
+      <button class="btn ghost" id="doneHome">Case files</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="readerOverlay" hidden>
+  <div class="sheet reader">
+    <button class="btn small close" id="readerClose">Close</button>
+    <article id="readerDoc"></article>
+  </div>
+</div>
+
+<div class="overlay" id="pin" hidden>
+  <div class="pin-box">
+    <h2 id="pinTitle">Grown-ups only</h2>
+    <p id="pinHint">Enter the PIN.</p>
+    <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+    <div class="pin-pad" id="pinPad">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button class="fn" data-k="X">Cancel</button><button data-k="0">0</button><button class="fn" data-k="B">Back</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="parent" hidden>
+  <div class="sheet">
+    <h2>Grown-ups</h2>
+    <div class="tiles" id="pTiles"></div>
+    <div>
+      <span class="lab">Skills, right on the first try without a hint</span>
+      <table class="ptable" id="pSkills" style="margin-top:6px"></table>
+    </div>
+    <div>
+      <span class="lab">Reading time, last 14 days (minutes)</span>
+      <div class="days" id="pDays" style="margin-top:8px"></div>
+      <div class="days-labels"><span id="pDayFirst"></span><span>today</span></div>
+    </div>
+    <div>
+      <span class="lab">Save code</span>
+      <p class="code-show" id="codeShow">Not connected yet</p>
+      <p class="hint-txt">Progress is saved on the server under this code. To play the same save on another iPad or Mac, open Signal there, tap Grown-ups, and enter it.</p>
+      <form class="code-row" id="codeForm" style="margin-top:8px">
+        <input id="codeInput" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="OTTER-4821" aria-label="Save code">
+        <button class="btn small" type="submit">Use this code</button>
+      </form>
+      <p class="hint-txt" id="codeMsg" style="margin-top:6px">Switching replaces what is on this device with that save, and its PIN comes with it.</p>
+    </div>
+    <div class="row">
+      <button class="btn small ghost" id="pinChange" type="button">Change PIN</button>
+      <button class="btn small ghost" id="wipeAll" type="button">Start the case over</button>
+    </div>
+    <button class="btn go" id="parentClose">Done</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+/* =====================================================================
+   HOW THIS APP WORKS
+   - CHAPTERS (below) is the whole story. Each chapter is:
+       { id, title,
+         docs: [ { id, kind, tab, title, meta, body: [...] } ],
+         puzzles: [ ... ],
+         outro: "story text shown when the chapter is solved" }
+   - A document's kind sets its look: notebook, clipping, transcript,
+     timetable, card, letter, receipt, map. Its body is a list of blocks:
+       "a paragraph"            plain text
+       { code: "ORRN XS" }      a coded line in radio lettering
+       { table: [[...], ...] }  first row is the header
+       { lines: [...] }         typed lines on an index card
+       { pencil: "..." }        handwriting on the back of a card
+       { map: {...} }           a town map; see MAP below
+   - A puzzle is either choices or a typed answer:
+       { id, skill, q: "question",
+         choices: [ { t: "text", ok: true }, { t: "text", why: "nudge" } ],
+         hints: ["...", "...", "almost the answer"], clue: "added to the notebook" }
+       { id, skill, q, answers: ["accepted", ...]  // compared ignoring case, spaces, punctuation
+         num: 1.5,                                  // optional: any way of writing this number counts
+         code: "ORRN XS", aid: "wheel",             // optional: a coded message and a helper
+         input: "decimal", hints, clue }
+     skill is one of the keys in SKILLS. aid is morse, wheel, numbers, grid or keypad.
+   - Each puzzle is worth 3 stars; every hint used costs one. Hints never block.
+   - To add a chapter, append another object to CHAPTERS. Ids must never change,
+     because saves are keyed by them.
+   ===================================================================== */
+
+const SKILLS = {
+  detail:    { name: 'Finding details',           group: 'Reading' },
+  inference: { name: 'Reading between the lines', group: 'Reading' },
+  vocab:     { name: 'Word meaning',              group: 'Reading' },
+  math:      { name: 'Math in the story',         group: 'Math' },
+  morse:     { name: 'Morse code',                group: 'Codes' },
+  shift:     { name: 'Letter-shift cipher',       group: 'Codes' },
+  number:    { name: 'Number code (halving)',     group: 'Codes' },
+  grid:      { name: 'Grid code (coordinates)',   group: 'Codes' },
+  keypad:    { name: 'Phone keypad code',         group: 'Codes' },
+};
+const MORSE = { A:'.-', B:'-...', C:'-.-.', D:'-..', E:'.', F:'..-.', G:'--.', H:'....', I:'..', J:'.---', K:'-.-', L:'.-..', M:'--',
+  N:'-.', O:'---', P:'.--.', Q:'--.-', R:'.-.', S:'...', T:'-', U:'..-', V:'...-', W:'.--', X:'-..-', Y:'-.--', Z:'--..' };
+const KEYPAD = [['1',''],['2','ABC'],['3','DEF'],['4','GHI'],['5','JKL'],['6','MNO'],['7','PQRS'],['8','TUV'],['9','WXYZ'],['*',''],['0',''],['#','']];
+const GRID = ['ABCDE', 'FGHIK', 'LMNOP', 'QRSTU', 'VWXYZ'];
+const MAP = { cols: 'ABCDEF', rows: 6, places: {
+  A1: ['🏫', 'School'], B2: ['📚', 'Library'], D2: ['🔧', 'Grady Hardware'], C3: ['⛲', 'Town Square'],
+  F3: ['🏠', 'Birch St.'], A5: ['🎹', 'Maple & 3rd'], E5: ['📡', 'Hollow Hill'] } };
+
+const CHAPTERS = [
+{
+  id: 'c1', title: 'The Nine-Ten Signal',
+  docs: [
+    { id: 'c1d1', kind: 'notebook', tab: 'Notebook p. 1', title: 'Static Club Notebook', meta: 'Friday, September 12, 1986', body: [
+      'Official notes of the Static Club. Members: Rosa (president, because the walkie-talkies are mine), Dev, June, Milo, and our newest member, the Notebook Keeper. That\'s you. Welcome!',
+      'Last night something weird happened. At exactly 9:10 PM, every walkie-talkie on channel 14 started beeping. Not random beeping. Short beeps and long beeps, with little gaps between them. It went on for four minutes, and then it stopped.',
+      'Dev thinks a trucker is goofing around. But truckers talk on the radio. They don\'t beep.',
+      'Milo\'s grandpa used to be a radio operator in the Navy. He says short and long beeps are Morse code. He wrote down what we heard on the back of a cereal box. It\'s taped on the next page.',
+      'We are listening again tonight. Bring snacks. Do NOT tell June\'s big brother.',
+    ] },
+    { id: 'c1d2', kind: 'transcript', tab: 'Cereal box', title: 'CHANNEL 14 · 9:10 PM', meta: 'Written down by Milo\'s grandpa', body: [
+      'Each letter is a group of short beeps (•) and long beeps (–). The same five letters came three times in a row, then one long tone.',
+      { code: '–     – – –     • – –     •     • – •', dits: true },
+      '"Whoever is sending this knows what they are doing," Grandpa said. "Those are clean, even beeps. That\'s a trained hand on the key."',
+    ] },
+  ],
+  puzzles: [
+    { id: 'p1', skill: 'detail', q: 'What time did the beeping start?', answers: ['9:10', '910', '9.10', '9:10pm', '910pm', 'nineten', 'ninetenpm'],
+      placeholder: 'like 7:30', hints: ['Look at the second paragraph of the notebook page.', 'Rosa says it started "at exactly" a certain time.'],
+      clue: 'The signal starts at exactly 9:10 PM.' },
+    { id: 'p2', skill: 'inference', q: 'Dev thinks a trucker is playing a joke. Why does Rosa disagree?',
+      choices: [
+        { t: 'Truckers talk on the radio, and this signal only beeped.', ok: true },
+        { t: 'Truckers never use channel 14.', why: 'The page doesn\'t say that. What does Rosa say truckers do?' },
+        { t: 'It was too late at night for truckers.', why: 'Nothing on the page says truckers stop driving at night.' },
+        { t: 'Dev saw who really did it.', why: 'Dev made a guess. He didn\'t see anybody.' } ],
+      hints: ['Find the sentences right after Dev\'s idea.', 'Rosa compares what truckers do with what the signal did.'] },
+    { id: 'p3', skill: 'morse', q: 'Use the Morse card to turn the five beep groups into letters. What word was the signal sending?',
+      code: ['-', '---', '.--', '.', '.-.'], aid: 'morse', answers: ['tower'],
+      hints: ['Start with the first group: one long beep. Find a single – on the card.', 'The first letter is T, and the second is O.', 'The letters are T, O, W, E, R.'],
+      clue: 'The beeps spell TOWER.' },
+    { id: 'p4', skill: 'math', q: 'The beeping started at 9:10 and lasted four minutes. What time did it stop?', answers: ['9:14', '914', '9.14', '9:14pm', '914pm'],
+      placeholder: 'like 7:30', hints: ['Start at 9:10 and count up four minutes.', '9:11, 9:12, 9:13, and then...'],
+      clue: 'Each broadcast lasts four minutes: 9:10 to 9:14.' },
+  ],
+  outro: 'There is only one tower in Larkspur Falls: the old WLRK radio tower on top of Hollow Hill. It has been silent since before your parents were born. So who is sending signals from it? Rosa has a plan. Tomorrow, the club is going to the library to read old newspapers.',
+},
+{
+  id: 'c2', title: 'Silent Since 1961',
+  docs: [
+    { id: 'c2d1', kind: 'clipping', tab: '1961 clipping', title: 'WLRK Signs Off for Good', meta: 'Larkspur Falls Gazette · Tuesday, October 3, 1961', body: [
+      'Larkspur Falls\' only radio station went off the air last night. WLRK first broadcast from Hollow Hill in 1939. Its owners have sold the station to a larger company in Brightwater City.',
+      'For many listeners, the hardest part was saying goodbye to night announcer Agnes Pell. For years, Mrs. Pell ended her evening show at ten minutes past nine with the same words: "Goodnight, Larkspur. Keep your dial warm."',
+      'Her husband, Walter Pell, is the station\'s engineer. He built much of WLRK\'s equipment by hand. "Walt can fix anything with a wire and a wish," Mrs. Pell told the Gazette.',
+      'The tall steel tower will stay on Hollow Hill. Taking it down would cost more than leaving it up.',
+    ] },
+    { id: 'c2d2', kind: 'clipping', tab: '1986 clipping', title: 'Ghost on the Airwaves?', meta: 'Larkspur Falls Gazette · Monday, September 15, 1986', body: [
+      'Is someone haunting the old WLRK tower? Since last week, people across town say their radios and walkie-talkies crackle to life at night. Most hear beeping. A few say they have heard a woman\'s voice, calm and friendly, spelling out letters.',
+      '"It\'s kids playing pranks," said Hal Grady, owner of Grady Hardware. "Nobody has been up that hill in years."',
+      'Sheriff Dana Moss checked the tower on Saturday. "The power lines were cut decades ago," she said. "There is no electricity up there at all."',
+      'Mrs. Lottie Fern of Birch Street isn\'t so sure. "I heard that voice on Thursday night," she said. "Right after it stopped, the clock on my stove said 9:14."',
+    ] },
+    { id: 'c2d3', kind: 'transcript', tab: 'Radio notes', title: 'CHANNEL 14 · SUNDAY 9:10 PM', meta: 'Heard by Milo', body: [
+      'This time there were no beeps. A woman\'s voice, slow and clear: "Shift three back. Shift three back." Then she spelled six letters, with a pause in the middle:',
+      { code: 'O R R N   X S' },
+      'Then: "Goodnight." Then static.',
+    ] },
+  ],
+  puzzles: [
+    { id: 'p1', skill: 'math', q: 'How many years was the tower silent before the new signals began?', num: 25, answers: ['25'], input: 'decimal',
+      hints: ['Find the year printed on each newspaper clipping.', 'Subtract the older year from the newer one: 1986 − 1961.'],
+      clue: 'WLRK was silent for 25 years, from 1961 to 1986.' },
+    { id: 'p2', skill: 'inference', q: 'Which clue connects the old radio station to the new signals?',
+      choices: [
+        { t: 'Agnes Pell ended her show at ten past nine, the same time the signal starts.', ok: true },
+        { t: 'The tower has no electricity.', why: 'True, but that doesn\'t connect the old station to the new signal. It makes the mystery harder!' },
+        { t: 'Mr. Grady thinks kids are playing pranks.', why: 'That\'s his opinion, and it doesn\'t link to the old station.' },
+        { t: 'WLRK was sold to a company in Brightwater City.', why: 'That explains why it closed. Does it explain a signal at 9:10?' } ],
+      hints: ['What time does the new signal start? Check your notebook.', 'Now search the 1961 clipping for a time. It\'s written in words, not numbers.'],
+      clue: 'Agnes Pell\'s old show ended at ten past nine, the same time the signal starts.' },
+    { id: 'p3', skill: 'shift', q: 'The voice said "Shift three back." Turn the wheel 3 steps back. Then find each code letter on the inside ring: the outside letter next to it is the real letter. What is the message?',
+      code: 'ORRN XS', aid: 'wheel', answers: ['look up', 'lookup'],
+      hints: ['Tap "Back 1" three times so the wheel says Back 3.', 'Find O on the inside ring. The outside letter next to it is L.', 'Every letter moves three back in the alphabet: O→L, R→O, N→K, X→U, S→P.'],
+      clue: 'The voice said: LOOK UP.' },
+    { id: 'p4', skill: 'math', q: 'How many years was WLRK on the air before it went silent?', num: 22, answers: ['22'], input: 'decimal',
+      hints: ['The 1961 clipping says when WLRK first broadcast.', 'It started in 1939 and stopped in 1961. Subtract: 1961 − 1939.'] },
+  ],
+  outro: 'Look up. Mrs. Lottie Fern heard the voice too, and her stove clock said 9:14 when it stopped: four minutes, just like your notebook says. Somebody is sending these messages on purpose, every night, at Agnes Pell\'s old time. And the messages are getting longer.',
+},
+{
+  id: 'c3', title: 'The Number Voice',
+  docs: [
+    { id: 'c3d1', kind: 'transcript', tab: 'Cassette tape', title: 'TAPE · FRI SEPT 19 · 9:10 PM', meta: 'Recorded by Dev on his boom box', body: [
+      '[Static. Then soft humming, like an old song.]',
+      'VOICE: Hello, anyone. Hello, whoever is listening. Tonight the letters are numbers. And the numbers are doubled, like everything good.',
+      { code: '24 · 18 · 4 · 36 · 2 · 36 · 50' },
+      'VOICE: Before five. Before five. ...Goodnight, Larkspur.',
+      '[Click. Static.]',
+    ] },
+    { id: 'c3d2', kind: 'notebook', tab: 'Notebook p. 6', title: 'Static Club Notebook', meta: 'Saturday morning, September 20', body: [
+      'Dev played the tape for everyone at June\'s house. We listened to it eleven times. June\'s mom heard it from the kitchen and said, "I know that song. My grandmother used to sing it." Then she went back to her crossword puzzle.',
+      'June figured out the important part. "Before five" must be about the library, because on Saturdays it\'s only open until 5:00. Rosa said the voice wouldn\'t send us there unless something was waiting for us.',
+      'The problem: Milo has a piano lesson until 3:30, and the library is all the way across town. We are taking the Route 4 bus. Ms. Ortiz, the librarian, says the card catalog is huge, so we\'ll need at least 20 minutes inside to search it.',
+    ] },
+    { id: 'c3d3', kind: 'timetable', tab: 'Bus schedule', title: 'Route 4 · Saturday Schedule', meta: 'Larkspur Falls Transit', body: [
+      { table: [['Stop', 'Bus A', 'Bus B', 'Bus C', 'Bus D'],
+                ['Maple & 3rd', '3:05', '3:40', '4:15', '4:50'],
+                ['Town Square', '3:17', '3:52', '4:27', '5:02'],
+                ['Public Library', '3:26', '4:01', '4:36', '5:11']] },
+      'All times are PM. Milo\'s piano teacher lives at Maple & 3rd.',
+    ] },
+  ],
+  puzzles: [
+    { id: 'p1', skill: 'inference', q: 'The voice says the numbers are "doubled." What should you do to each number to get back to the real letter?',
+      choices: [
+        { t: 'Cut it in half.', ok: true },
+        { t: 'Double it again.', why: 'If the numbers were already doubled, doubling again takes you further away.' },
+        { t: 'Add 2 to it.', why: 'Doubled means multiplied by 2, not plus 2. How do you undo multiplying by 2?' },
+        { t: 'Say it twice.', why: 'Doubled is about how big the number is, not how many times you say it.' } ],
+      hints: ['Doubling 6 gives 12. How would you get from 12 back to 6?', 'The opposite of doubling is halving.'] },
+    { id: 'p2', skill: 'number', q: 'Halve each number, then use the number strip (A = 1, B = 2, and so on) to turn it into a letter. Where is the voice sending the club?',
+      code: ['24', '18', '4', '36', '2', '36', '50'], aid: 'numbers', answers: ['library', 'thelibrary'],
+      hints: ['24 ÷ 2 = 12. Which letter is number 12?', 'The first three letters are L, I, B.', 'The halves are 12, 9, 2, 18, 1, 18, 25.'],
+      clue: 'The numbers spell LIBRARY. It closes at 5:00 on Saturdays.' },
+    { id: 'p3', skill: 'math', q: 'Milo\'s lesson ends at 3:30 at Maple & 3rd. The club needs at least 20 minutes in the library before it closes at 5:00. What is the latest bus they can catch at Maple & 3rd?',
+      answers: ['4:15', '415', '4.15', '4:15pm', 'busc', 'c'], placeholder: 'the time it leaves',
+      hints: ['Bus D reaches the library at 5:11. Is that too late?', 'Bus C reaches the library at 4:36. How many minutes is that before 5:00?', '4:36 to 5:00 is 24 minutes, which is more than 20. So Bus C works. When does it leave Maple & 3rd?'],
+      clue: 'The club takes Bus C at 4:15.' },
+    { id: 'p4', skill: 'math', q: 'On the 4:15 bus, how many minutes is the ride from Maple & 3rd to the library?', num: 21, answers: ['21', '21min', '21minutes'], input: 'decimal',
+      hints: ['Find when Bus C leaves Maple & 3rd and when it reaches the library.', 'Count up from 4:15 to 4:36.'] },
+  ],
+  outro: 'The club squeezed onto Bus C at 4:15, with their bikes chained up outside Milo\'s piano teacher\'s house. At 4:36 the doors hissed open in front of the Larkspur Falls Public Library. Twenty-four minutes until closing. Somewhere inside, in a building full of books, was whatever the voice wanted you to find.',
+},
+{
+  id: 'c4', title: 'The Card Catalog',
+  docs: [
+    { id: 'c4d1', kind: 'notebook', tab: 'Notebook p. 7', title: 'Static Club Notebook', meta: 'Saturday, September 20, 4:40 PM', body: [
+      'June writing. The card catalog is a wooden cabinet with sixty little drawers. Each drawer is packed with index cards, one card for every book, in alphabetical order. We split up the drawers. Milo took A to F, Rosa took G to M, Dev took N to S, and I took T to Z.',
+      'Dev was the one who found it. In the R drawer, between "Rabbits" and "Rain Forests," there was a card for a book called Radio Signals for Beginners. Someone had written on the back of the card in pencil. Dev says writing on library cards is against the rules, which is exactly why it must be important.',
+      'Ms. Ortiz studied the handwriting for a long time. "That book was written by Walter Pell," she said quietly. "His wife used to check it out every Tuesday. I haven\'t seen her since Walt passed away two winters ago. She hardly comes to town anymore."',
+      'The book itself was on the shelf. Folded inside its back cover was a map of Larkspur Falls.',
+    ] },
+    { id: 'c4d2', kind: 'card', tab: 'Index card', title: 'Card catalog: R drawer', meta: 'Front, then back', body: [
+      { lines: ['621.38 PEL', 'Pell, Walter.', 'Radio Signals for Beginners.', 'Larkspur Falls: Hilltop Press, 1958.', '212 pages, with drawings.'] },
+      { pencil: 'For whoever answers. Use the letter grid on the back of the map. Grid code: C2 D3 A3 A3 D3 B5 / C2 D2 A3 A3. Bring the map.' },
+    ] },
+    { id: 'c4d3', kind: 'map', tab: 'Town map', title: 'Map of Larkspur Falls', meta: 'Found inside Radio Signals for Beginners', body: [
+      { map: MAP },
+      'Each square is one block, and every block is 1/4 of a mile long. Roads run along the edges of the squares, so you can\'t cut across corners.',
+      'On the back of the map is a 5 × 5 letter grid. I and J share a square.',
+    ] },
+  ],
+  puzzles: [
+    { id: 'p1', skill: 'grid', q: 'Use the letter grid. Each code is a column letter, then a row number. C2 means column C, row 2. What place does the pencil note name?',
+      code: 'C2 D3 A3 A3 D3 B5 / C2 D2 A3 A3', aid: 'grid', answers: ['hollow hill', 'hollowhill'],
+      hints: ['Find column C, then go down to row 2. That letter is H.', 'The first word starts with H, O, L...', 'The first word is HOLLOW. The second word starts with H too.'],
+      clue: 'The grid code names HOLLOW HILL.' },
+    { id: 'p2', skill: 'math', q: 'Walking along the roads, how far is it from the Library to the Hollow Hill tower? Answer in miles.', num: 1.5, answers: ['1.5', '11/2', '1and1/2', 'oneandahalf', '3/2', '6/4'], input: 'text', placeholder: 'miles',
+      hints: ['Count the squares you move across from column B to column E. Then count down from row 2 to row 5.', 'That\'s 3 across and 3 down: 6 blocks. Each block is 1/4 mile.', '6 × 1/4 = 6/4, which is 1 1/2 miles.'],
+      clue: 'Hollow Hill is 1 1/2 miles from the library.' },
+    { id: 'p3', skill: 'inference', q: 'Who most likely wrote the pencil note on the card?',
+      choices: [
+        { t: 'Agnes Pell', ok: true },
+        { t: 'Walter Pell', why: 'He wrote the book, but Ms. Ortiz says he passed away two winters ago. The signals only started this month.' },
+        { t: 'Ms. Ortiz', why: 'She studied the handwriting like she was seeing it for the first time.' },
+        { t: 'Dev', why: 'Dev found the card. He thinks writing on library cards is against the rules!' } ],
+      hints: ['Who used to check this book out every Tuesday?', 'The signals come at the time Agnes Pell\'s old show used to end.'],
+      clue: 'Agnes Pell most likely wrote the note.' },
+    { id: 'p4', skill: 'vocab', q: 'June says the cards are in "alphabetical order." What does that mean?',
+      choices: [
+        { t: 'In ABC order', ok: true },
+        { t: 'Very old', why: 'The cabinet might be old, but "alphabetical" is about the alphabet.' },
+        { t: 'Made of wood', why: 'The cabinet is wooden. The word is describing the order of the cards.' },
+        { t: 'Hard to read', why: 'Think about the word inside it: alphabet.' } ],
+      hints: ['There\'s a smaller word hiding inside "alphabetical."', 'The drawers were split up as A to F, G to M, and so on.'] },
+  ],
+  outro: 'Hollow Hill: a mile and a half away, up a dirt road nobody uses. The library was closing, so Ms. Ortiz let you borrow Radio Signals for Beginners on Rosa\'s card. "Bring it back," she said. "And if you see Agnes, tell her we miss her on Tuesdays." But one thing still didn\'t make sense. If the tower has no power, how is anyone broadcasting from it?',
+},
+{
+  id: 'c5', title: 'Who Was Lying?',
+  docs: [
+    { id: 'c5d1', kind: 'notebook', tab: 'Notebook p. 9', title: 'Static Club Notebook', meta: 'Monday, September 22', body: [
+      'Dev writing. A radio needs power, so after school we rode to Grady Hardware to ask about batteries. Mr. Grady was stacking paint cans.',
+      'Rosa asked, "Do you sell parts for old radios? Like tubes?"',
+      'Mr. Grady didn\'t look up. "Haven\'t sold a radio tube in twenty years. Nobody uses that old junk anymore." Then he asked if we needed anything else, in the kind of voice that means "please leave."',
+      'But here\'s what I noticed. Behind the counter sat a cardboard box with a label: HOLD FOR A.P. And when we were leaving, June pointed at Mr. Grady\'s truck. The tires were caked with red clay. June says the only red clay road in Larkspur Falls is the one that goes up Hollow Hill.',
+      'Then Milo found a receipt in the parking lot. It must have blown out of the truck window. It\'s taped on the next page.',
+      'As we unlocked our bikes, Mr. Grady stepped outside and said something strange: "Some folks like their privacy. And some folks have earned it."',
+    ] },
+    { id: 'c5d2', kind: 'receipt', tab: 'Receipt', title: 'Grady Hardware · Receipt #4471', meta: 'Thursday, September 18, 1986', body: [
+      { table: [['Item', 'Price', 'Line total'],
+                ['6 batteries, 12-volt', '$6.25 each', '—'],
+                ['Antenna wire, 50 feet', '', '$4.00'],
+                ['Radio tube, type 6L6', '', '$ (smudged)'],
+                ['TOTAL', '', '$48.50']] },
+      'Delivered to: end of Hollow Hill Road.',
+    ] },
+    { id: 'c5d3', kind: 'transcript', tab: 'Pay phone', title: 'SCRATCHED BY THE PAY PHONE', meta: 'Outside Grady Hardware', body: [
+      'Someone scratched these numbers into the metal beside the pay phone. Under them, the same hand scratched a time: 9:10.',
+      { code: '73  32  71  53  93' },
+      'Rosa remembered that phone keys have letters on them.',
+    ] },
+  ],
+  puzzles: [
+    { id: 'p1', skill: 'inference', q: 'The receipt proves that one thing Mr. Grady said is not true. Which one?',
+      choices: [
+        { t: '"Haven\'t sold a radio tube in twenty years."', ok: true },
+        { t: '"Some folks like their privacy."', why: 'You can\'t prove that false with a receipt. And it sounds more like a hint than a fib!' },
+        { t: '"It\'s kids playing pranks."', why: 'He told the newspaper that, but the receipt doesn\'t say anything about pranks.' },
+        { t: 'Mr. Grady was stacking paint cans.', why: 'That\'s something Dev saw, not something Mr. Grady said.' } ],
+      hints: ['Read the receipt line by line. What did someone buy on September 18?', 'One line is a radio tube. What did Mr. Grady say about radio tubes?'],
+      clue: 'Mr. Grady sold a radio tube on September 18, even though he said he hadn\'t in twenty years.' },
+    { id: 'p2', skill: 'math', q: 'The price of the radio tube is smudged. Use the rest of the receipt to work it out. How much did the tube cost?', num: 7, answers: ['7', '7.00', '7dollars'], input: 'decimal', placeholder: 'dollars',
+      hints: ['First find the cost of the batteries: 6 batteries at $6.25 each.', '6 × $6.25 = $37.50. Add the wire: $37.50 + $4.00 = $41.50.', 'The total was $48.50. Subtract: $48.50 − $41.50.'] },
+    { id: 'p3', skill: 'keypad', q: 'In this code, the first digit is a phone key and the second digit says which letter on that key. 73 means key 7, third letter. What word is scratched by the phone?',
+      code: ['73', '32', '71', '53', '93'], aid: 'keypad', answers: ['reply'],
+      hints: ['Key 7 has P, Q, R, S. The third letter is R.', '32 is key 3 (D, E, F), second letter: E.', 'The letters are R, E, P, L, Y.'],
+      clue: 'Scratched by the phone: REPLY, and 9:10.' },
+    { id: 'p4', skill: 'inference', q: 'Why do you think Mr. Grady is keeping a secret?',
+      choices: [
+        { t: 'He is helping a friend who wants to be left alone.', ok: true },
+        { t: 'He is the one sending the signals.', why: 'He delivered parts to someone at the end of Hollow Hill Road, and the voice on the radio is a woman\'s.' },
+        { t: 'He wants to scare the town.', why: 'He told the newspaper it was only kids. That\'s the opposite of scaring people.' },
+        { t: 'He doesn\'t know who A.P. is.', why: 'He labeled a box for A.P. and drove it up Hollow Hill. He knows.' } ],
+      hints: ['Whose initials are A.P.?', 'Look again at what he said as you were leaving: "Some folks have earned it."'],
+      clue: 'A.P. is Agnes Pell. Mr. Grady has been quietly helping her.' },
+  ],
+  outro: 'A.P.: Agnes Pell. Mr. Grady has been delivering batteries and radio parts to the end of Hollow Hill Road, and keeping quiet about it. Not to trick anyone, but to protect someone. Whoever is on that hill wants a reply, at 9:10. On Saturday, the Static Club is riding up Hollow Hill.',
+},
+{
+  id: 'c6', title: 'Keep Your Dial Warm',
+  docs: [
+    { id: 'c6d1', kind: 'notebook', tab: 'Notebook p. 12', title: 'Static Club Notebook', meta: 'Saturday, September 27, 1986', body: [
+      'Rosa writing, and my hands are still shaking (the good kind). We rode up Hollow Hill Road at 7:45 PM. The red clay stuck to our tires, just like Mr. Grady\'s truck. At the top, under the giant tower, there\'s a little brick shed. A light was on inside, and we could hear a soft hum, like a refrigerator.',
+      'Milo knocked. A small woman with silver hair and enormous glasses opened the door. Behind her was a desk covered in dials, a microphone, and a brass Morse key. A row of car batteries sat on the floor, all wired together.',
+      'She looked at us for a long moment. Then she laughed, a real laugh. "Well," she said. "Someone finally answered."',
+      'It was Agnes Pell. She made us cocoa and told us everything. When she worked at WLRK, Walt used to send her a puzzle every night at 9:10, right after her show, and she would solve it on the air. After Walt died, her house got very quiet. So she repaired his old transmitter, just to play the game again. "I sent a puzzle every night for sixteen nights," she said. "I didn\'t know if anyone would ever solve one."',
+    ] },
+    { id: 'c6d2', kind: 'letter', tab: 'Letter', title: 'A letter from Agnes Pell', meta: 'Typed on her old typewriter', body: [
+      'Dear Static Club,',
+      'Thank you for answering. I want you to know something important. The town council has approved a plan to turn the old WLRK shed into a small community radio station. Mr. Grady is donating the batteries. Ms. Ortiz has promised a shelf of radio books. Sheriff Moss says she will finally run a power line up the hill, as long as I stop "scaring half of Birch Street."',
+      'Every Saturday at 9:10 PM, the Static Club will have its own show. You will need to learn Morse code properly, and I am a strict teacher.',
+      'One last puzzle, the way Walt and I always ended our game. Send me your reply in code. Turn the wheel forward by the number of years WLRK was silent. Then write WE HEAR YOU in the new letters.',
+      'Keep your dial warm,',
+      'Agnes',
+    ] },
+  ],
+  puzzles: [
+    { id: 'p1', skill: 'inference', q: 'Why did Agnes Pell start sending the signals?',
+      choices: [
+        { t: 'She missed the nightly puzzle game with Walt and hoped someone would answer.', ok: true },
+        { t: 'She wanted to scare people on Birch Street.', why: 'She jokes about that in her letter, but Rosa\'s page says why she really started.' },
+        { t: 'The town council asked her to test the tower.', why: 'The council only approved the station after the club found her.' },
+        { t: 'She wanted to sell Walt\'s old radios.', why: 'Neither document says anything about selling.' } ],
+      hints: ['Read the last paragraph of Rosa\'s page again.', 'What did Walt and Agnes do every night at 9:10? What happened after he died?'],
+      clue: 'Agnes missed her nightly puzzle game with Walt, so she started a new one.' },
+    { id: 'p2', skill: 'math', q: 'The club reached the shed at 7:45 PM. How many minutes did they have until the 9:10 broadcast?', num: 85,
+      answers: ['85', '85min', '85minutes', '1:25', '1hour25minutes', '1hr25min', '1h25m', '1hour25', '1hourand25minutes'], placeholder: 'minutes',
+      hints: ['From 7:45 to 8:45 is one hour. How many minutes is one hour?', 'From 8:45 to 9:10 is 25 more minutes.', '60 + 25 = 85 minutes.'] },
+    { id: 'p3', skill: 'vocab', q: 'Agnes writes that the town council "approved" the plan. What does "approved" mean here?',
+      choices: [
+        { t: 'Said yes to it', ok: true },
+        { t: 'Built it', why: 'The station isn\'t built yet. The letter says it will happen.' },
+        { t: 'Argued about it', why: 'If they argued, would the plan be going ahead?' },
+        { t: 'Paid for the batteries', why: 'The letter says Mr. Grady is donating the batteries.' } ],
+      hints: ['After the council approved it, the plan is going ahead.', 'When a grown-up approves your idea, what did they say?'] },
+    { id: 'p4', skill: 'shift', q: 'Turn the wheel forward by the number of years WLRK was silent. Then find each letter of WE HEAR YOU on the inside ring, and write the outside letter next to it. What is your coded reply?',
+      code: 'WE HEAR YOU', aid: 'wheel', answers: ['vd gdzq xnt', 'vdgdzqxnt'],
+      hints: ['Check your notebook: WLRK was silent for 25 years. Turn the wheel to Forward 25.', 'Forward 25 lands in the same place as Back 1, because the alphabet has 26 letters. W becomes V.', 'Every letter goes one back: W→V, E→D, H→G, A→Z, R→Q, Y→X, O→N, U→T.'],
+      clue: 'Your reply: VD GDZQ XNT.' },
+  ],
+  outro: 'At 9:10 PM, Rosa held down the brass key while you read the letters out loud: V-D, G-D-Z-Q, X-N-T. Agnes closed her eyes and listened to every beep. Then she leaned toward the microphone, the same way she did twenty-five years ago. "Goodnight, Larkspur," she said. "Keep your dial warm." Down the hill on Birch Street, Mrs. Lottie Fern\'s radio crackled. This time, she smiled. Case closed. The Static Club will return.',
+},
+];
+
+const $ = id => document.getElementById(id);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LS_KEY = 'signal:v1';
+const MAX_STARS = 3;
+
+/* ---------------- state ---------------- */
+function fresh() { return { v: 1, updatedAt: 0, settings: { sound: true }, chapters: {}, days: {} }; }
+function normalize(s) {
+  const f = fresh();
+  if (!s || typeof s !== 'object') return f;
+  return { ...f, ...s, settings: { ...f.settings, ...(s.settings || {}) }, chapters: s.chapters || {}, days: s.days || {} };
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+function loadLocal() { try { const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} }
+let S = normalize(loadLocal());
+
+const pad2 = n => String(n).padStart(2, '0');
+function todayKey(d = new Date()) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function today() {
+  const k = todayKey();
+  if (!S.days[k]) {
+    S.days[k] = { secs: 0, solved: 0, docs: 0 };
+    const keys = Object.keys(S.days).sort();
+    while (keys.length > 120) delete S.days[keys.shift()];
+  }
+  return S.days[k];
+}
+function chState(ch) {
+  return S.chapters[ch.id] || (S.chapters[ch.id] = { docs: [], puzzles: {}, done: false });
+}
+function pState(ch, p) {
+  const c = chState(ch);
+  return c.puzzles[p.id] || (c.puzzles[p.id] = { solved: false, tries: 0, hints: 0, first: false });
+}
+function starsFor(ps) { return ps && ps.solved ? Math.max(0, MAX_STARS - ps.hints) : 0; }
+function chStars(ch) { const c = S.chapters[ch.id]; return c ? ch.puzzles.reduce((a, p) => a + starsFor(c.puzzles[p.id]), 0) : 0; }
+function unlocked(i) { return i === 0 || !!(S.chapters[CHAPTERS[i - 1].id] || {}).done; }
+function nextIndex() { const i = CHAPTERS.findIndex(ch => !(S.chapters[ch.id] || {}).done); return i < 0 ? CHAPTERS.length - 1 : i; }
+
+/* ---------------- saving: device always, the server when available ----------------
+   Same pattern as Chain Reaction. DOC_ID and LS_KEY must never be renamed. */
+const DOC_ID = 'signal-save';
+let remote = null, unsub = null, saveTimer = 0, writing = false, dirty = false;
+let syncState = 'connecting';
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
+function persist() {
+  S.updatedAt = Date.now();
+  saveLocal();
+  dirty = true;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 1500);
+}
+async function flush() {
+  if (!remote || !dirty) return;
+  if (writing) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 800); return; }
+  writing = true; dirty = false;
+  try {
+    await remote.set(clone(S));
+    syncState = 'ok';
+  } catch (e) {
+    const code = e && e.code;
+    dirty = true; // never drop unsaved progress; the local copy is already saved
+    if (code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') { remote = null; syncState = 'local'; }
+    else { syncState = 'retry'; saveTimer = setTimeout(flush, (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random() * 3000); }
+  }
+  writing = false;
+  setSync();
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(saveTimer); flush(); } });
+addEventListener('pagehide', () => { clearTimeout(saveTimer); flush(); });
+function setSync() {
+  $('syncNote').textContent = {
+    connecting: 'Loading saved progress…',
+    ok: 'Progress saves on this device and on the server.',
+    retry: 'Saved on this device. Will back up to the server when it reconnects.',
+    local: 'Saved on this device only for now. It backs up to the server once this device is online.',
+  }[syncState];
+}
+function rerender() {
+  if (!$('home').hidden) renderHome();
+  else if (!$('notebook').hidden) renderNotebook();
+  else if (!$('chapter').hidden) renderChapter();
+}
+// Started offline: try again when the network or the app comes back.
+let connecting = true;
+function reconnect() { if (!remote && !connecting && document.visibilityState === 'visible') { connecting = true; syncState = 'connecting'; connect(); } }
+addEventListener('online', reconnect);
+document.addEventListener('visibilitychange', reconnect);
+async function connect() {
+  try {
+    const db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+    const user = db ? await window.claude.use('user') : null;
+    const id = user ? await user.id() : null;
+    if (!db || !id) { syncState = 'local'; return; }
+    const ref = db.doc('data/users/' + id + '/' + DOC_ID);
+    const snap = await ref.get();
+    remote = ref;
+    if (snap.exists) {
+      const r = snap.data() || {};
+      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); }
+      else if ((S.updatedAt || 0) > (r.updatedAt || 0)) dirty = true;
+    } else if (S.updatedAt) dirty = true;
+    syncState = 'ok';
+    if (dirty) flush();
+    // Live: pick up progress made on another device.
+    unsub = ref.onSnapshot(s => {
+      if (!s.exists || s.metadata.hasPendingWrites || writing || dirty) return;
+      const r = s.data() || {};
+      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); rerender(); }
+    }, () => { unsub = null; });
+  } catch (e) {
+    if (!remote) syncState = 'local';
+    else { syncState = 'retry'; dirty = true; saveTimer = setTimeout(flush, 5000); }
+  } finally {
+    connecting = false;
+    setSync(); rerender();
+  }
+}
+
+/* ---------------- sound ---------------- */
+let ac = null;
+function tone(freq, dur, type, vol, when) {
+  if (!S.settings.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    const t = ac.currentTime + (when || 0), o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.12, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.03);
+  } catch (e) {}
+}
+const sfx = {
+  // Morse for R ("received"): short, long, short.
+  right() { tone(880, 0.07, 'sine', 0.12, 0); tone(880, 0.2, 'sine', 0.12, 0.11); tone(880, 0.07, 'sine', 0.12, 0.35); },
+  wrong() { tone(220, 0.18, 'triangle', 0.08); },
+  done() { [0, 4, 7, 12].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.25, 'triangle', 0.12, i * 0.12)); },
+  click() { tone(1400, 0.02, 'square', 0.03); },
+};
+function renderMute() { $('muteBtn').textContent = S.settings.sound ? 'Sound on' : 'Sound off'; }
+$('muteBtn').addEventListener('click', () => { S.settings.sound = !S.settings.sound; renderMute(); persist(); });
+
+/* ---------------- small helpers ---------------- */
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+const dits = m => m.replace(/\./g, '•').replace(/-/g, '–').split('').join(' ');
+function starText(n, of) { return '★'.repeat(n) + '☆'.repeat(Math.max(0, of - n)); }
+// Compare typed answers ignoring case, spaces and most punctuation.
+function norm(s) { return String(s || '').toLowerCase().replace(/\$/g, '').replace(/\s+/g, '').replace(/[^a-z0-9.:/]/g, '').replace(/\.$/, ''); }
+// Read "1.5", "1 1/2", "3/2", "$7.00", "7 dollars" as numbers.
+function parseNum(raw) {
+  const s = String(raw || '').toLowerCase().replace(/[$,]/g, '').replace(/dollars?|miles?|minutes?|mins?|years?/g, '').trim();
+  let m = s.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+  if (m) return +m[1] + (+m[2]) / (+m[3]);
+  m = s.match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (m && +m[2]) return (+m[1]) / (+m[2]);
+  m = s.match(/^-?\d+(\.\d+)?$/);
+  return m ? parseFloat(s) : NaN;
+}
+function isRight(p, raw) {
+  if (p.num !== undefined && Math.abs(parseNum(raw) - p.num) < 1e-9) return true;
+  const n = norm(raw);
+  return !!n && p.answers.some(a => norm(a) === n);
+}
+
+/* ---------------- screens ---------------- */
+const SCREENS = ['home', 'chapter', 'notebook'];
+let lastActive = Date.now();
+function show(name) {
+  SCREENS.forEach(s => { $(s).hidden = s !== name; });
+  if (name === 'home') renderHome();
+  if (name === 'notebook') renderNotebook();
+}
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => show(b.dataset.go)));
+
+function renderHome() {
+  const done = CHAPTERS.filter(ch => (S.chapters[ch.id] || {}).done).length;
+  const stars = CHAPTERS.reduce((a, ch) => a + chStars(ch), 0), maxStars = CHAPTERS.reduce((a, ch) => a + ch.puzzles.length * MAX_STARS, 0);
+  $('hDone').textContent = done + ' of ' + CHAPTERS.length;
+  $('hMeter').style.width = (done / CHAPTERS.length * 100) + '%';
+  $('hStars').textContent = stars + ' of ' + maxStars + ' stars' + (done === CHAPTERS.length ? ' · Case closed!' : '');
+  const started = Object.keys(S.chapters).length > 0;
+  $('intro').hidden = started;
+  const ni = nextIndex();
+  $('continueBtn').textContent = done === CHAPTERS.length ? 'Read the last chapter again' : started ? 'Continue: Chapter ' + (ni + 1) : 'Start the case';
+  const list = $('cases'); list.textContent = '';
+  CHAPTERS.forEach((ch, i) => {
+    const c = S.chapters[ch.id], open = unlocked(i);
+    const b = el('button', 'case' + (c && c.done ? ' done' : '') + (open && i === ni && !(c && c.done) ? ' next' : ''));
+    b.disabled = !open;
+    b.append(el('span', 'num', String(i + 1)), el('h3', '', ch.title));
+    const solvedN = c ? ch.puzzles.filter(p => (c.puzzles[p.id] || {}).solved).length : 0;
+    const sm = el('small');
+    if (!open) sm.textContent = 'Locked: solve chapter ' + i + ' first';
+    else if (c && c.done) { const s = el('span', 'stars', starText(chStars(ch), ch.puzzles.length * MAX_STARS)); sm.append(s); }
+    else sm.textContent = solvedN ? solvedN + ' of ' + ch.puzzles.length + ' puzzles solved' : 'New';
+    b.append(sm);
+    b.addEventListener('click', () => openChapter(i));
+    list.append(b);
+  });
+  renderMute(); setSync();
+}
+$('continueBtn').addEventListener('click', () => openChapter(nextIndex()));
+$('notebookBtn').addEventListener('click', () => show('notebook'));
+
+/* ---------------- documents ---------------- */
+function renderDoc(doc, host) {
+  host.textContent = '';
+  const a = el('div', 'doc ' + (doc.kind === 'timetable' || doc.kind === 'receipt' || doc.kind === 'map' ? 'paper' : doc.kind));
+  if (doc.meta) a.append(el('div', 'meta', doc.meta));
+  if (doc.title) a.append(el('h3', '', doc.title));
+  doc.body.forEach(b => {
+    if (typeof b === 'string') { a.append(el('p', '', b)); return; }
+    if (b.code) { a.append(el('div', 'codeline' + (b.dits ? ' dits' : ''), b.code)); return; }
+    if (b.lines) { const d = el('div', 'lines'); b.lines.forEach(l => d.append(el('div', '', l))); a.append(d); return; }
+    if (b.pencil) { a.append(el('p', 'pencil', b.pencil)); return; }
+    if (b.table) {
+      const w = el('div', 'tablewrap'), t = el('table');
+      b.table.forEach((row, ri) => { const tr = el('tr'); row.forEach(c => tr.append(el(ri ? 'td' : 'th', '', c))); t.append(tr); });
+      w.append(t); a.append(w); return;
+    }
+    if (b.map) {
+      const m = el('div', 'map'); m.setAttribute('role', 'img');
+      m.setAttribute('aria-label', 'Town map. ' + Object.entries(b.map.places).map(([k, v]) => v[1] + ' at ' + k).join(', '));
+      m.append(el('div', 'h', ''));
+      b.map.cols.split('').forEach(c => m.append(el('div', 'h', c)));
+      for (let r = 1; r <= b.map.rows; r++) {
+        m.append(el('div', 'h', String(r)));
+        b.map.cols.split('').forEach(c => {
+          const pl = b.map.places[c + r], cell = el('div', pl ? 'p' : '');
+          if (pl) { cell.append(el('span', '', pl[0]), el('b', '', pl[1])); }
+          m.append(cell);
+        });
+      }
+      a.append(m);
+    }
+  });
+  host.append(a);
+}
+function markRead(ch, doc) {
+  const c = chState(ch);
+  if (!c.docs.includes(doc.id)) { c.docs.push(doc.id); today().docs++; persist(); }
+}
+
+/* ---------------- chapter ---------------- */
+let curCh = 0, curDoc = null, wheelK = {}, wheelSel = {};
+function openChapter(i) {
+  if (!unlocked(i)) return;
+  curCh = i;
+  const ch = CHAPTERS[i];
+  const c = chState(ch);
+  curDoc = ch.docs.find(d => !c.docs.includes(d.id)) || ch.docs[0];
+  show('chapter');
+  renderChapter();
+  $('chapter').scrollTop = 0;
+}
+$('chBack').addEventListener('click', () => show('home'));
+
+function renderChapter() {
+  const ch = CHAPTERS[curCh], c = chState(ch);
+  $('chNum').textContent = 'Chapter ' + (curCh + 1) + ' of ' + CHAPTERS.length;
+  $('chTitle').textContent = ch.title;
+  $('chStars').textContent = chStars(ch) + ' of ' + ch.puzzles.length * MAX_STARS + ' ★';
+  markRead(ch, curDoc);
+  const tabs = $('docTabs'); tabs.textContent = '';
+  ch.docs.forEach(d => {
+    const t = el('button', 'tab'); t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', String(d === curDoc));
+    if (!c.docs.includes(d.id)) t.append(el('span', 'dot'));
+    t.append(document.createTextNode(d.tab));
+    t.addEventListener('click', () => { curDoc = d; sfx.click(); renderChapter(); });
+    tabs.append(t);
+  });
+  renderDoc(curDoc, $('docView'));
+  // Solved puzzles collapse into one line each; the first unsolved one is open.
+  const sl = $('solvedList'); sl.textContent = '';
+  ch.puzzles.forEach((p, i) => {
+    const ps = c.puzzles[p.id];
+    if (!ps || !ps.solved) return;
+    const d = el('div'); d.append(el('b', '', '✓'), document.createTextNode('Puzzle ' + (i + 1) + ': ' + (ps.answer || 'solved')), el('span', 'stars', ' ' + starText(starsFor(ps), MAX_STARS)));
+    sl.append(d);
+  });
+  renderPuzzle();
+}
+
+function currentPuzzle() { const ch = CHAPTERS[curCh], c = chState(ch); return ch.puzzles.find(p => !(c.puzzles[p.id] || {}).solved); }
+
+function renderPuzzle() {
+  const ch = CHAPTERS[curCh], box = $('puzzle');
+  box.textContent = '';
+  const p = currentPuzzle();
+  if (!p) {
+    box.append(el('p', 'q', 'Chapter solved.'));
+    const b = el('button', 'btn go', curCh + 1 < CHAPTERS.length ? 'Next chapter' : 'Back to case files');
+    b.addEventListener('click', () => curCh + 1 < CHAPTERS.length ? openChapter(curCh + 1) : show('home'));
+    box.append(b);
+    return;
+  }
+  const ps = pState(ch, p), idx = ch.puzzles.indexOf(p);
+  const top = el('div', 'ptop');
+  top.append(el('span', 'lab', 'Puzzle ' + (idx + 1) + ' of ' + ch.puzzles.length), el('span', 'chip', SKILLS[p.skill].name));
+  box.append(top, el('p', 'q', p.q));
+  if (p.code) {
+    const cd = el('div', 'code'); cd.setAttribute('aria-label', 'Coded message');
+    const toks = Array.isArray(p.code) ? p.code : p.code.split('');
+    toks.forEach(t => {
+      if (t === ' ') { cd.append(el('span', 'gap', '')); return; }
+      if (t === '/') { cd.append(el('span', 'gap', '/')); return; }
+      cd.append(p.aid === 'morse' ? el('span', 'dits', dits(t)) : el('span', '', t));
+    });
+    // The grid code reads better as pairs than as single characters.
+    if (p.aid === 'grid') { cd.textContent = ''; p.code.split(' ').forEach(t => cd.append(el('span', t === '/' ? 'gap' : '', t))); }
+    box.append(cd);
+  }
+  if (p.aid) box.append(renderAid(p));
+  const fb = el('div', 'feedback'); fb.hidden = true;
+  if (p.choices) {
+    const wrap = el('div', 'choices');
+    p.choices.forEach(choice => {
+      const b = el('button', 'choice', choice.t);
+      b.addEventListener('click', () => {
+        if (b.classList.contains('no')) return;
+        ps.tries++;
+        if (choice.ok) { b.classList.add('ok'); solve(ch, p, ps, choice.t); return; }
+        b.classList.add('no'); sfx.wrong();
+        fb.className = 'feedback bad'; fb.textContent = choice.why || 'Not quite. Look back at the documents.'; fb.hidden = false;
+        persist();
+      });
+      wrap.append(b);
+    });
+    box.append(wrap);
+  } else {
+    const form = el('form', 'answer'), inp = el('input');
+    inp.type = 'text'; inp.autocomplete = 'off'; inp.spellcheck = false;
+    inp.setAttribute('autocorrect', 'off'); inp.setAttribute('autocapitalize', p.aid ? 'characters' : 'off'); inp.setAttribute('enterkeyhint', 'done');
+    if (p.input === 'decimal') inp.inputMode = 'decimal';
+    inp.placeholder = p.placeholder || 'Type your answer';
+    inp.setAttribute('aria-label', 'Your answer');
+    const go = el('button', 'btn go', 'Check'); go.type = 'submit';
+    form.append(inp, go);
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!inp.value.trim()) return;
+      ps.tries++;
+      if (isRight(p, inp.value)) { inp.className = 'ok'; solve(ch, p, ps, inp.value.trim().toUpperCase()); return; }
+      inp.className = 'no'; sfx.wrong();
+      fb.className = 'feedback bad';
+      fb.textContent = ps.tries >= 2 && ps.hints < p.hints.length ? 'Not yet. A hint might help: it costs one star.' : 'Not yet. Look back at the clue and try again.';
+      fb.hidden = false;
+      persist();
+    });
+    box.append(form);
+    if (matchMedia('(pointer:fine)').matches) setTimeout(() => inp.focus(), 50);
+  }
+  box.append(fb);
+  const hints = el('div', 'hints');
+  p.hints.slice(0, ps.hints).forEach(h => hints.append(el('p', '', h)));
+  box.append(hints);
+  const acts = el('div', 'pactions');
+  if (ps.hints < p.hints.length) {
+    const hb = el('button', 'btn small', ps.hints ? 'Another hint (−1 ★)' : 'Hint (−1 ★)');
+    hb.addEventListener('click', () => { ps.hints++; sfx.click(); persist(); renderPuzzle(); });
+    acts.append(hb);
+  }
+  acts.append(el('span', 'note', 'Worth ' + starText(Math.max(0, MAX_STARS - ps.hints), MAX_STARS)));
+  box.append(acts);
+}
+
+function solve(ch, p, ps, shown) {
+  ps.solved = true;
+  ps.first = ps.tries === 1 && ps.hints === 0;
+  ps.answer = shown;
+  ps.at = Date.now();
+  today().solved++;
+  sfx.right();
+  const c = chState(ch);
+  const allDone = ch.puzzles.every(q => (c.puzzles[q.id] || {}).solved);
+  if (allDone && !c.done) { c.done = true; c.doneAt = Date.now(); }
+  persist();
+  setTimeout(() => {
+    renderChapter();
+    if (allDone) showDone(ch);
+  }, 500);
+}
+
+function showDone(ch) {
+  const i = CHAPTERS.indexOf(ch), last = i === CHAPTERS.length - 1;
+  $('doneLab').textContent = last ? 'Case closed' : 'Chapter ' + (i + 1) + ' solved';
+  $('doneTitle').textContent = ch.title;
+  $('doneStars').textContent = starText(chStars(ch), ch.puzzles.length * MAX_STARS);
+  $('doneStory').textContent = ch.outro;
+  $('doneNext').hidden = last;
+  $('doneOverlay').hidden = false;
+  sfx.done();
+}
+$('doneNext').addEventListener('click', () => { $('doneOverlay').hidden = true; openChapter(curCh + 1); });
+$('doneHome').addEventListener('click', () => { $('doneOverlay').hidden = true; show('home'); });
+
+/* ---------------- puzzle helpers (aids) ---------------- */
+function renderAid(p) {
+  const box = el('div', 'aid');
+  if (p.aid === 'morse') {
+    box.append(el('span', 'lab', 'Morse card'));
+    const g = el('div', 'morse');
+    Object.entries(MORSE).forEach(([k, v]) => { const d = el('div'); d.append(el('b', '', k), el('span', '', dits(v))); g.append(d); });
+    box.append(g);
+  } else if (p.aid === 'numbers') {
+    box.append(el('span', 'lab', 'Number strip'));
+    const g = el('div', 'strip');
+    for (let i = 0; i < 26; i++) { const d = el('div'); d.append(el('b', '', String.fromCharCode(65 + i)), el('span', '', String(i + 1))); g.append(d); }
+    box.append(g);
+  } else if (p.aid === 'grid') {
+    box.append(el('span', 'lab', 'Letter grid (from the back of the map)'));
+    const t = el('table', 'lgrid'), hr = el('tr');
+    hr.append(el('th', '', ''));
+    'ABCDE'.split('').forEach(c => hr.append(el('th', '', c)));
+    t.append(hr);
+    GRID.forEach((row, r) => { const tr = el('tr'); tr.append(el('th', '', String(r + 1))); row.split('').forEach(ch => tr.append(el('td', '', ch === 'I' ? 'I/J' : ch))); t.append(tr); });
+    box.append(t);
+  } else if (p.aid === 'keypad') {
+    box.append(el('span', 'lab', 'Phone keypad'));
+    const g = el('div', 'keypad');
+    KEYPAD.forEach(([k, l]) => { const d = el('div'); d.append(el('b', '', k), el('span', '', l)); g.append(d); });
+    box.append(g);
+  } else if (p.aid === 'wheel') {
+    box.append(el('span', 'lab', 'Cipher wheel'));
+    box.append(renderWheel(p));
+  }
+  return box;
+}
+
+/* Cipher wheel: the outer ring is fixed A to Z. The inner ring turns. Turning it k steps puts each inner
+   letter next to the outer letter k places further along, so the turning is the adding. */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function renderWheel(p) {
+  const key = curCh + p.id;
+  if (wheelK[key] === undefined) wheelK[key] = 0;
+  const wrap = el('div', 'wheel');
+  const svg = document.createElementNS(SVGNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 320 320'); svg.setAttribute('role', 'img');
+  const C = 160, RO = 136, RI = 98;
+  const circ = (r, fill, stroke) => { const c = document.createElementNS(SVGNS, 'circle'); c.setAttribute('cx', C); c.setAttribute('cy', C); c.setAttribute('r', r); c.setAttribute('fill', fill); if (stroke) { c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', '2'); } svg.append(c); };
+  circ(156, '#161f38', '#2e3b63'); circ(116, '#0d1f17', '#1d4a33'); circ(70, '#10172b', '#2e3b63');
+  const pos = (slot, r) => { const a = slot / 26 * Math.PI * 2 - Math.PI / 2; return [C + Math.cos(a) * r, C + Math.sin(a) * r]; };
+  const outer = [], inner = [];
+  for (let i = 0; i < 26; i++) {
+    const t = document.createElementNS(SVGNS, 'text'); const [x, y] = pos(i, RO);
+    t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('class', 'outer'); t.textContent = String.fromCharCode(65 + i); svg.append(t); outer.push(t);
+  }
+  for (let i = 0; i < 26; i++) {
+    const t = document.createElementNS(SVGNS, 'text'); t.setAttribute('class', 'inner'); t.textContent = String.fromCharCode(65 + i);
+    t.addEventListener('click', () => { wheelSel[key] = i; sfx.click(); place(wheelK[key]); readout(); });
+    svg.append(t); inner.push(t);
+  }
+  const mid = document.createElementNS(SVGNS, 'text'); mid.setAttribute('x', C); mid.setAttribute('y', C); mid.setAttribute('class', 'outer'); mid.style.fontSize = '15px'; svg.append(mid);
+  let shown = wheelK[key];
+  function place(k) {
+    inner.forEach((t, i) => { const [x, y] = pos(i + k, RI); t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('class', 'inner' + (wheelSel[key] === i ? ' sel' : '')); });
+    const sel = wheelSel[key];
+    const outIdx = sel === undefined ? -1 : (((sel + Math.round(k)) % 26) + 26) % 26;
+    outer.forEach((t, i) => t.setAttribute('class', 'outer' + (i === outIdx ? ' sel' : '')));
+  }
+  function animateTo(k) {
+    const from = shown, t0 = performance.now(), dur = RM ? 0 : 220;
+    const step = now => {
+      const f = dur ? Math.min(1, (now - t0) / dur) : 1;
+      shown = from + (k - from) * (1 - Math.pow(1 - f, 3));
+      place(shown);
+      if (f < 1) requestAnimationFrame(step); else { shown = k; place(k); }
+    };
+    requestAnimationFrame(step);
+  }
+  const read = el('div', 'wheel-read');
+  function readout() {
+    const k = wheelK[key], kk = ((k % 26) + 26) % 26;
+    read.textContent = '';
+    const dir = k === 0 ? 'Not turned' : (k > 0 ? 'Forward ' + k : 'Back ' + (-k));
+    const same = k !== 0 && Math.abs(k) > 13 ? ' (same as ' + (k > 0 ? 'back ' + (26 - k) : 'forward ' + (26 + k)) + ')' : '';
+    read.append(el('b', '', dir), document.createTextNode(same));
+    const sel = wheelSel[key];
+    const line = sel === undefined ? 'Tap a green letter to see where it lands.' : String.fromCharCode(65 + sel) + ' → ' + String.fromCharCode(65 + (sel + kk) % 26);
+    read.append(el('div', '', line));
+    mid.textContent = k === 0 ? '0' : (k > 0 ? '+' + k : String(k));
+    svg.setAttribute('aria-label', 'Cipher wheel turned ' + dir + '. ' + line);
+  }
+  const ctl = el('div', 'wheel-ctl');
+  [['Back 5', -5], ['Back 1', -1], ['Forward 1', 1], ['Forward 5', 5]].forEach(([label, d]) => {
+    const b = el('button', 'btn small', label); b.type = 'button';
+    b.addEventListener('click', () => {
+      let k = wheelK[key] + d;
+      if (k > 25) k -= 26; if (k < -25) k += 26;
+      wheelK[key] = k; sfx.click(); animateTo(k); readout();
+    });
+    ctl.append(b);
+  });
+  place(shown); readout();
+  wrap.append(svg, read, ctl);
+  return wrap;
+}
+
+/* ---------------- notebook ---------------- */
+function renderNotebook() {
+  const ul = $('clueList'); ul.textContent = '';
+  const dl = $('docList'); dl.textContent = '';
+  let clues = 0, docs = 0;
+  CHAPTERS.forEach((ch, i) => {
+    const c = S.chapters[ch.id]; if (!c) return;
+    ch.puzzles.forEach(p => {
+      if (!p.clue || !(c.puzzles[p.id] || {}).solved) return;
+      const li = el('li'); li.append(el('span', '', String(i + 1)), document.createTextNode(p.clue)); ul.append(li); clues++;
+    });
+    ch.docs.forEach(d => {
+      if (!c.docs.includes(d.id)) return;
+      const b = el('button'); b.append(el('b', '', d.title), el('small', '', 'Chapter ' + (i + 1) + ' · ' + d.tab));
+      b.addEventListener('click', () => { renderDoc(d, $('readerDoc')); $('readerOverlay').hidden = false; $('readerOverlay').scrollTop = 0; });
+      dl.append(b); docs++;
+    });
+  });
+  if (!clues) ul.append(el('li', 'empty', 'No clues yet. Solve puzzles to collect them.'));
+  if (!docs) dl.append(el('p', 'empty', 'Documents you read show up here.'));
+}
+$('readerClose').addEventListener('click', () => { $('readerOverlay').hidden = true; });
+$('readerOverlay').addEventListener('click', e => { if (e.target === $('readerOverlay')) $('readerOverlay').hidden = true; });
+
+/* ---------------- reading time ----------------
+   Counts time while the app is open on a chapter or the notebook and someone has touched it in the
+   last two minutes. */
+['pointerdown', 'keydown', 'scroll'].forEach(ev => addEventListener(ev, () => { lastActive = Date.now(); }, { passive: true, capture: true }));
+setInterval(() => {
+  if (document.visibilityState !== 'visible' || Date.now() - lastActive > 120000) return;
+  if ($('chapter').hidden && $('notebook').hidden) return;
+  today().secs += 30; persist();
+}, 30000);
+
+/* ---------------- grown-ups ----------------
+   Each family chooses its own PIN the first time (typed twice), and it travels with the save. */
+let pinTyped = '', pinDraft = '';
+function renderPin() {
+  $('pinDots').querySelectorAll('i').forEach((d, i) => d.classList.toggle('on', i < pinTyped.length));
+  const setting = !S.settings.pin;
+  $('pinTitle').textContent = setting ? 'Choose a grown-up PIN' : 'Grown-ups only';
+  $('pinHint').textContent = !setting ? 'Enter the PIN.' : pinDraft ? 'Type it again to confirm.' : 'Pick 4 digits. You will need them to open this screen.';
+}
+function retrigger(e, cls) { e.classList.remove(cls); void e.offsetWidth; e.classList.add(cls); }
+function openPin() { pinTyped = ''; pinDraft = ''; renderPin(); $('pin').hidden = false; }
+function pinWrong() { retrigger($('pinDots'), 'shake'); setTimeout(() => { pinTyped = ''; renderPin(); }, 450); }
+function pinPress(k) {
+  if (k === 'X') { $('pin').hidden = true; return; }
+  if (k === 'B') { pinTyped = pinTyped.slice(0, -1); renderPin(); return; }
+  if (pinTyped.length >= 4) return;
+  pinTyped += k; renderPin();
+  if (pinTyped.length < 4) return;
+  const unlock = () => setTimeout(() => { $('pin').hidden = true; openParent(); }, 150);
+  if (S.settings.pin) { if (pinTyped === S.settings.pin) unlock(); else pinWrong(); return; }
+  if (!pinDraft) { pinDraft = pinTyped; setTimeout(() => { pinTyped = ''; renderPin(); }, 200); return; }
+  if (pinTyped === pinDraft) { S.settings.pin = pinDraft; pinDraft = ''; persist(); unlock(); }
+  else { pinDraft = ''; pinWrong(); }
+}
+$('parentBtn').addEventListener('click', openPin);
+$('pinPad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) pinPress(b.dataset.k); });
+document.addEventListener('keydown', e => {
+  if ($('pin').hidden) return;
+  if (/^[0-9]$/.test(e.key)) pinPress(e.key);
+  else if (e.key === 'Backspace') pinPress('B');
+  else if (e.key === 'Escape') pinPress('X');
+});
+
+let wipeArmed = false;
+function openParent() { wipeArmed = false; $('wipeAll').textContent = 'Start the case over'; renderParent(); $('parent').hidden = false; }
+function renderParent() {
+  let docs = 0, solved = 0, first = 0, hints = 0, done = 0;
+  const bySkill = {};
+  CHAPTERS.forEach(ch => {
+    const c = S.chapters[ch.id]; if (!c) return;
+    if (c.done) done++;
+    docs += c.docs.length;
+    ch.puzzles.forEach(p => {
+      const ps = c.puzzles[p.id]; if (!ps) return;
+      hints += ps.hints;
+      if (!ps.solved) return;
+      solved++; if (ps.first) first++;
+      const s = bySkill[p.skill] || (bySkill[p.skill] = { solved: 0, first: 0 });
+      s.solved++; if (ps.first) s.first++;
+    });
+  });
+  const week = Object.entries(S.days).filter(([k]) => (Date.now() - new Date(k + 'T12:00').getTime()) < 7 * 864e5).reduce((a, [, d]) => a + (d.secs || 0), 0);
+  const tiles = $('pTiles'); tiles.textContent = '';
+  [[done + ' of ' + CHAPTERS.length, 'Chapters solved'], [docs, 'Documents read'], [solved ? Math.round(first / solved * 100) + '%' : '–', 'Right first try'],
+   [hints, 'Hints used'], [Math.round(week / 60) + 'm', 'Reading this week']].forEach(([v, k]) => {
+    const t = el('div', 'tile'); t.append(el('b', '', String(v)), el('span', '', k)); tiles.append(t);
+  });
+  const tbl = $('pSkills'); tbl.textContent = '';
+  const hr = el('tr'); ['Skill', 'Solved', 'First try'].forEach(h => hr.append(el('th', '', h))); tbl.append(hr);
+  const keys = Object.keys(SKILLS).filter(k => bySkill[k]);
+  if (!keys.length) { const tr = el('tr'); const td = el('td', '', 'Nothing solved yet.'); td.colSpan = 3; tr.append(td); tbl.append(tr); }
+  keys.forEach(k => {
+    const s = bySkill[k], tr = el('tr'), td = el('td', '', SKILLS[k].name);
+    td.append(el('small', '', SKILLS[k].group));
+    tr.append(td, el('td', '', String(s.solved)), el('td', '', s.first + ' (' + Math.round(s.first / s.solved * 100) + '%)'));
+    tbl.append(tr);
+  });
+  const days = $('pDays'); days.textContent = '';
+  const series = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); series.push([d, Math.round(((S.days[todayKey(d)] || {}).secs || 0) / 60)]); }
+  const mx = Math.max(1, ...series.map(s => s[1]));
+  series.forEach(([d, m]) => { const b = el('div'); b.style.height = (m / mx * 100) + '%'; b.title = d.toLocaleDateString() + ': ' + m + ' min'; days.append(b); });
+  $('pDayFirst').textContent = series[0][0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  $('codeShow').textContent = KidSave.code() || 'Not connected yet';
+}
+$('pinChange').addEventListener('click', () => { delete S.settings.pin; persist(); $('parent').hidden = true; openPin(); });
+$('codeForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const msg = $('codeMsg'); msg.textContent = 'Checking…';
+  KidSave.switchTo($('codeInput').value).catch(err => { msg.textContent = err.message; });
+});
+$('wipeAll').addEventListener('click', () => {
+  if (!wipeArmed) { wipeArmed = true; $('wipeAll').textContent = 'Tap again to erase all progress'; return; }
+  const keep = { ...S.settings };
+  S = fresh(); S.settings = keep;
+  persist(); wipeArmed = false; $('wipeAll').textContent = 'Erased';
+  renderParent();
+});
+$('parentClose').addEventListener('click', () => { $('parent').hidden = true; rerender(); });
+
+/* ---------------- boot ---------------- */
+// For testing in a browser console: the accepted answer to the open puzzle.
+window.SIGNAL_DEV = { answer: () => { const p = currentPuzzle(); return p && (p.choices ? p.choices.find(c => c.ok).t : p.answers[0]); } };
+show('home');
+connect();
+})();
+</script>
+
+</body></html>
