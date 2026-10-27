@@ -13,7 +13,8 @@
   const API = '/' + APP + '/api';
   const CODE_KEY = APP + ':save-code';
   // localStorage keys each app owns, cleared when the device switches to another save.
-  const OWNED = { dm: ['pda-'], chain: ['chain-reaction'] }[APP] || [];
+  // Prefixes must not match CODE_KEY (e.g. 'signal:save-code'), or switching would forget the new code.
+  const OWNED = { dm: ['pda-'], chain: ['chain-reaction'], signal: ['signal:v'] }[APP] || [];
   const POLL_MS = 20000;
   const CODE_RE = /^[A-Z]{3,8}-\d{4}$/;
 
