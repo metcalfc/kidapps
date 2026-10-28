@@ -45,20 +45,19 @@ test('a natural 20 on a death save still restores 1 HP', () => {
 
 test('Finesse accepts equal modifiers and chooses the higher unequal one', () => {
   const app = loadDm();
-  for (let strength = 8; strength <= 14; strength++) {
-    for (let dexterity = 14; dexterity <= 20; dexterity++) {
-      // Weapon, Strength, Dexterity, hero, damage roll.
-      app.random([0, (strength - 8 + .1) / 7, (dexterity - 14 + .1) / 7, 0, 0]);
-      const step = app.evaluate('genFinesse().steps[0]');
-      const str = Math.floor((strength - 10) / 2), dex = Math.floor((dexterity - 10) / 2);
-      if (str === dex) assert.match(step.answer, /either/i);
-      else assert.equal(step.answer, str > dex ? 'Strength' : 'Dexterity', `Strength ${strength}, Dexterity ${dexterity}`);
-      assert.ok(step.choices.includes(step.answer));
-      if (strength === dexterity || (strength === 8 && dexterity === 20)) {
-        gradeChoice(app, {flavor:'Finesse fixture', steps:[step]}, step.answer, 'armory', 'genFinesse');
-      }
+  const graded = new Set();
+  for (const problem of app.evaluate('Array.from({length:1000}, () => genFinesse())')) {
+    const [, strength, dexterity] = problem.flavor.match(/Strength (\d+), Dexterity (\d+)/).map(Number);
+    const step = problem.steps[0], str = Math.floor((strength - 10) / 2), dex = Math.floor((dexterity - 10) / 2);
+    if (str === dex) assert.match(step.answer, /either/i);
+    else assert.equal(step.answer, str > dex ? 'Strength' : 'Dexterity', `Strength ${strength}, Dexterity ${dexterity}`);
+    assert.ok(step.choices.includes(step.answer));
+    if (!graded.has(step.answer)) {
+      gradeChoice(app, {flavor:'Finesse fixture', steps:[step]}, step.answer, 'armory', 'genFinesse');
+      graded.add(step.answer);
     }
   }
+  assert.equal(graded.size, 3);
 });
 
 test('standing Long Jump rounds down for odd Strength scores', () => {
@@ -114,9 +113,9 @@ test('dice comparisons offer unique choices and a mathematically correct answer'
   for (const problem of app.evaluate('Array.from({length:1000}, () => genDiceCompare())')) {
     const step = problem.steps[0];
     assert.equal(new Set(step.choices).size, step.choices.length, problem.flavor);
-    const [a, b] = problem.flavor.match(/\d+d\d+/g);
+    const [a, b] = problem.flavor.match(/\d+d\d+(?:[+-]\d+)?/g);
     assert.notEqual(a, b, 'compare different dice expressions');
-    const average = text => { const [, n, sides] = text.match(/(\d+)d(\d+)/); return Number(n) * (Number(sides) + 1) / 2; };
+    const average = text => { const [, n, sides, bonus] = text.match(/(\d+)d(\d+)([+-]\d+)?/); return Number(n) * (Number(sides) + 1) / 2 + Number(bonus || 0); };
     const expected = average(a) > average(b) ? a : average(a) < average(b) ? b : 'Same on average';
     assert.equal(step.answer, expected, problem.flavor);
   }

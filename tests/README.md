@@ -7,6 +7,8 @@ go test ./...
 
 The browser-app harnesses execute the production scripts in a VM with a small DOM and controlled clocks. Tests exercise actual keypad grading, navigation, pause timers, forms, hints, language changes, resets, and background save acknowledgements. The shipped apps need no testing hooks. Signal content tests independently decode the ciphers and check the translated math and time answers.
 
+DM variety tests check the generated math as well as outcome coverage. Encounters cover every supported level, party size, and rank; other checks cover dice-comparison results, Finesse choices, actions, spell-slot boundaries, thrown weapons, critical damage, and chest calculations. Seeded practice sequences check shuffled coverage and repeat limits, including review, daily quests, and boss fights. Review tests use the grading controls to verify that clearing a missed type requires two complete examples without hints.
+
 Shared-sync tests use separate device stores and a conditional-write server model to cover concurrent progress, screen-time credits and debits, lost acknowledgements, durable retries, reset generations, and legacy imports. Go tests cover the real SQLite compare-and-swap transactions and HTTP protocol, including simultaneous writers through independent database connections.
 
 The harnesses do not render canvas or test browser layout, touch gestures, service-worker installation, or real network connectivity. Verify those with a local server and disposable save codes before deployment.

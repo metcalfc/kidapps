@@ -695,7 +695,7 @@ details.lesson[open] summary::after{content:"−"}
         <h3>By lesson</h3>
         <div class="tablewrap"><table class="ptable" id="p-lessons"></table></div>
         <h3>Needs another look</h3>
-        <p class="help" style="margin:0;color:var(--muted);font-size:.9rem">Question types your DM has missed recently. The app brings these back until each one is answered correctly twice without a hint.</p>
+        <p class="help" style="margin:0;color:var(--muted);font-size:.9rem">Question types your DM has missed recently. Complete two new examples of each type, getting every step right without a hint, to clear it.</p>
         <ul class="plist" id="p-review"></ul>
         <h3>Campaign settings</h3>
     <form class="settings-form" id="settings-form">
@@ -794,7 +794,7 @@ const monDex = n => MON_DEX[n] ?? 0;
 const UNLOCK_XP = [50, 100, 200, 450, 700, 1800, 99999];
 const DAILY_GOAL = 5, DAILY_BONUS = 25;
 const QUEST_NAMES = ["The Miller's Missing Mule", 'Rats in the Rusty Tankard', 'The Toll Bridge Troll', 'A Letter for the Mayor', 'Lights in the Whispering Pines', 'The Sunken Chapel Bell', "Crow's Hollow at Midnight"];
-const HERO_WEAPONS = [['longsword','1d8+3'],['greataxe','1d12+3'],['shortbow','1d6+2'],['dagger','1d4+2'],['fire bolt','1d10'],['rapier','1d8+3'],['warhammer','1d8+2'],['quarterstaff','1d6+1']];
+const HERO_WEAPONS = [['longsword','1d8+3'],['greataxe','1d12+3'],['shortbow','1d6+2'],['dagger','1d4+2'],['fire bolt','1d10'],['rapier','1d8+3'],['warhammer','1d8+2'],['quarterstaff','1d6+1'],['greatsword','2d6+3']];
 // How each attack is made, so a bow is shot and a spell is cast rather than everything being swung.
 const HERO_VERB = { shortbow:'You shoot your shortbow', 'fire bolt':'You cast fire bolt', dagger:'You stab with your dagger', rapier:'You thrust your rapier' };
 const heroAttack = w => HERO_VERB[w] || `You swing your ${w}`;
@@ -817,6 +817,30 @@ const DEFAULT_SETTINGS = {
 // ---------- Small helpers ----------
 const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
 const pick = arr => arr[rand(0,arr.length-1)];
+// Draw a shuffled bag before refilling it. Repeated entries retain their weight;
+// when possible, start the next bag with something other than the last draw.
+const practiceBags = new Map();
+function practicePick(key, values, eligible = () => true){
+  if(!values.length) throw new Error('Practice choices cannot be empty');
+  let state = practiceBags.get(key);
+  if(!state || state.values.length !== values.length || values.some((v,i) => v !== state.values[i])){
+    state = {values:values.slice(), left:[], last:state && state.last}; practiceBags.set(key, state);
+  }
+  if(!state.left.length) state.left = shuffle(values);
+  const candidates = state.left.map((v,i) => i).filter(i => eligible(state.left[i]));
+  if(!candidates.length){
+    // A cooldown may temporarily block the last entries. Keep them for a later
+    // draw, and insert one eligible exercise instead of discarding the bag.
+    const extra = values.filter(eligible), different = extra.filter(v => v !== state.last);
+    if(!extra.length) throw new Error('Practice choices must include an eligible item');
+    state.last = pick(different.length ? different : extra);
+  } else {
+    let i = candidates[candidates.length - 1];
+    if(state.left[i] === state.last){ const other = candidates.find(j => state.left[j] !== state.last); if(other !== undefined) i = other; }
+    state.last = state.left.splice(i,1)[0];
+  }
+  return state.last;
+}
 const fmt = n => Number.isInteger(n) ? String(n) : String(Math.round(n*100)/100);
 const signed = n => (n>=0 ? '+' : '-') + Math.abs(n);
 const an = name => (/^[aeiou]/i.test(name) ? 'An ' : 'A ') + name;   // "An Ogre", "A Goblin"
@@ -973,16 +997,22 @@ function genDiceMaxMin(){
      { q:`What's the LEAST damage one normal hit can do?`, answer:atk.n+atk.m,
       hint:`Every die shows a 1.`, solution: atk.m ? `${atk.n} × 1 = ${atk.n}, plus ${atk.m} = ${atk.n+atk.m}.` : `${atk.n} × 1 = ${atk.n}.` }] };
 }
+// Standard dice and small bonuses give many different equal-average pairs too.
+const DICE_COMPARE_ROLLS = [1,2,3].flatMap(n => [4,6,8,10,12,20].flatMap(d => [0,1,2,3,4].map(m => ({n,d,m,text:diceText(n,d,m)}))));
+const DICE_COMPARE_PAIRS = {first:[], second:[], same:[]};
+DICE_COMPARE_ROLLS.forEach(a => DICE_COMPARE_ROLLS.forEach(b => {
+  if(a.text === b.text) return;
+  const avA = diceAvg(a), avB = diceAvg(b);
+  DICE_COMPARE_PAIRS[avA > avB ? 'first' : avB > avA ? 'second' : 'same'].push([a,b]);
+}));
 function genDiceCompare(){
-  const a = {n:rand(1,3), d:pick([4,6,8]), m:0};
-  a.text = diceText(a.n,a.d,0);
-  const alternatives = [1,2].flatMap(n => [8,10,12,20].map(d => ({n, d, m:0, text:diceText(n,d,0)})));
-  const b = pick(alternatives.filter(roll => roll.text !== a.text));
+  const outcome = practicePick('dice-compare-outcome', ['first','second','same']);
+  const [a,b] = pick(DICE_COMPARE_PAIRS[outcome]);
   const avA = diceAvg(a), avB = diceAvg(b);
   const answer = avA>avB ? a.text : avB>avA ? b.text : 'Same on average';
   return { flavor:`You're designing a trap for ${place()}. You can't decide between ${a.text} and ${b.text} damage.`,
-    steps:[{ q:`Which hurts more on average?`, choices:[a.text, b.text, 'Same on average'], answer,
-      hint:`Average of one die = (sides + 1) ÷ 2. Then multiply by how many dice.`,
+    steps:[{ q:`Which hurts more on average?`, choices:shuffle([a.text, b.text, 'Same on average']), answer,
+      hint:`Average of one die = (sides + 1) ÷ 2. Multiply by the number of dice, then add any bonus.`,
       solution:`${a.text} averages ${fmt(avA)}. ${b.text} averages ${fmt(avB)}. Answer: ${answer}.` }] };
 }
 function genDiceOverFight(){
@@ -1028,8 +1058,14 @@ const DIFF = ['Low','Moderate','High'];
 function rating(xp, t){ return xp>=t[2] ? 'High' : xp>=t[1] ? 'Moderate' : xp>=t[0] ? 'Low' : 'Easier than Low'; }
 function genEncounterBuild(){
   const L = level(), S = partySize(), per = XP_THRESH[L], t = per.map(x=>x*S);
-  const mon = pickMon(m=>m.xp<=700);
-  const C = mon.xp>=450 ? rand(1,2) : rand(2,6);
+  const outcome = practicePick('encounter-rating', ['Easier than Low',...DIFF]);
+  const band = ['Easier than Low',...DIFF].indexOf(outcome);
+  const bottom = band === 0 ? 1 : t[band-1];
+  const top = band < 3 ? t[band]-1 : t[2] + (t[2]-t[1]);
+  // Derive group sizes from the real party budget. Tiny unlocked monsters may
+  // need a large group; fixed count caps otherwise make whole ratings impossible.
+  const groups = MON().map(mon => ({mon, min:Math.max(1,Math.ceil(bottom/mon.xp)), max:Math.floor(top/mon.xp)})).filter(g => g.min <= g.max);
+  const group = pick(groups), mon = group.mon, C = rand(group.min, group.max);
   const total = C*mon.xp, name = C===1 ? mon.n : mon.pl, which = rand(0,2);
   return { flavor:`You're planning tonight's fight at ${place()}: ${C} ${name} against ${S} level-${L} heroes.`,
     steps:[{ q:`A ${DIFF[which]} difficulty fight is ${per[which]} XP per level-${L} hero. What's the party's ${DIFF[which]} budget?`, answer:t[which],
@@ -1042,16 +1078,20 @@ function genEncounterBuild(){
 }
 function genEncounterFit(){
   const L = level(), S = partySize(), t = XP_THRESH[L].map(x=>x*S);
-  for(let tries=0; tries<40; tries++){
-    const mon = pickMon(m=>m.xp<=200);
-    const which = rand(0,2), budget = t[which], count = Math.floor(budget/mon.xp), left = budget - count*mon.xp;
-    if(count<2 || count>9) continue;
-    return { flavor:`You want a ${DIFF[which]} fight for your ${S} level-${L} heroes. The budget is ${budget} XP, and each ${mon.n} costs ${mon.xp} XP.`,
-      steps:[{ q:`How many ${mon.pl} fit in the budget?`, answer:count,
-        hint:`Divide the budget by ${mon.xp} and ignore the leftover.`, solution:`${budget} ÷ ${mon.xp} = ${fmt(budget/mon.xp)}. You can't send part of ${article(mon.n)} ${mon.n}, so ${count}.` },
-       { q:`How much of the budget is left over?`, answer:left, hint:`${count} × ${mon.xp} = ${count*mon.xp}. Subtract from ${budget}.`, solution:`${budget} − ${count*mon.xp} = ${left} XP. You can add another monster if it fits, or leave the budget unspent.` }] };
-  }
-  return genEncounterBuild();
+  const which = practicePick('encounter-fit-difficulty', [0,1,2]), budget = t[which];
+  const withRemainder = practicePick('encounter-fit-remainder', [false,true]);
+  const advance = pick(MON().filter(mon => mon.xp === 25));
+  const plans = [1,2,3].flatMap(advanceCount => MON().map(mon => {
+    const spent = advanceCount*advance.xp, available = budget-spent;
+    return {advanceCount,mon,spent,available,count:Math.floor(available/mon.xp),left:available%mon.xp};
+  })).filter(plan => plan.count >= 1 && (withRemainder ? plan.left > 0 : plan.left === 0));
+  // The 25-XP advance group and an unlocked 50-XP monster provide both remainder
+  // cases even at the starting rank. No retry loop can turn this into another lesson.
+  const {advanceCount,mon,spent,available,count,left} = pick(plans);
+  return { flavor:`You want a ${DIFF[which]} fight for your ${S} level-${L} heroes. The full budget is ${budget} XP. You already added ${advanceCount} ${advanceCount===1?advance.n:advance.pl}, costing ${spent} XP, so ${available} XP remains. Each ${mon.n} costs ${mon.xp} XP.`,
+      steps:[{ q:`How many more ${mon.pl} fit in the remaining ${available} XP?`, answer:count,
+        hint:`Divide the remaining ${available} XP by ${mon.xp} and ignore the leftover.`, solution:`${budget} − ${spent} = ${available} XP remains. ${available} ÷ ${mon.xp} = ${fmt(available/mon.xp)}. You can't send part of ${article(mon.n)} ${mon.n}, so add ${count}.` },
+       { q:`How much of the budget is left over?`, answer:left, hint:`${count} × ${mon.xp} = ${count*mon.xp}. Subtract from the remaining ${available} XP.`, solution:`${available} − ${count*mon.xp} = ${left} XP. You can add another monster if it fits, or leave the budget unspent.` }] };
 }
 
 // 4. The Treasure Split
@@ -1100,7 +1140,7 @@ function genModifier(){
       solution:`(${score} − 10) ÷ 2 = ${fmt(half)}${Number.isInteger(half)?'':', rounded down is '+mod}. Modifier: ${signed(mod)}.` }] };
 }
 function genHpTrack(){
-  const mon = pickMon(m=>m.hp>=15), d1 = rand(4,12), d2 = rand(3,11), h = hero();
+  const mon = pickMon(), d1 = rand(1,Math.min(12,mon.hp-1)), d2 = rand(1,11), h = hero();
   const remaining = mon.hp - d1 - d2, left = Math.max(0, remaining);
   return { flavor:`The ${mon.n} has ${mon.hp} HP. ${h} hits it for ${d1}, then again for ${d2}.`,
     steps:[{ q:`How many HP does the ${mon.n} have left?`, answer:left,
@@ -1177,7 +1217,8 @@ function genVulnerable(){
     steps:[{ q:`How much damage does it take?`, answer:N*2, hint:`Vulnerable means double.`, solution:`${N} × 2 = ${N*2}.` }] };
 }
 function genCrit(){
-  const [w, d] = pick(HERO_WEAPONS), atk = parseDice(d), h = hero();
+  const diceCount = practicePick('critical-dice-count', [1,2]);
+  const [w, d] = pick(HERO_WEAPONS.filter(([,dice]) => parseDice(dice).n === diceCount)), atk = parseDice(d), h = hero();
   const rolls = []; for(let i=0;i<atk.n*2;i++) rolls.push(rand(1,atk.d));
   const sum = rolls.reduce((a,b)=>a+b,0);
   return { flavor:`${h} rolls a natural 20 with a ${w} (${atk.text})! On a critical hit you roll the damage dice TWICE, but add the bonus only once.`,
@@ -1402,6 +1443,7 @@ function genCover(){
 function genActions(){
   const h = hero();
   const cases = [
+    { f:`${h} wants to strike the Goblin with a sword.`, a:'Attack' },
     { f:`${h} is standing next to an Orc and wants to walk away without getting hit by an Opportunity Attack.`, a:'Disengage' },
     { f:`${h} is surrounded and just wants to survive the round, so attackers should have Disadvantage.`, a:'Dodge' },
     { f:`${h} needs to cross the whole courtyard this turn, twice their normal Speed.`, a:'Dash' },
@@ -1411,8 +1453,10 @@ function genActions(){
     { f:`${h} wants to talk the bandit captain into surrendering.`, a:'Influence' },
     { f:`${h} wants to pull the big lever, but only once the rogue is clear of the gate.`, a:'Ready' },
     { f:`${h} wants to become hidden behind the barrels.`, a:'Hide' },
+    { f:`${h} wants to cast Magic Missile, a spell with a casting time of one Action.`, a:'Magic' },
+    { f:`${h} has already used their free object interaction this turn and wants to pull a nonmagical lever now.`, a:'Utilize' },
   ];
-  const c = pick(cases), desc = ACTIONS.find(a=>a[0]===c.a)[1];
+  const c = cases[practicePick('actions', cases.map((_, i) => i))], desc = ACTIONS.find(a=>a[0]===c.a)[1];
   return { flavor:c.f, steps:[{ q:`Which action is that?`, choices:choicesFrom(c.a, ACTIONS.map(a=>a[0]), 4), answer:c.a, hint:`There are 12 actions. Which description matches?`, solution:`${c.a}: ${desc}.` }] };
 }
 function genTurnBudget(){
@@ -1500,9 +1544,9 @@ function genExhaustion(){
 
 // 12. Spellbook
 function genSlots(){
-  const L = rand(1,5), slots = FULL_CASTER_SLOTS[L], h = heroAs('Wizard'), k = rand(1, Math.max(1, slots[0]-1));
+  const L = practicePick('slots-level', [1,2,3,4,5]), slots = FULL_CASTER_SLOTS[L], h = heroAs('Wizard'), k = practicePick('slots-spent-' + slots[0], Array.from({length:slots[0]+1}, (_, i) => i));
   const cast = shuffle(['Magic Missile','Shield','Thunderwave','Sleep','Burning Hands','Detect Magic']).slice(0,k);
-  return { flavor:`${h} is level ${L}, with ${slots[0]} level-1 spell slots${slots[1]?' and '+slots[1]+' level-2 slots':''}. Today they've cast ${cast.join(' and ')} (all level 1).`,
+  return { flavor:`${h} is level ${L}, with ${slots[0]} level-1 spell slots${slots[1]?' and '+slots[1]+' level-2 slots':''}. ` + (k ? `Today they've cast ${cast.join(' and ')}, using a level-1 slot for each spell.` : `They have not used any level-1 slots today.`),
     steps:[{ q:`How many level-1 slots are left?`, answer:slots[0]-k, hint:`${slots[0]} − ${k}.`, solution:`${slots[0]} − ${k} = ${slots[0]-k}. Slots come back after a Long Rest.` }] };
 }
 function genCantripScale(){
@@ -1556,11 +1600,13 @@ function genArmorClass(){
        solution:`${base} ${pm(dexPart)}${rule===2 && m>2 ? ' (Dex capped at +2)' : rule===0 ? ' (no Dex)' : ''}${shield?' + 2':''} = ${ac}.` }] };
 }
 function genFinesse(){
-  const [name, dice] = pick(WEAPONS.filter(w=>w[2].includes('Finesse'))), S = rand(8,14), D = rand(14,20), h = hero(), dmg = parseDice(dice), r = rand(1,dmg.d);
-  const best = Math.max(mod(S), mod(D)), either = 'Either: the modifiers are equal', ab = mod(D)===mod(S) ? either : mod(D)>mod(S) ? 'Dexterity' : 'Strength';
+  const [name, dice] = pick(WEAPONS.filter(w=>w[2].includes('Finesse'))), either = 'Either: the modifiers are equal';
+  const ab = practicePick('finesse-outcome', ['Strength','Dexterity',either]), pairs = [];
+  for(let s=8;s<=20;s++) for(let d=8;d<=20;d++) if((mod(s)===mod(d) ? either : mod(s)>mod(d) ? 'Strength' : 'Dexterity') === ab) pairs.push([s,d]);
+  const [S,D] = pick(pairs), h = hero(), dmg = parseDice(dice), r = rand(1,dmg.d), best = Math.max(mod(S), mod(D));
   return { flavor:`${h} (Strength ${S}, Dexterity ${D}) attacks with a ${name.toLowerCase()} (${dice}, Finesse).`,
-    steps:[{ q:`Finesse lets you use Strength or Dexterity. Which gives the higher modifier, or are they equal?`, choices:['Strength','Dexterity',either], answer:ab, hint:`Pick the higher modifier, or Either if they are equal.`, solution:`Str ${signed(mod(S))} vs Dex ${signed(mod(D))}: ${ab}.` },
-     { q:`The damage die shows ${r}. Total damage?`, answer:r+best, hint:`${r} + ${best}.`, solution:`${r} + ${best} = ${r+best}.` }] };
+    steps:[{ q:`Finesse lets you use Strength or Dexterity. Which gives the higher modifier, or are they equal?`, choices:shuffle(['Strength','Dexterity',either]), answer:ab, hint:`Pick the higher modifier, or Either if they are equal.`, solution:`Str ${signed(mod(S))} vs Dex ${signed(mod(D))}: ${ab}.` },
+     { q:`The damage die shows ${r}. Total damage?`, answer:r+best, hint:`${r} ${pm(best)}.`, solution:`${r} ${pm(best)} = ${r+best}.` }] };
 }
 function genVersatile(){
   const [name, dice, props] = pick(WEAPONS.filter(w=>w[2].includes('Versatile'))), big = props.match(/Versatile \((\dd\d+)\)/)[1], h = hero(), m = rand(2,4);
@@ -1581,10 +1627,21 @@ function genGraze(){
     steps:[{ q:`Graze: on a miss you still deal damage equal to your ability modifier. How much?`, answer:m, hint:`Just the modifier, no dice.`, solution:`${m} damage, even on a miss.` }] };
 }
 function genRanged(){
-  const h = hero(), L = level(), S = rand(8,14), D = rand(12,20), [name, dice] = pick(WEAPONS.filter(w=>w[2].includes('Ammunition')));
-  return { flavor:`${h} (level ${L}, Strength ${S}, Dexterity ${D}) is proficient with the ${name.toLowerCase()} (${dice}).`,
-    steps:[{ q:`Ranged weapons use which ability for attack and damage?`, choices:['Strength','Dexterity'], answer:'Dexterity', hint:`Aim, not muscle.`, solution:`Ranged attacks use Dexterity.` },
-     { q:`What's the attack bonus? (Dex modifier + Proficiency Bonus)`, answer:mod(D)+PB(L), hint:`Dex ${D} → ${signed(mod(D))}. Proficiency +${PB(L)}.`, solution:`${mod(D)} + ${PB(L)} = ${signed(mod(D)+PB(L))}.` }] };
+  const kind = practicePick('ranged-kind', ['ammunition','thrown','finesse']), either = 'Either: the modifiers are equal';
+  const pool = WEAPONS.filter(w => kind === 'ammunition' ? w[2].includes('Ammunition') : w[2].includes('Thrown') && w[2].includes('Finesse') === (kind === 'finesse'));
+  const [name,dice,props] = practicePick('ranged-weapon-' + kind, pool), h = hero(), L = level();
+  let S = rand(8,20), D = rand(8,20), ab = kind === 'ammunition' ? 'Dexterity' : 'Strength';
+  if(kind === 'finesse'){
+    ab = practicePick('ranged-finesse-outcome', ['Strength','Dexterity',either]);
+    const pairs = [];
+    for(let s=8;s<=20;s++) for(let d=8;d<=20;d++) if((mod(s)===mod(d) ? either : mod(s)>mod(d) ? 'Strength' : 'Dexterity') === ab) pairs.push([s,d]);
+    [S,D] = pick(pairs);
+  }
+  const m = ab === 'Strength' ? mod(S) : ab === 'Dexterity' ? mod(D) : mod(S);
+  const rule = kind === 'ammunition' ? 'Bows and crossbows use Dexterity.' : kind === 'thrown' ? 'A thrown Melee weapon keeps its melee ability: Strength.' : 'A thrown dagger still has Finesse: choose Strength or Dexterity and compare their modifiers.';
+  return { flavor:`${h} (level ${L}, Strength ${S}, Dexterity ${D}) ${kind === 'ammunition' ? 'shoots' : 'throws'} a ${name.toLowerCase()} (${dice}; ${props}). They are proficient with it.`,
+    steps:[{ q:`Which ability gives the best attack bonus for this weapon?`, choices:shuffle(['Strength','Dexterity',either]), answer:ab, hint:rule, solution:`${rule} Strength ${signed(mod(S))}, Dexterity ${signed(mod(D))}. Answer: ${ab}.` },
+     { q:`What's the attack bonus? (ability modifier + Proficiency Bonus)`, answer:m+PB(L), hint:`${ab === either ? 'Either ability' : ab} gives ${signed(m)}. Proficiency is +${PB(L)}.`, solution:`${signed(m)} + ${PB(L)} = ${signed(m+PB(L))}.` }] };
 }
 
 // 14. Condition Codex
@@ -1734,7 +1791,7 @@ const MODULES = [
   { id:'armory', section:'rules', sigil:'1d8', title:'The Armory', tag:'Weapons, armor, masteries',
     lesson:`<p><b>Armor Class.</b> Light armor adds your full Dex modifier. Medium armor adds Dex up to +2. Heavy armor ignores Dex. A shield adds +2 to any of them. No armor: 10 + Dex.</p>
       <div class="tablewrap"><table><tr><th>Armor</th><th>AC</th><th>Dex</th></tr><tr><td>Leather / Studded</td><td>11 / 12</td><td>full</td></tr><tr><td>Chain shirt / Breastplate / Half plate</td><td>13 / 14 / 15</td><td>max +2</td></tr><tr><td>Chain mail / Splint / Plate</td><td>16 / 17 / 18</td><td>none</td></tr></table></div>
-      <p><b>Weapons.</b> Melee uses Strength, ranged uses Dexterity. <b>Finesse</b> lets you pick either. <b>Versatile</b> weapons do a bigger die in two hands. <b>Light</b> weapons can be paired. <b>Heavy</b> weapons need Strength 13 (melee) or Dex 13 (ranged) or you have Disadvantage.</p>
+      <p><b>Weapons.</b> Melee weapons use Strength; ranged weapons use Dexterity. <b>Finesse</b> lets you choose Strength or Dexterity. A <b>Thrown</b> melee weapon keeps its melee ability, including that Finesse choice. <b>Versatile</b> weapons use a bigger damage die in two hands. <b>Light</b> weapons can be paired. <b>Heavy</b> weapons need Strength 13 (melee) or Dex 13 (ranged) or you have Disadvantage.</p>
       <p><b>Weapon Mastery</b> (new in 2024): Fighters, Barbarians, Paladins, Rangers and Rogues unlock a bonus effect per weapon. Cleave, Graze, Nick, Push, Sap, Slow, Topple, Vex.</p>`,
     gens:[genArmorClass, genArmorClass, genFinesse, genVersatile, genMastery, genGraze, genRanged] },
   { id:'conditions', section:'rules', sigil:'KO', title:'Condition Codex', tag:'Prone, Poisoned, Paralyzed and friends',
@@ -1835,6 +1892,7 @@ function renderHall(){
 
 // ---------- Question flow ----------
 let current = { module:null, problem:null, step:0, tries:0, choice:null };
+const recentGenerators = [];
 function openModule(m){
   if(m.special === 'boss'){ history.replaceState(null,'','#boss'); show('boss'); return; }
   restoreQuest();
@@ -1850,12 +1908,23 @@ function openModule(m){
 function nextProblem(){
   const m = current.module;
   let src = m, gen = null, review = false;
-  // Smart review: sometimes bring back a question type he missed, until it's answered right twice.
+  // Keep weighted practice varied, including when a type is in the review queue.
+  const avoid = recentGenerators.length === 2 && recentGenerators[0] === recentGenerators[1] ? recentGenerators[0] : null;
+  const lessons = MODULES.filter(x => x.gens.length);
+  const available = m.mixed ? lessons.flatMap(x => x.gens) : m.gens;
+  const canVary = available.some(g => g.name !== avoid);
+  const allowed = g => !canVary || g.name !== avoid;
+  // Review is cleared only after two complete, unassisted examples.
   const pool = m.mixed ? Object.keys(progress.review || {}) : Object.keys(progress.review || {}).filter(k => m.gens.some(g => g.name === k));
   const due = pool.filter(k => GEN_INDEX[k]);
-  if(due.length && !boss.active && Math.random() < 0.35){ const k = pick(due); gen = GEN_INDEX[k].gen; src = GEN_INDEX[k].mod; review = true; }
-  else { if(m.mixed) src = pick(MODULES.filter(x => x.gens.length)); gen = pick(src.gens); }
+  if(due.some(k => allowed(GEN_INDEX[k].gen)) && !boss.active && Math.random() < 0.35){ const k = practicePick('review:'+m.id, due, k => allowed(GEN_INDEX[k].gen)); gen = GEN_INDEX[k].gen; src = GEN_INDEX[k].mod; review = true; }
+  else {
+    if(m.mixed) src = practicePick('lessons:'+m.id, lessons, x => x.gens.some(allowed));
+    gen = practicePick('generators:'+m.id+':'+src.id, src.gens, allowed);
+  }
   current.problem = gen(); current.problem.from = src.id; current.problem.gen = gen.name; current.problem.review = review;
+  current.problem.reviewClean = true;
+  recentGenerators.push(gen.name); if(recentGenerators.length > 2) recentGenerators.shift();
   current.step = 0; current.tries = 0; current.choice = null;
   $('challenge').hidden = !current.problem.challenge;
   $('review-chip').hidden = !review;
@@ -1908,8 +1977,16 @@ function record(correct){
   if(correct){ streak++; if(streak > progress.bestStreak) progress.bestStreak = streak; } else streak = 0;
   // Smart review bookkeeping
   const g = current.problem.gen; progress.review = progress.review || {};
-  if(!correct) progress.review[g] = 2;   // bring it back until it's answered right twice
-  else if(current.tries === 0 && progress.review[g]){ progress.review[g]--; if(progress.review[g] <= 0) delete progress.review[g]; }
+  if(!correct || current.tries !== 0) current.problem.reviewClean = false;
+  if(!correct){
+    progress.review[g] = 2;
+    progress.reviewPrompts = progress.reviewPrompts || {};
+    progress.reviewPrompts[g] = current.problem.steps[current.step].q;
+  }
+  else if(current.step === current.problem.steps.length - 1 && current.problem.reviewClean !== false && progress.review[g]){
+    progress.review[g]--;
+    if(progress.review[g] <= 0){ delete progress.review[g]; if(progress.reviewPrompts) delete progress.reviewPrompts[g]; }
+  }
   // Activity by day (for the Parent view)
   progress.days = progress.days || {}; const t = today(); progress.days[t] = (progress.days[t] || 0) + 1;
   Object.keys(progress.days).sort().slice(0, -30).forEach(k => delete progress.days[k]);
@@ -1937,6 +2014,7 @@ function check(){
     if(boss.active) bossHit(current.tries === 0);
     advance();
   } else if(current.tries === 0){
+    current.problem.reviewClean = false;
     current.tries = 1;
     feedback('hint', 'Not quite. Hint:', st.hint);
     if(!st.choices){ const inp = $('answer-input'); inp.select(); inp.focus(); }
@@ -3336,27 +3414,55 @@ async function fpLift(box){
     solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
   return made;
 }
+// Attack rolls use the full d20, including automatic misses and Critical Hits.
+function fpAttack(roll, bonus, ac){
+  const total = roll + bonus, critical = roll === 20, hit = roll !== 1 && (critical || total >= ac);
+  const solution = roll === 1 ? `A natural 1 always misses, even if the total would reach AC ${ac}.`
+    : critical ? 'A natural 20 always hits and is a Critical Hit. Roll twice as many damage dice; add the bonus once.'
+    : `${roll} + ${bonus} = ${total}, which is ${hit ? 'at least' : 'less than'} AC ${ac}: ${hit ? 'a hit' : 'a miss'}.`;
+  return { hit, critical, solution };
+}
+const FP_ATTACK_HINT = 'A natural 1 misses; a natural 20 hits and is a Critical Hit. Otherwise add the bonus and meet or beat the Armor Class.';
+function fpDamageQuestion(wname, wd, critical, r, target = ''){
+  const expression = diceText(wd.n * (critical ? 2 : 1), wd.d, wd.m);
+  const modifier = wd.m > 0 ? ' + ' + wd.m : wd.m < 0 ? ' − ' + -wd.m : '';
+  return {
+    q:`${critical ? `Critical Hit! ${wd.text} becomes ${expression}: roll twice as many damage dice and add the bonus once. ` : ''}Your ${wname} deals ${expression} damage. The ${r.rolls.length === 1 ? 'die shows' : 'dice show'} ${saidList(r.rolls)}${wd.m ? `, and you ${wd.m > 0 ? 'add' : 'subtract'} ${Math.abs(wd.m)}` : ''}. How much damage${target ? ' to ' + target : ''}?`,
+    answer:r.total, hint:critical ? 'Add all the damage dice, then add the modifier only once.' : 'Add the damage dice, then apply the modifier.',
+    solution:`${r.rolls.join(' + ')}${modifier} = ${r.total}.${critical ? ' The damage dice are doubled; the modifier is added once.' : ''}`,
+  };
+}
 // Smashing a wooden wall: attack rolls against AC 15 until 10 damage is done. Only hand weapons smash.
 async function fpSmash(box){
   const [wname, wtext] = pick(MELEE_WEAPONS), wd = parseDice(wtext), bonus = 3 + 2 + Math.floor((level() - 1) / 4);
   let hp = 10;
   while(hp > 0){
-    const roll = rand(2, 19), tot = roll + bonus, hit = tot >= 15;
+    const roll = rand(1, 20), attack = fpAttack(roll, bonus, 15);
     await forgeAsk(box, { q:`${heroAttack(wname)} at the planks. Your d20 roll is ${roll} and your attack bonus is +${bonus}. Wood has Armor Class 15. Hit or miss?`,
-      choices:['Hit', 'Miss'], answer: hit ? 'Hit' : 'Miss', next:'Next',
-      hint:'Add the bonus to the roll. You hit if the total is the Armor Class or higher.',
-      solution:`${roll} + ${bonus} = ${tot}, which is ${hit ? 'at least' : 'less than'} AC 15: ${hit ? 'a hit' : 'a miss'}.` });
-    if(!hit){ fpLog('You miss the wall.'); continue; }
-    const r = rollDice(wd);
-    await forgeAsk(box, { q:`Your ${wname} does ${wd.text} damage. The ${r.rolls.length === 1 ? 'die shows' : 'dice show'} ${saidList(r.rolls)}${wd.m ? `, and you add ${wd.m}` : ''}. How much damage do you do to the wall?`, answer: r.total,
-      hint: wd.m ? 'Add up the dice, then add the bonus.' : 'Add up the dice.', solution:`${r.rolls.join(' + ')}${wd.m ? ' + ' + wd.m : ''} = ${r.total}.` });
+      choices:['Hit', 'Miss'], answer: attack.hit ? 'Hit' : 'Miss', next:'Next', hint:FP_ATTACK_HINT, solution:attack.solution });
+    if(!attack.hit){ fpLog('You miss the wall.'); continue; }
+    const r = rollDice({ ...wd, n:wd.n * (attack.critical ? 2 : 1) });
+    await forgeAsk(box, fpDamageQuestion(wname, wd, attack.critical, r, 'the wall'));
     hp -= r.total; fpLog(hp > 0 ? `The planks crack. The wall has ${hp} hit points left.` : 'The planks give way!');
   }
 }
 async function fpChest(box, thing){
-  const gold = CHESTS[thing.size || 's'].gold, v = pick([5, 10]), n = rand(1, Math.max(1, Math.floor(gold * 0.6 / v))), coins = gold - n * v;
-  await forgeAsk(box, { q:`The chest holds ${coins} gold pieces and ${n} ${n === 1 ? 'gem' : 'gems'} worth ${v} gold each. How much treasure is that in all?`, answer: gold,
-    hint:'Work out what the gems are worth (how many times their value), then add the coins.', solution:`${n} × ${v} = ${n * v} for the gems, and ${n * v} + ${coins} = ${gold} gold in all.` });
+  const gold = CHESTS[thing.size || 's'].gold, kind = practicePick('forge-chest-math', ['total','gems','coins','each']);
+  let v = pick([5, 10]);
+  if(kind === 'each' && Math.floor(gold * 0.6 / v) < 2) v = 5;
+  const n = rand(kind === 'each' ? 2 : 1, Math.max(1, Math.floor(gold * 0.6 / v))), gems = n * v, coins = gold - gems;
+  const gemWord = n === 1 ? 'gem' : 'gems';
+  const questions = {
+    total:{ q:`The chest holds ${coins} gold pieces and ${n} ${gemWord} worth ${v} gold each. How much treasure is that in all?`, answer:gold,
+      hint:'Multiply the number of gems by their value, then add the coins.', solution:`${n} × ${v} = ${gems} for the gems, and ${gems} + ${coins} = ${gold} gold in all.` },
+    gems:{ q:`The chest holds ${coins} gold coins and ${n} ${gemWord} worth ${v} gold pieces each. How much ${n === 1 ? 'is just the gem' : 'are just the gems'} worth in all?`, answer:gems,
+      hint:'Multiply the number of gems by the value of each one.', solution:`${n} × ${v} = ${gems} gold pieces for the gems.` },
+    coins:{ q:`The chest holds ${gold} gold pieces of treasure in all. Its ${n} ${gemWord} ${n === 1 ? 'is' : 'are'} worth ${v} gold pieces each, and the rest is gold coins. How many gold coins are there?`, answer:coins,
+      hint:'Work out the value of the gems, then subtract it from the total treasure.', solution:`${n} × ${v} = ${gems} for the gems. ${gold} − ${gems} = ${coins} gold coins.` },
+    each:{ q:`The chest has ${n} gems worth ${gems} gold pieces altogether. Each gem has the same value. How many gold pieces is each gem worth?`, answer:v,
+      hint:'Divide the gems’ total value by the number of gems.', solution:`${gems} ÷ ${n} = ${v} gold pieces per gem.` },
+  };
+  await forgeAsk(box, questions[kind]);
   fp.gold += gold; fpRender(); fpLog(`You take ${gold} gold.`);
 }
 async function fpFight(box, name){
@@ -3367,22 +3473,19 @@ async function fpFight(box, name){
   fpLog(`${an(mon.n)} attacks!`);
   const foe = () => { const f = mk('div', 'foe'), s = mk('div', 'sigil'), bar = mk('div', 'bar'), fill = mk('i'); setArt(s, monSlug(mon.n), mon.n.charAt(0)); fill.style.width = Math.max(0, hp / max * 100) + '%'; bar.append(fill); f.append(s, mk('b', '', mon.n), bar, mk('span', '', `${Math.max(0, hp)} / ${max} HP · AC ${mon.ac}`)); return f; };
   while(hp > 0 && fp.hp > 0){
-    const roll = rand(2, 19), tot = roll + bonus, hit = tot >= mon.ac;
+    const roll = rand(1, 20), attack = fpAttack(roll, bonus, mon.ac);
     const p1 = forgeAsk(box, { q:`${heroAttack(wname)}. Your d20 roll is ${roll} and your attack bonus is +${bonus}. The ${mon.n}'s Armor Class is ${mon.ac}. Hit or miss?`,
-      choices:['Hit', 'Miss'], answer: hit ? 'Hit' : 'Miss', next:'Next',
-      hint:'Add the bonus to the roll. You hit if the total is the Armor Class or higher.',
-      solution:`${roll} + ${bonus} = ${tot}, which is ${hit ? 'at least' : 'less than'} AC ${mon.ac}: ${hit ? 'a hit' : 'a miss'}.` });
+      choices:['Hit', 'Miss'], answer: attack.hit ? 'Hit' : 'Miss', next:'Next', hint:FP_ATTACK_HINT, solution:attack.solution });
     box.prepend(foe()); await p1;
-    if(hit){
-      const r = rollDice(wd);
-      const p2 = forgeAsk(box, { q:`Your ${wname} does ${wd.text} damage. The ${r.rolls.length === 1 ? 'die shows' : 'dice show'} ${saidList(r.rolls)}${wd.m ? `, and you add ${wd.m}` : ''}. How much damage?`, answer: r.total,
-        hint: wd.m ? 'Add up the dice, then add the bonus.' : 'Add up the dice.', solution:`${r.rolls.join(' + ')}${wd.m ? ' + ' + wd.m : ''} = ${r.total}.` });
+    if(attack.hit){
+      const r = rollDice({ ...wd, n:wd.n * (attack.critical ? 2 : 1) });
+      const p2 = forgeAsk(box, fpDamageQuestion(wname, wd, attack.critical, r));
       box.prepend(foe()); await p2;
       hp -= r.total; fpLog(`You hit the ${mon.n} for ${r.total}.`);
     } else fpLog(`You miss the ${mon.n}.`);
     if(hp <= 0) break;
-    const mroll = rand(1, 20) + 4;
-    if(mroll >= HERO_AC){ const ad = rollDice(parseDice(mon.atk)); fpHurt(ad.total); fpLog(`The ${mon.n}'s ${mon.weapon} ${monHits(mon)} you for ${ad.total}.`); }
+    const mroll = rand(1, 20), retaliation = fpAttack(mroll, 4, HERO_AC);
+    if(retaliation.hit){ const atk = parseDice(mon.atk), ad = rollDice({ ...atk, n:atk.n * (retaliation.critical ? 2 : 1) }); fpHurt(ad.total); fpLog(`${retaliation.critical ? 'Critical Hit! ' : ''}The ${mon.n}'s ${mon.weapon} ${monHits(mon)} you for ${ad.total}.`); }
     else fpLog(`The ${mon.n} attacks and misses.`);
   }
   if(fp.hp > 0){ fp.kills++; fpLog(`The ${mon.n} is defeated!`); }
@@ -3720,8 +3823,12 @@ function renderParent(){
     [m.title, p.tries, p.correct, p.tries ? Math.round(p.correct/p.tries*100)+'%' : '–'].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.append(td); }); tbl.append(tr); });
   const ul = $('p-review'); ul.textContent = '';
   const rv = Object.keys(progress.review || {}).filter(k => GEN_INDEX[k]);
-  if(!rv.length){ const li = document.createElement('li'); li.textContent = 'Nothing outstanding. Every missed question type has been answered correctly twice since.'; ul.append(li); }
-  rv.forEach(k => { const li = document.createElement('li'); const sample = GEN_INDEX[k].gen(); li.textContent = `${GEN_INDEX[k].mod.title}: “${sample.steps[0].q}” (${progress.review[k]} more correct needed)`; ul.append(li); });
+  if(!rv.length){ const li = document.createElement('li'); li.textContent = 'Nothing outstanding. Each missed question type has been cleared with two complete examples answered correctly without hints.'; ul.append(li); }
+  rv.forEach(k => {
+    const li = document.createElement('li'), prompt = progress.reviewPrompts && progress.reviewPrompts[k];
+    li.textContent = `${GEN_INDEX[k].mod.title}: ${prompt ? '“'+prompt+'” · ' : ''}${progress.review[k]} more complete ${progress.review[k]===1?'example':'examples'} needed without hints.`;
+    ul.append(li);
+  });
 }
 $('pin-form').addEventListener('submit', e => {
   e.preventDefault();
