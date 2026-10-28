@@ -45,6 +45,9 @@
 <!-- splash:end -->
 <link rel="stylesheet" href="/shared/fonts/fonts.css">
 <script src="/shared/save.js"></script>
+<script src="/shared/sync-store.js"></script>
+<script src="/shared/merge.js"></script>
+<script src="/shared/sync.js"></script>
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <style>
 /* Home-screen app polish for iPad and Mac: no long-press callouts or double-tap zoom on controls. */
@@ -345,7 +348,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
           <div class="chain-num"><b id="chainNum">0</b><span>chain</span></div>
           <div class="chain-track"><i id="chainFill"></i></div>
           <div class="mult" id="mult">×1</div>
-          <div class="chain-next" id="chainNext">Get 5 in a row for ×1.5</div>
+          <div class="chain-next" id="chainNext">Get 5 in a row for ×1.25</div>
         </div>
         <div class="card" id="card">
           <div class="q" id="q"><span id="qa">7</span><span class="x">×</span><span id="qb">8</span></div>
@@ -353,7 +356,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
           <div class="reveal-note" id="revealNote"></div>
           <div class="speed">
             <div class="speed-track"><i id="speedFill"></i></div>
-            <div class="speed-lab"><span>Speed bonus</span><b id="speedLab">LIGHTNING +10</b></div>
+            <div class="speed-lab"><span>Speed bonus</span><b id="speedLab">LIGHTNING +8</b></div>
           </div>
         </div>
       </div>
@@ -368,7 +371,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
 
   <!-- DONE -->
   <section id="done" class="screen" hidden>
-    <div class="sub-head"><h2>That's all 100 for today</h2></div>
+    <div class="sub-head"><h2 id="dTitle">You have finished today's tries</h2></div>
     <div class="panel sum-grid">
       <div><span class="lab">Right answers</span><b id="dRight">0</b></div>
       <div><span class="lab">Screen time earned</span><b id="dEarned">0m</b></div>
@@ -444,8 +447,8 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
       </div>
       <div class="panel">
         <h3>The rules</h3>
-        <p>You get <b id="rTries">100</b> tries a day and no clock runs out. A wrong answer uses a try and breaks your chain. Screen time goes in your bank. You can cash in up to <b id="rCap">45</b> minutes on a school day and <b id="rCapW">90</b> on a weekend day. Anything left over stays in the bank, so save up during the week for a big weekend.</p>
-        <p style="margin-top:10px;color:var(--muted)">Example: a Lightning answer on a 12 chain is (16 + 8) × 1.5 = 36 seconds. A really great day earns about an hour.</p>
+        <p>You get <b id="rTries">100</b> tries a day and no clock runs out. A wrong answer uses a try and breaks your chain. Screen time goes in your bank. You can practise offline; connect to confirm a cash-in ticket. You can cash in up to <b id="rCap">45</b> minutes on a school day and <b id="rCapW">90</b> on a weekend day. Anything left over stays in the bank, so save up during the week for a big weekend.</p>
+        <p style="margin-top:10px;color:var(--muted)">Example: a Lightning answer on a 12 chain is (16 + 8) × 1.5 = 36 seconds. After applying the multiplier, round to the nearest whole second, then add any jackpot. A really great day earns about an hour.</p>
       </div>
     </div>
   </section>
@@ -489,7 +492,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
       <div class="row" style="margin-top:8px">
         <button class="btn small" data-adj="300">Add 5 min</button>
         <button class="btn small" data-adj="-300">Take 5 min</button>
-        <button class="btn small ghost" id="resetTries">Reset today's tries</button>
+        <button class="btn small ghost" id="resetTries">Refill today's tries</button>
         <button class="btn small ghost" id="wipeAll">Start over</button>
       </div>
     </div>
@@ -564,13 +567,14 @@ function mergeInto(dst, src) {
 function loadLocal() { try { const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
 function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} }
 let S = normalize(loadLocal());
+const sync = KidSync.create({key:LS_KEY, initial:clone(S), merge:KidMerge.chain, legacy:(local, remote) => KidMerge.legacy('chain', local, remote)});
 
 const pad2 = n => String(n).padStart(2, '0');
 function todayKey(d = new Date()) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 function today() {
   const k = todayKey();
   if (!S.days[k]) {
-    S.days[k] = { tries: 0, correct: 0, earned: 0, redeemed: 0, bestChain: 0, lightning: 0 };
+    S.days[k] = { tries: 0, bonusTries: 0, correct: 0, earned: 0, redeemed: 0, bestChain: 0, lightning: 0 };
     const keys = Object.keys(S.days).sort();
     while (keys.length > 120) delete S.days[keys.shift()];
   }
@@ -578,7 +582,7 @@ function today() {
 }
 function isWeekend() { const d = new Date().getDay(); return d === 0 || d === 6; }
 function capMin() { return isWeekend() ? S.settings.weekendCap : S.settings.weekdayCap; }
-function triesLeft() { return Math.max(0, S.settings.tries - today().tries); }
+function triesLeft() { const d = today(); return Math.max(0, S.settings.tries + (d.bonusTries || 0) - d.tries); }
 
 /* ---------------- saving: device always, Claude account when available ----------------
    DOC_ID and LS_KEY must never be renamed again: renaming them is what orphaned the
@@ -597,21 +601,31 @@ function persist() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flush, 1500);
 }
+let syncTask = null;
 async function flush() {
   if (!remote || !dirty) return;
-  if (writing) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 800); return; }
+  if (writing) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 800); return syncTask; }
   writing = true; dirty = false;
-  try {
-    await remote.set(clone(S));
-    syncState = 'ok';
-  } catch (e) {
-    const code = e && e.code;
-    dirty = true; // never drop unsaved progress; local copy is already saved
-    if (code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') { remote = null; syncState = 'local'; }
-    else { syncState = 'retry'; saveTimer = setTimeout(flush, (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random() * 3000); }
-  }
-  writing = false;
-  setSync();
+  const sent = clone(S);
+  syncTask = (async () => {
+    try {
+      const saved = normalize(await sync.save(remote, sent));
+      S = normalize(KidMerge.chain(sent, S, saved));
+      saveLocal();
+      dirty = dirty || !KidMerge.equal(S, saved);
+      syncState = 'ok';
+    } catch (e) {
+      dirty = true;
+      if (e && e.remote) { S = normalize(KidMerge.chain(sent, S, e.remote)); saveLocal(); }
+      const code = e && e.code;
+      if (['revoked','not_granted','capability_disabled','capability_removed'].includes(code)) { remote = null; syncState = 'local'; }
+      else { syncState = 'retry'; saveTimer = setTimeout(flush, code === 'resource_exhausted' ? 5000 : 10000); }
+    } finally {
+      writing = false; syncTask = null; setSync(); if (!$('shop').hidden && !cashing) renderShop();
+      if (dirty && remote) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, syncState === 'ok' ? 100 : 10000); }
+    }
+  })();
+  return syncTask;
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(saveTimer); flush(); } });
 addEventListener('pagehide', () => { clearTimeout(saveTimer); flush(); });
@@ -632,17 +646,23 @@ function rerender() {
 }
 function legacyLocalKeys() {
   const out = [];
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('chain-reaction') && k !== LS_KEY && !k.endsWith(':merged')) out.push(k); } } catch (e) {}
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('chain-reaction') && k !== LS_KEY && !k.startsWith(LS_KEY + ':') && !k.endsWith(':merged')) out.push(k); } } catch (e) {}
   return out;
 }
 function retireLocal(k) { try { localStorage.setItem(k + ':merged', localStorage.getItem(k)); localStorage.removeItem(k); } catch (e) {} }
-function mergeLocalLegacy() {
-  let changed = false;
-  legacyLocalKeys().forEach(k => {
-    try { const r = JSON.parse(localStorage.getItem(k)); if (r && typeof r === 'object' && !S.merged.includes('ls:' + k)) { mergeInto(S, r); S.merged.push('ls:' + k); changed = true; } } catch (e) {}
-    retireLocal(k);
-  });
-  return changed;
+function legacyMutation(marker) {
+  // A stable import ID is shared by devices; the server applies it only once per save.
+  let a = 2166136261, b = 2246822519;
+  for (const c of marker) { a = Math.imul(a ^ c.charCodeAt(0), 16777619); b = Math.imul(b ^ c.charCodeAt(0), 3266489917); }
+  return 'migration:' + (a >>> 0).toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0');
+}
+async function importLegacy(ref, data, marker) {
+  const before = clone(S);
+  const result = await sync.transact(ref, before, draft => {
+    if (!draft.merged.includes(marker)) { mergeInto(draft, data); draft.merged.push(marker); draft.updatedAt = Date.now(); }
+  }, {kind:'migration', marker}, {mutation:legacyMutation(marker)});
+  S = normalize(KidMerge.chain(before, S, result.state)); saveLocal();
+  dirty = dirty || !KidMerge.equal(S, normalize(result.state));
 }
 // Started offline: try again when the network or the app comes back.
 let connecting = true;
@@ -656,49 +676,57 @@ async function connect() {
     const id = user ? await user.id() : null;
     if (!db || !id) {
       syncState = 'local';
-      if (mergeLocalLegacy()) persist();
       return;
     }
     const base = 'data/users/' + id + '/';
-    const ref = db.doc(base + DOC_ID);
+    const ref = KidSyncStore.doc('chain', id, DOC_ID);
     const snap = await ref.get();
     remote = ref;
-    if (snap.exists) {
-      const r = snap.data() || {};
-      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); }
-      else if ((S.updatedAt || 0) > (r.updatedAt || 0)) dirty = true;
-    } else if (S.updatedAt) dirty = true;
+    const serverState = snap.exists ? snap.data() : undefined;
+    S = normalize(sync.reconcile(S, serverState)); saveLocal();
+    dirty = dirty || sync.hasPending || !KidMerge.equal(S, normalize(serverState));
 
-    // One-time recovery of saves stored under earlier document names.
-    let changed = false, accountLegacy = false;
-    const toMark = [];
+    // Imports are confirmed transactions with shared mutation IDs, so two devices
+    // cannot both add the same old bank balance before its migration marker appears.
+    const imports = []; let accountLegacy = false;
     for (const name of LEGACY_DOCS) {
-      const lref = db.doc(base + name);
-      const ls = await lref.get();
+      const lref = db.doc(base + name), ls = await lref.get();
       if (!ls.exists) continue;
       accountLegacy = true;
-      const ld = ls.data() || {};
-      if (ld.migratedTo || S.merged.includes('db:' + name)) continue;
-      mergeInto(S, ld); S.merged.push('db:' + name); changed = true; toMark.push(lref);
+      const data = ls.data() || {};
+      if (!data.migratedTo) imports.push({data, marker:'db:' + name, lref});
     }
-    // Old device-only saves: if the account already had an old save, this device's copy is the same data.
-    if (accountLegacy) legacyLocalKeys().forEach(retireLocal);
-    else if (mergeLocalLegacy()) changed = true;
-
-    if (changed) {
-      S.updatedAt = Date.now(); saveLocal();
-      await ref.set(clone(S)); dirty = false;
-      for (const lref of toMark) { try { await lref.update({ migratedTo: DOC_ID, migratedAt: Date.now() }); } catch (e) {} }
+    if (!accountLegacy) for (const key of legacyLocalKeys()) {
+      try { const data = JSON.parse(localStorage.getItem(key)); if (data && typeof data === 'object') imports.push({data, marker:'ls:' + key, key}); }
+      catch (_) { /* Keep an unreadable old save for a parent to recover. */ }
     }
-    syncState = 'ok';
-    if (dirty) flush();
+    if (imports.length) {
+      if (dirty || sync.hasPending) await flush();
+      if (syncState !== 'retry') {
+        writing = true;
+        try {
+          for (const item of imports) {
+            await importLegacy(ref, item.data, item.marker);
+            if (item.lref) { try { await item.lref.update({migratedTo:DOC_ID, migratedAt:Date.now()}); } catch (_) {} }
+            if (item.key) retireLocal(item.key);
+          }
+        } finally { writing = false; }
+      }
+    }
+    if (accountLegacy && !sync.hasPending && syncState !== 'retry') legacyLocalKeys().forEach(retireLocal);
+    if (syncState !== 'retry') syncState = 'ok';
+    if (dirty || sync.hasPending) { dirty = true; flush(); }
 
     // Live: pick up progress made on another device or tab.
-    unsub = ref.onSnapshot(s => {
-      if (!s.exists || s.metadata.hasPendingWrites || writing || dirty) return;
-      const r = s.data() || {};
-      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); rerender(); }
-    }, () => { unsub = null; });
+    unsub = ref.onSnapshot(snapshot => {
+      if (!snapshot.exists || writing || dirty) return false;
+      const r = snapshot.data();
+      const next = normalize(sync.reconcile(S, r)), changed = !KidMerge.equal(S, next);
+      S = next; saveLocal(); if (changed) rerender();
+      dirty = !KidMerge.equal(S, normalize(r));
+      if (dirty) flush();
+      return true;
+    });
   } catch (e) {
     if (!remote) syncState = 'local';
     else { syncState = 'retry'; dirty = true; saveTimer = setTimeout(flush, 5000); }
@@ -718,6 +746,7 @@ function fmtTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: 'numer
 /* ---------------- screens ---------------- */
 const SCREENS = ['home', 'play', 'done', 'shop', 'map', 'rules'];
 function show(name) {
+  if (name !== 'play') suspendPlay();
   SCREENS.forEach(s => { $(s).hidden = s !== name; });
   if (name === 'home') renderHome();
   if (name === 'shop') renderShop();
@@ -740,7 +769,7 @@ function renderHome() {
   $('hBestToday').textContent = 'today ' + d.bestChain;
   const left = triesLeft();
   $('playBtn').disabled = left === 0;
-  $('playBtn').textContent = left === 0 ? 'Back tomorrow' : (d.tries > 0 ? 'Keep playing' : 'Play');
+  $('playBtn').textContent = left === 0 ? 'Back tomorrow' : (sessionActive && sess.day === todayKey() ? 'Resume' : d.tries > 0 ? 'Keep playing' : 'Play');
   setSync();
 }
 
@@ -876,12 +905,50 @@ function recordFact(a, b, ok, ms) {
 
 /* ---------------- play ---------------- */
 let cur = null, typed = '', t0 = 0, locked = false, chain = 0, sess = null, speedRaf = 0;
+let sessionActive = false, playing = false, pausedAt = null;
+const playTimers = new Set();
 function multFor(c) { for (const [n, m] of STEPS) if (c >= n) return m; return 1; }
 function tierFor(ms) { return SPEED.findIndex(s => ms <= s[0]); }
-
+// Keep the remaining feedback time while paused. A stale browser callback cannot affect a new question.
+function armPlayTimer(task) {
+  const version = ++task.version;
+  task.due = performance.now() + task.remaining;
+  task.id = setTimeout(() => {
+    if (!playing || task.version !== version || !playTimers.delete(task)) return;
+    task.id = 0; task.fn();
+  }, task.remaining);
+}
+function playLater(fn, delay) {
+  const task = { fn, remaining:delay, due:0, id:0, version:0 };
+  playTimers.add(task); if (playing) armPlayTimer(task);
+}
+function clearPlayTimers() {
+  playTimers.forEach(task => { clearTimeout(task.id); task.version++; });
+  playTimers.clear();
+}
+function suspendPlay() {
+  if (!playing) return;
+  pausedAt = performance.now(); playing = false;
+  playTimers.forEach(task => {
+    task.remaining = Math.max(0, task.due - pausedAt);
+    clearTimeout(task.id); task.id = 0; task.version++;
+  });
+  stopSpeed();
+}
 function startPlay() {
+  if (playing) return;
   if (triesLeft() === 0) { showDone(); return; }
-  sess = { right: 0, tries: 0, earned: 0, chain: 0, light: 0 };
+  if (sessionActive && sess.day === todayKey()) {
+    if (pausedAt !== null) t0 += performance.now() - pausedAt;
+    pausedAt = null; playing = true;
+    show('play'); renderMute(); renderChain(false); renderHud(); requestWake();
+    playTimers.forEach(armPlayTimer);
+    if (!locked) startSpeed();
+    return;
+  }
+  clearPlayTimers();
+  sess = { day:todayKey(), right: 0, tries: 0, earned: 0, chain: 0, light: 0 };
+  sessionActive = true; playing = true; pausedAt = null;
   chain = 0; retry = []; locked = false;
   show('play');
   renderMute(); renderChain(false); renderHud();
@@ -892,7 +959,8 @@ $('playBtn').addEventListener('click', async () => { audio(); await readyP; star
 $('homeBtn').addEventListener('click', () => show('home'));
 
 function nextQ() {
-  if (triesLeft() === 0) { setTimeout(showDone, 700); return; }
+  if (!playing) return;
+  if (triesLeft() === 0) { playLater(() => { if (triesLeft() === 0) showDone(); else nextQ(); }, 700); return; }
   cur = pick(); lastKey = factKey(cur.a, cur.b);
   typed = ''; locked = false;
   $('qa').textContent = cur.a; $('qb').textContent = cur.b;
@@ -924,7 +992,7 @@ function startSpeed() {
 function stopSpeed() { if (speedRaf) cancelAnimationFrame(speedRaf); speedRaf = 0; }
 
 function press(k) {
-  if (locked || !cur || $('play').hidden) return;
+  if (!playing || locked || !cur || $('play').hidden) return;
   if (k === 'C') { typed = ''; renderAns(''); return; }
   if (k === 'B') { typed = typed.slice(0, -1); renderAns(''); return; }
   if (typed.length >= 3) return;
@@ -934,6 +1002,9 @@ function press(k) {
   if (typed.length === String(cur.a * cur.b).length) submit();
 }
 function submit() {
+  if (!playing || locked || !cur) return;
+  if (triesLeft() === 0) { showDone(); return; }
+  const question = { a:cur.a, b:cur.b };
   const ms = performance.now() - t0;
   stopSpeed();
   locked = true;
@@ -968,19 +1039,19 @@ function submit() {
     sfx.right(chain, tier);
 
     if (jackpot) {
-      setTimeout(() => {
+      playLater(() => {
         banner(chain === 100 ? 'PERFECT!' : 'CHAIN ' + chain + '!', '+' + (jackpot >= 60 ? (jackpot / 60) + ' min' : jackpot + 's') + ' jackpot', css('--gold'));
         rain(140, [css('--gold'), css('--pink'), css('--cyan'), css('--tang'), css('--good')]);
         flash(); quake(); sfx.jackpot();
       }, 120);
     } else if (mult > prevMult) {
-      setTimeout(() => { banner('×' + mult, 'Multiplier up!', css('--pink')); burst(x, y, 50, [css('--pink'), css('--gold')], 2.2); sfx.step(); }, 120);
+      playLater(() => { banner('×' + mult, 'Multiplier up!', css('--pink')); burst(x, y, 50, [css('--pink'), css('--gold')], 2.2); sfx.step(); }, 120);
     } else if (tier === 0 && chain >= 3 && chain % 3 === 0) {
       quake();
     }
     renderChain(mult > prevMult);
     renderHud();
-    setTimeout(nextQ, 170);
+    playLater(nextQ, 170);
   } else {
     const broken = chain;
     chain = 0;
@@ -996,11 +1067,11 @@ function submit() {
     retry.push({ a: cur.a, b: cur.b, due: qCount + 3 + Math.floor(Math.random() * 3) });
     renderChain(false);
     renderHud();
-    setTimeout(() => {
+    playLater(() => {
       typed = String(ans); renderAns('reveal');
-      $('revealNote').textContent = cur.a + ' × ' + cur.b + ' = ' + ans;
+      $('revealNote').textContent = question.a + ' × ' + question.b + ' = ' + ans;
     }, 380);
-    setTimeout(nextQ, 1700);
+    playLater(nextQ, 1700);
   }
 }
 function renderChain(bump) {
@@ -1025,8 +1096,10 @@ function renderHud() {
   $('triesFill').style.width = (left / S.settings.tries * 100) + '%';
 }
 function showDone() {
+  sessionActive = false; suspendPlay(); clearPlayTimers(); pausedAt = null;
   const d = today();
   show('done');
+  $('dTitle').textContent = 'You have used all ' + d.tries + ' tries today';
   $('dRight').textContent = d.correct + ' / ' + d.tries;
   $('dEarned').textContent = fmtMS(d.earned);
   $('dChain').textContent = d.bestChain;
@@ -1059,7 +1132,7 @@ function requestWake() { try { navigator.wakeLock && navigator.wakeLock.request(
 function releaseWake() { try { wake && wake.release(); } catch (e) {} wake = null; }
 
 /* ---------------- shop ---------------- */
-let pickMin = 0;
+let pickMin = 0, cashing = false, cashMessage = '';
 function availMin() { return Math.max(0, Math.min(Math.floor(S.bank / 60), capMin() - today().redeemed)); }
 function renderShop() {
   const d = today(), av = availMin();
@@ -1075,41 +1148,71 @@ function renderShop() {
   opts.forEach(m => {
     const b = document.createElement('button');
     b.className = 'choice' + (m === pickMin ? ' sel' : '');
-    b.disabled = m > av;
+    b.disabled = cashing || m > av;
     b.innerHTML = '<b>' + m + '</b><small>' + (m === av ? 'all you can' : 'minutes') + '</small>';
-    b.addEventListener('click', () => { pickMin = m; armed = false; renderShop(); });
+    b.addEventListener('click', () => { pickMin = m; armed = false; cashMessage = ''; renderShop(); });
     box.appendChild(b);
   });
   const btn = $('redeemBtn');
-  btn.disabled = !pickMin;
-  btn.textContent = !pickMin ? 'Pick minutes' : (armed ? 'Tap again to cash in ' + pickMin + ' min' : 'Cash in ' + pickMin + ' minutes');
+  btn.disabled = cashing || !pickMin;
+  btn.textContent = cashing ? 'Confirming minutes…' : !pickMin ? 'Pick minutes' : (armed ? 'Tap again to cash in ' + pickMin + ' min' : 'Cash in ' + pickMin + ' minutes');
   let hint = '';
   if (d.redeemed >= capMin()) hint = 'You have used today\'s limit. Your bank keeps growing for tomorrow.';
   else if (S.bank < 300) hint = 'Earn ' + fmtMS(300 - S.bank) + ' more to cash in 5 minutes.';
-  $('sHint').textContent = hint;
+  $('sHint').textContent = cashMessage || hint;
   const list = $('ticketList'); list.innerHTML = '';
   const todays = S.tickets.filter(t => todayKey(new Date(t.at)) === todayKey());
   if (!todays.length) list.innerHTML = '<li class="empty-note">No tickets yet today. Cashed-in minutes show up here.</li>';
   todays.slice().reverse().forEach(t => { const li = document.createElement('li'); li.innerHTML = '<span></span><b></b>'; li.firstChild.textContent = fmtTime(t.at); li.lastChild.textContent = t.min + ' min'; list.appendChild(li); });
 }
 let armed = false, armTimer = 0;
-$('redeemBtn').addEventListener('click', () => {
-  if (!pickMin) return;
-  if (!armed) { armed = true; renderShop(); clearTimeout(armTimer); armTimer = setTimeout(() => { armed = false; if (!$('shop').hidden) renderShop(); }, 4000); return; }
+$('redeemBtn').addEventListener('click', async () => {
+  if (cashing || !pickMin) return;
+  if (!armed) { armed = true; cashMessage = ''; renderShop(); clearTimeout(armTimer); armTimer = setTimeout(() => { armed = false; if (!$('shop').hidden) renderShop(); }, 4000); return; }
   armed = false; clearTimeout(armTimer);
-  const m = Math.min(pickMin, availMin());
-  if (!m) { renderShop(); return; }
-  S.bank -= m * 60; today().redeemed += m;
-  const t = { id: Date.now().toString(36), at: Date.now(), min: m };
-  S.tickets.push(t); if (S.tickets.length > 80) S.tickets.splice(0, S.tickets.length - 80);
-  persist();
-  pickMin = 0; renderShop();
-  $('tMin').textContent = m; $('tWhen').textContent = fmtWhen(t.at);
-  $('ticket').hidden = false;
-  rain(160, [css('--gold'), css('--pink'), css('--cyan'), css('--good')]);
-  sfx.ticket();
+  const minutes = pickMin;
+  cashing = true; cashMessage = 'Confirming your bank and today’s limit…'; renderShop();
+  let before = null, ownsWrite = false;
+  try {
+    await readyP;
+    if (!remote && !connecting) { connecting = true; await connect(); }
+    if (!remote) { const e = new Error('Connect to confirm your minutes. Your practice stays saved on this device.'); e.code = 'unavailable'; throw e; }
+    if (syncTask) await syncTask;
+    if (connecting || writing) { const e = new Error('Your save is still syncing. Try cashing in again in a moment.'); e.code = 'busy'; throw e; }
+    clearTimeout(saveTimer); writing = true; ownsWrite = true;
+    before = clone(S);
+    const at = Date.now(), receipt = {id:window.crypto && crypto.randomUUID ? crypto.randomUUID() : at.toString(36) + '-' + Math.random().toString(36).slice(2), at, min:minutes};
+    const result = await sync.transact(remote, before, draft => {
+      const key = todayKey(new Date(at));
+      const day = draft.days[key] || (draft.days[key] = {tries:0, bonusTries:0, correct:0, earned:0, redeemed:0, bestChain:0, lightning:0});
+      const weekday = new Date(at).getDay(), cap = weekday === 0 || weekday === 6 ? draft.settings.weekendCap : draft.settings.weekdayCap;
+      const available = Math.max(0, Math.min(Math.floor(draft.bank / 60), cap - day.redeemed));
+      if (minutes > available) { const e = new Error('Your bank or daily limit changed. Choose minutes again.'); e.code = 'conflict'; throw e; }
+      receipt.generation = clone(draft.reset || null);
+      draft.bank -= minutes * 60; day.redeemed += minutes;
+      draft.tickets.push(receipt); draft.updatedAt = Date.now();
+    }, receipt);
+    S = normalize(KidMerge.chain(before, S, result.state)); saveLocal();
+    dirty = !KidMerge.equal(S, normalize(result.state)); syncState = 'ok';
+    const ticket = result.result;
+    if (!ticket || typeof ticket.id !== 'string' || !Number.isInteger(ticket.min) || ticket.min <= 0 || !KidMerge.equal(ticket.generation, result.state.reset || null)) {
+      const e = new Error('Your save changed while syncing. Choose minutes again.'); e.code = 'conflict'; e.remote = result.state; throw e;
+    }
+    pickMin = 0; cashMessage = '';
+    $('tMin').textContent = ticket.min; $('tWhen').textContent = fmtWhen(ticket.at);
+    $('ticket').hidden = false;
+    rain(160, [css('--gold'), css('--pink'), css('--cyan'), css('--good')]); sfx.ticket();
+  } catch (e) {
+    if (e && e.remote && before) { S = normalize(KidMerge.chain(before, S, e.remote)); saveLocal(); }
+    dirty = dirty || sync.hasPending;
+    cashMessage = e && (e.code === 'conflict' || e.code === 'busy') ? e.message : 'Could not confirm yet. Reconnect and try again; the same request will be checked before any new ticket is made.';
+    if (sync.hasPending) syncState = 'retry';
+  } finally {
+    cashing = false; if (ownsWrite) writing = false; renderShop(); setSync();
+    if (dirty && remote) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 1500); }
+  }
 });
-$('shopBtn').addEventListener('click', () => { pickMin = 0; armed = false; show('shop'); });
+$('shopBtn').addEventListener('click', () => { pickMin = 0; armed = false; cashMessage = ''; show('shop'); });
 $('tClose').addEventListener('click', () => { $('ticket').hidden = true; });
 
 /* ---------------- fact map ---------------- */
@@ -1186,7 +1289,7 @@ function openParent() {
   $('setTries').value = S.settings.tries;
   $('setWeekday').value = S.settings.weekdayCap;
   $('setWeekend').value = S.settings.weekendCap;
-  resetArmed = false; $('resetTries').textContent = 'Reset today\'s tries';
+  resetArmed = false; $('resetTries').textContent = 'Refill today\'s tries';
   wipeArmed = false; $('wipeAll').textContent = 'Start over';
   renderParent();
   $('parent').hidden = false;
@@ -1200,14 +1303,16 @@ function renderParent() {
 }
 document.querySelectorAll('[data-adj]').forEach(b => b.addEventListener('click', () => { S.bank = Math.max(0, S.bank + Number(b.dataset.adj)); persist(); renderParent(); }));
 $('resetTries').addEventListener('click', () => {
-  if (!resetArmed) { resetArmed = true; $('resetTries').textContent = 'Tap again to reset'; return; }
-  today().tries = 0; persist(); resetArmed = false; $('resetTries').textContent = 'Tries reset';
+  if (!resetArmed) { resetArmed = true; $('resetTries').textContent = 'Tap again to refill'; return; }
+  const d = today(); d.bonusTries = d.tries;
+  persist(); resetArmed = false; $('resetTries').textContent = 'Tries refilled';
 });
 let wipeArmed = false;
 $('wipeAll').addEventListener('click', () => {
   if (!wipeArmed) { wipeArmed = true; $('wipeAll').textContent = 'Tap again to erase everything'; return; }
-  const keep = { ...S.settings }, merged = S.merged.slice();
-  S = fresh(); S.settings = keep; S.merged = merged;
+  const keep = { ...S.settings }, merged = S.merged.slice(), previousReset = S.reset;
+  sessionActive = false; suspendPlay(); clearPlayTimers(); pausedAt = null;
+  S = fresh(); S.settings = keep; S.merged = merged; S.reset = previousReset; KidMerge.stampReset(S);
   persist(); wipeArmed = false; $('wipeAll').textContent = 'Erased';
   renderParent();
 });

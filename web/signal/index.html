@@ -45,6 +45,9 @@
 <!-- splash:end -->
 <link rel="stylesheet" href="/shared/fonts/fonts.css">
 <script src="/shared/save.js"></script>
+<script src="/shared/sync-store.js"></script>
+<script src="/shared/merge.js"></script>
+<script src="/shared/sync.js"></script>
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <style>
 /* Home-screen app polish for iPad and Mac: no long-press callouts or double-tap zoom on controls. */
@@ -521,7 +524,7 @@ const STORY_EN = [
       placeholder: 'like 7:30', hints: ['Start at 9:10 and count up four minutes.', '9:11, 9:12, 9:13, and then...'],
       clue: 'Each broadcast lasts four minutes: 9:10 to 9:14.' },
   ],
-  outro: 'There is only one tower in Larkspur Falls: the old WLRK radio tower on top of Hollow Hill. It has been silent since before your parents were born. So who is sending signals from it? Rosa has a plan. Tomorrow, the club is going to the library to read old newspapers.',
+  outro: 'There is only one tower in Larkspur Falls: the old WLRK radio tower on top of Hollow Hill. It has been silent for a long time. So who is sending signals from it? Rosa has a plan. Tomorrow, the club is going to the library to read old newspapers.',
 },
 {
   id: 'c2', title: 'Silent Since 1961',
@@ -545,9 +548,9 @@ const STORY_EN = [
     ] },
   ],
   puzzles: [
-    { id: 'p1', skill: 'math', q: 'How many years was the tower silent before the new signals began?', num: 25, answers: ['25'], input: 'decimal',
+    { id: 'p1', skill: 'math', q: 'About how many years was the tower silent before the new signals began?', num: 25, answers: ['25'], input: 'decimal',
       hints: ['Find the year printed on each newspaper clipping.', 'Subtract the older year from the newer one: 1986 − 1961.'],
-      clue: 'WLRK was silent for 25 years, from 1961 to 1986.' },
+      clue: 'WLRK was silent for about 25 years, from 1961 to 1986.' },
     { id: 'p2', skill: 'inference', q: 'Which clue connects the old radio station to the new signals?',
       choices: [
         { t: 'Agnes Pell ended her show at ten past nine, the same time the signal starts.', ok: true },
@@ -633,7 +636,7 @@ const STORY_EN = [
       code: 'C2 D3 A3 A3 D3 B5 / C2 D2 A3 A3', aid: 'grid', answers: ['hollow hill', 'hollowhill'],
       hints: ['Find column C, then go down to row 2. That letter is H.', 'The first word starts with H, O, L...', 'The first word is HOLLOW. The second word starts with H too.'],
       clue: 'The grid code names HOLLOW HILL.' },
-    { id: 'p2', skill: 'math', q: 'Walking along the roads, how far is it from the Library to the Hollow Hill tower? Answer in miles.', num: 1.5, answers: ['1.5', '11/2', '1and1/2', 'oneandahalf', '3/2', '6/4'], input: 'text', placeholder: 'miles',
+    { id: 'p2', skill: 'math', q: 'Walking along the roads, how far is it from the Library to the Hollow Hill tower? Answer in miles.', num: 1.5, answers: ['1.5', '1and1/2', 'oneandahalf', '3/2', '6/4'], input: 'text', placeholder: 'miles',
       hints: ['Count the squares you move across from column B to column E. Then count down from row 2 to row 5.', 'That\'s 3 across and 3 down: 6 blocks. Each block is 1/4 mile.', '6 × 1/4 = 6/4, which is 1 1/2 miles.'],
       clue: 'Hollow Hill is 1 1/2 miles from the library.' },
     { id: 'p3', skill: 'inference', q: 'Who most likely wrote the pencil note on the card?',
@@ -709,7 +712,7 @@ const STORY_EN = [
   id: 'c6', title: 'Keep Your Dial Warm',
   docs: [
     { id: 'c6d1', kind: 'notebook', tab: 'Notebook p. 12', title: 'Static Club Notebook', meta: 'Saturday, September 27, 1986', body: [
-      'Rosa writing, and my hands are still shaking (the good kind). We rode up Hollow Hill Road at 7:45 PM. The red clay stuck to our tires, just like Mr. Grady\'s truck. At the top, under the giant tower, there\'s a little brick shed. A light was on inside, and we could hear a soft hum, like a refrigerator.',
+      'Rosa writing, and my hands are still shaking (the good kind). We reached the shed at the top of Hollow Hill Road at 7:45 PM. The red clay stuck to our tires, just like Mr. Grady\'s truck. At the top, under the giant tower, there\'s a little brick shed. A light was on inside, and we could hear a soft hum, like a refrigerator.',
       'Milo knocked. A small woman with silver hair and enormous glasses opened the door. Behind her was a desk covered in dials, a microphone, and a brass Morse key. A row of car batteries sat on the floor, all wired together.',
       'She looked at us for a long moment. Then she laughed, a real laugh. "Well," she said. "Someone finally answered."',
       'It was Agnes Pell. She made us cocoa and told us everything. When she worked at WLRK, Walt used to send her a puzzle every night at 9:10, right after her show, and she would solve it on the air. After Walt died, her house got very quiet. So she repaired his old transmitter, just to play the game again. "I sent a puzzle every night for sixteen nights," she said. "I didn\'t know if anyone would ever solve one."',
@@ -718,7 +721,7 @@ const STORY_EN = [
       'Dear Static Club,',
       'Thank you for answering. I want you to know something important. The town council has approved a plan to turn the old WLRK shed into a small community radio station. Mr. Grady is donating the batteries. Ms. Ortiz has promised a shelf of radio books. Sheriff Moss says she will finally run a power line up the hill, as long as I stop "scaring half of Birch Street."',
       'Every Saturday at 9:10 PM, the Static Club will have its own show. You will need to learn Morse code properly, and I am a strict teacher.',
-      'One last puzzle, the way Walt and I always ended our game. Send me your reply in code. Turn the wheel forward by the number of years WLRK was silent. Then write WE HEAR YOU in the new letters.',
+      'One last puzzle, the way Walt and I always ended our game. Send me your reply in code. Subtract 1961 from 1986, the year numbers on the newspaper clippings. Turn the wheel forward by that number. Then write WE HEAR YOU in the new letters.',
       'Keep your dial warm,',
       'Agnes',
     ] },
@@ -728,7 +731,7 @@ const STORY_EN = [
       choices: [
         { t: 'She missed the nightly puzzle game with Walt and hoped someone would answer.', ok: true },
         { t: 'She wanted to scare people on Birch Street.', why: 'She jokes about that in her letter, but Rosa\'s page says why she really started.' },
-        { t: 'The town council asked her to test the tower.', why: 'The council only approved the station after the club found her.' },
+        { t: 'The town council asked her to test the tower.', why: 'Rosa\'s page says she repaired the transmitter to play Walt\'s puzzle game again.' },
         { t: 'She wanted to sell Walt\'s old radios.', why: 'Neither document says anything about selling.' } ],
       hints: ['Read the last paragraph of Rosa\'s page again.', 'What did Walt and Agnes do every night at 9:10? What happened after he died?'],
       clue: 'Agnes missed her nightly puzzle game with Walt, so she started a new one.' },
@@ -742,9 +745,9 @@ const STORY_EN = [
         { t: 'Argued about it', why: 'If they argued, would the plan be going ahead?' },
         { t: 'Paid for the batteries', why: 'The letter says Mr. Grady is donating the batteries.' } ],
       hints: ['After the council approved it, the plan is going ahead.', 'When a grown-up approves your idea, what did they say?'] },
-    { id: 'p4', skill: 'shift', q: 'Turn the wheel forward by the number of years WLRK was silent. Then find each letter of WE HEAR YOU on the inside ring, and write the outside letter next to it. What is your coded reply?',
+    { id: 'p4', skill: 'shift', q: 'Subtract 1961 from 1986, the year numbers on the newspaper clippings. Turn the wheel forward by that number. Then find each letter of WE HEAR YOU on the inside ring, and write the outside letter next to it. What is your coded reply?',
       code: 'WE HEAR YOU', aid: 'wheel', answers: ['vd gdzq xnt', 'vdgdzqxnt'],
-      hints: ['Check your notebook: WLRK was silent for 25 years. Turn the wheel to Forward 25.', 'Forward 25 lands in the same place as Back 1, because the alphabet has 26 letters. W becomes V.', 'Every letter goes one back: W→V, E→D, H→G, A→Z, R→Q, Y→X, O→N, U→T.'],
+      hints: ['Subtract the year numbers: 1986 − 1961 = 25. Turn the wheel to Forward 25.', 'Forward 25 lands in the same place as Back 1, because the alphabet has 26 letters. W becomes V.', 'Every letter goes one back: W→V, E→D, H→G, A→Z, R→Q, Y→X, O→N, U→T.'],
       clue: 'Your reply: VD GDZQ XNT.' },
   ],
   outro: 'At 9:10 PM, Rosa held down the brass key while you read the letters out loud: V-D, G-D-Z-Q, X-N-T. Agnes closed her eyes and listened to every beep. Then she leaned toward the microphone, the same way she did twenty-five years ago. "Goodnight, Larkspur," she said. "Keep your dial warm." Down the hill on Birch Street, Mrs. Lottie Fern\'s radio crackled. This time, she smiled. Case closed. The Static Club will return.',
@@ -777,7 +780,7 @@ const T = {
     notTurned: 'Not turned', fwd: n => 'Forward ' + n, bck: n => 'Back ' + n, sameAs: x => ' (same as ' + x + ')', tapGreen: 'Tap a green letter to see where it lands.',
     cluesFound: 'Clues found', documents: 'Documents', chTab: (n, tab) => 'Chapter ' + n + ' · ' + tab,
     noClues: 'No clues yet. Solve puzzles to collect them.', noDocs: 'Documents you read show up here.', close: 'Close',
-    townMap: 'Town map.', at: 'at',
+    townMap: 'Town map.', at: 'at', glossNote: 'Tap a dotted word to see it in English.',
     sync: { connecting: 'Loading saved progress…', ok: 'Progress saves on this device and on the server.',
       retry: 'Saved on this device. Will back up to the server when it reconnects.', local: 'Saved on this device only for now. It backs up to the server once this device is online.' },
     skills: {},
@@ -799,7 +802,7 @@ const T = {
     notTurned: 'Pas tournée', fwd: n => 'En avant ' + n, bck: n => 'En arrière ' + n, sameAs: x => ' (pareil que ' + x + ')', tapGreen: 'Touche une lettre verte pour voir où elle arrive.',
     cluesFound: 'Indices trouvés', documents: 'Documents', chTab: (n, tab) => 'Chapitre ' + n + ' · ' + tab,
     noClues: 'Pas encore d\'indices. Résous des énigmes pour en trouver.', noDocs: 'Les documents que tu lis arrivent ici.', close: 'Fermer',
-    townMap: 'Plan de la ville.', at: 'en',
+    townMap: 'Plan de la ville.', at: 'en', glossNote: 'Touche un mot souligné de points pour voir son sens en anglais.',
     sync: { connecting: 'Chargement…', ok: 'Ta progression est enregistrée sur cet appareil et sur le serveur.',
       retry: 'Enregistré sur cet appareil. Le serveur sera mis à jour plus tard.', local: 'Enregistré sur cet appareil pour le moment.' },
     skills: { detail: 'Trouver les détails', inference: 'Lire entre les lignes', vocab: 'Le sens des mots', math: 'Les maths de l\'histoire',
@@ -822,7 +825,7 @@ const T = {
     notTurned: 'Sin girar', fwd: n => 'Adelante ' + n, bck: n => 'Atrás ' + n, sameAs: x => ' (igual que ' + x + ')', tapGreen: 'Toca una letra verde para ver dónde cae.',
     cluesFound: 'Pistas encontradas', documents: 'Documentos', chTab: (n, tab) => 'Capítulo ' + n + ' · ' + tab,
     noClues: 'Todavía no hay pistas. Resuelve acertijos para encontrarlas.', noDocs: 'Aquí aparecen los documentos que lees.', close: 'Cerrar',
-    townMap: 'Mapa del pueblo.', at: 'en',
+    townMap: 'Mapa del pueblo.', at: 'en', glossNote: 'Toca una palabra subrayada con puntos para ver su significado en inglés.',
     sync: { connecting: 'Cargando…', ok: 'Tu progreso se guarda en este dispositivo y en el servidor.',
       retry: 'Guardado en este dispositivo. Se copiará al servidor más tarde.', local: 'Guardado en este dispositivo por ahora.' },
     skills: { detail: 'Encontrar detalles', inference: 'Leer entre líneas', vocab: 'El significado de las palabras', math: 'Matemáticas en la historia',
@@ -833,12 +836,12 @@ let lang = 'en', CHAPTERS = STORY_EN, GLOSS = null, L = T.en;
 function wantedLang() { const l = S.settings.lang; return l && STORIES[l] ? l : 'en'; }
 // Point the app at the save's language: its story, glossary and words.
 function applyLang() {
-  const l = wantedLang();
-  if (l !== lang) { wheelK = {}; wheelSel = {}; curCh = 0; }
+  const l = wantedLang(), changed = l !== lang;
   lang = l; CHAPTERS = STORIES[l].chapters; GLOSS = STORIES[l].glossary; L = T[l];
   document.documentElement.lang = l;
   document.querySelectorAll('[data-t]').forEach(e => { e.textContent = L[e.dataset.t]; });
   document.querySelectorAll('[data-th]').forEach(e => { e.innerHTML = L[e.dataset.th]; });
+  if (changed) resetReadingView();
 }
 const skillName = k => L.skills[k] || SKILLS[k].name;
 
@@ -852,12 +855,27 @@ function fresh() { return { v: 1, updatedAt: 0, settings: { sound: true }, chapt
 function normalize(s) {
   const f = fresh();
   if (!s || typeof s !== 'object') return f;
-  return { ...f, ...s, settings: { ...f.settings, ...(s.settings || {}) }, chapters: s.chapters || {}, byLang: s.byLang || {}, days: s.days || {} };
+  const state = { ...f, ...s, settings: { ...f.settings, ...(s.settings || {}) }, chapters: s.chapters || {}, byLang: s.byLang || {}, days: s.days || {} };
+  // Separate devices can solve different parts of one chapter. Derive completion
+  // from the actual story's puzzle IDs after their progress has been merged.
+  for (const [language, story] of Object.entries(STORIES)) {
+    const progress = language === 'en' ? state.chapters : state.byLang[language];
+    if (!progress) continue;
+    for (const chapter of story.chapters) {
+      const saved = progress[chapter.id];
+      if (saved && chapter.puzzles.length && chapter.puzzles.every(puzzle => saved.puzzles?.[puzzle.id]?.solved)) {
+        saved.done = true;
+        saved.doneAt = saved.doneAt || Math.max(0, ...chapter.puzzles.map(puzzle => saved.puzzles[puzzle.id].at || 0));
+      }
+    }
+  }
+  return state;
 }
 const clone = o => JSON.parse(JSON.stringify(o));
 function loadLocal() { try { const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
 function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} }
 let S = normalize(loadLocal());
+const sync = KidSync.create({key:LS_KEY, initial:clone(S), merge:KidMerge.signal, legacy:(local, remote) => KidMerge.legacy('signal', local, remote)});
 
 const pad2 = n => String(n).padStart(2, '0');
 function todayKey(d = new Date()) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
@@ -897,21 +915,30 @@ function persist() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flush, 1500);
 }
+let syncTask = null;
 async function flush() {
   if (!remote || !dirty) return;
-  if (writing) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 800); return; }
+  if (writing) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 800); return syncTask; }
   writing = true; dirty = false;
-  try {
-    await remote.set(clone(S));
-    syncState = 'ok';
-  } catch (e) {
-    const code = e && e.code;
-    dirty = true; // never drop unsaved progress; the local copy is already saved
-    if (code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') { remote = null; syncState = 'local'; }
-    else { syncState = 'retry'; saveTimer = setTimeout(flush, (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random() * 3000); }
-  }
-  writing = false;
-  setSync();
+  const sent = clone(S);
+  syncTask = (async () => {
+    try {
+      const saved = normalize(await sync.save(remote, sent));
+      applySyncedState(KidMerge.signal(sent, S, saved));
+      dirty = dirty || !KidMerge.equal(S, saved);
+      syncState = 'ok';
+    } catch (e) {
+      dirty = true;
+      if (e && e.remote) applySyncedState(KidMerge.signal(sent, S, e.remote));
+      const code = e && e.code;
+      if (['revoked','not_granted','capability_disabled','capability_removed'].includes(code)) { remote = null; syncState = 'local'; }
+      else { syncState = 'retry'; saveTimer = setTimeout(flush, code === 'resource_exhausted' ? 5000 : 10000); }
+    } finally {
+      writing = false; syncTask = null; setSync();
+      if (dirty && remote) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, syncState === 'ok' ? 100 : 10000); }
+    }
+  })();
+  return syncTask;
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(saveTimer); flush(); } });
 addEventListener('pagehide', () => { clearTimeout(saveTimer); flush(); });
@@ -924,6 +951,42 @@ function rerender() {
   else if (!$('notebook').hidden) renderNotebook();
   else if (!$('chapter').hidden) renderChapter();
 }
+// Preserve the active question object when only background statistics changed.
+// Its handlers and pending success animation remain valid, and typed text stays put.
+function applySyncedState(next) {
+  next = normalize(next);
+  const oldLanguage = lang, nextLanguage = STORIES[next.settings.lang] ? next.settings.lang : 'en';
+  const oldReset = JSON.stringify(S.resets?.[lang]), newReset = JSON.stringify(next.resets?.[lang]);
+  const shown = !$('chapter').hidden ? renderedPuzzle : null;
+  const input = shown ? $('puzzle').querySelector('input') : null;
+  const typed = input && input.value, focused = input && document.activeElement === input;
+  let retained = false, refresh = false;
+  if (shown && nextLanguage === oldLanguage && oldReset === newReset) {
+    const progress = oldLanguage === 'en' ? next.chapters : next.byLang[oldLanguage];
+    const incoming = progress?.[shown.ch.id]?.puzzles?.[shown.p.id];
+    if (incoming) {
+      refresh = !!incoming.solved !== !!shown.ps.solved || (incoming.hints || 0) !== (shown.ps.hints || 0);
+      const fields = clone(incoming);
+      Object.keys(shown.ps).forEach(key => { delete shown.ps[key]; }); Object.assign(shown.ps, fields);
+      progress[shown.ch.id].puzzles[shown.p.id] = shown.ps;
+      retained = true;
+    }
+  }
+  S = next; saveLocal();
+  applyLang();
+  if (lang !== oldLanguage) return;
+  if (oldReset !== newReset) { resetReadingView(); return; }
+  if (shown && retained && !refresh && CHAPTERS[curCh] === shown.ch && unlocked(curCh)) {
+    $('chStars').textContent = L.stars(chStars(shown.ch), shown.ch.puzzles.length * MAX_STARS);
+    return;
+  }
+  if (shown) cancelPuzzleTransition();
+  rerender();
+  if (shown && renderedPuzzle?.p === shown.p && !renderedPuzzle.ps.solved && typed !== null) {
+    const replacement = $('puzzle').querySelector('input');
+    if (replacement) { replacement.value = typed; if (focused) replacement.focus(); }
+  }
+}
 // Started offline: try again when the network or the app comes back.
 let connecting = true;
 function reconnect() { if (!remote && !connecting && document.visibilityState === 'visible') { connecting = true; syncState = 'connecting'; connect(); } }
@@ -935,28 +998,29 @@ async function connect() {
     const user = db ? await window.claude.use('user') : null;
     const id = user ? await user.id() : null;
     if (!db || !id) { syncState = 'local'; return; }
-    const ref = db.doc('data/users/' + id + '/' + DOC_ID);
+    const ref = KidSyncStore.doc('signal', id, DOC_ID);
     const snap = await ref.get();
     remote = ref;
-    if (snap.exists) {
-      const r = snap.data() || {};
-      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); }
-      else if ((S.updatedAt || 0) > (r.updatedAt || 0)) dirty = true;
-    } else if (S.updatedAt) dirty = true;
+    const serverState = snap.exists ? snap.data() : undefined;
+    applySyncedState(sync.reconcile(S, serverState));
+    dirty = dirty || sync.hasPending || !KidMerge.equal(S, normalize(serverState));
     syncState = 'ok';
     if (dirty) flush();
     // Live: pick up progress made on another device.
-    unsub = ref.onSnapshot(s => {
-      if (!s.exists || s.metadata.hasPendingWrites || writing || dirty) return;
-      const r = s.data() || {};
-      if ((r.updatedAt || 0) > (S.updatedAt || 0)) { S = normalize(clone(r)); saveLocal(); rerender(); }
-    }, () => { unsub = null; });
+    unsub = ref.onSnapshot(snapshot => {
+      if (!snapshot.exists || writing || dirty) return false;
+      const r = snapshot.data();
+      applySyncedState(sync.reconcile(S, r));
+      dirty = !KidMerge.equal(S, normalize(r));
+      if (dirty) flush();
+      return true;
+    });
   } catch (e) {
     if (!remote) syncState = 'local';
     else { syncState = 'retry'; dirty = true; saveTimer = setTimeout(flush, 5000); }
   } finally {
     connecting = false;
-    setSync(); rerender();
+    setSync(); if (!$('home').hidden) renderHome();
   }
 }
 
@@ -991,15 +1055,25 @@ function starText(n, of) { return '★'.repeat(n) + '☆'.repeat(Math.max(0, of 
 function norm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\$/g, '').replace(/\s+/g, '').replace(/[^a-z0-9.:/]/g, '').replace(/\.$/, ''); }
 // Read "1.5", "1,5", "1 1/2", "3/2", "$7.00", "7 dollars", "7 dólares" as numbers.
 function parseNum(raw) {
-  let s = String(raw || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[$€]/g, '')
-    .replace(/dollars?|dolares?|milles?|miles?|millas?|minutes?|minutos?|mins?|years?|ans|anos|heures?|horas?/g, '').trim();
-  s = /^\d+,\d{1,2}$/.test(s) ? s.replace(',', '.') : s.replace(/,/g, '');
-  let m = s.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
-  if (m) return +m[1] + (+m[2]) / (+m[3]);
-  m = s.match(/^(\d+)\s*\/\s*(\d+)$/);
-  if (m && +m[2]) return (+m[1]) / (+m[2]);
-  m = s.match(/^-?\d+(\.\d+)?$/);
-  return m ? parseFloat(s) : NaN;
+  let s = String(raw ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/−/g, '-').replace(/[$€]/g, '').trim();
+  // Duration answers are minutes: 1:25, 1h25, 1 heure 25, 1 hora y 25 minutos.
+  let m = s.match(/^([+-]?)(\d+|one|une?|una)\s*(?:hours?|hrs?|h|heures?|horas?)\s*(?:and|et|y)?\s*(\d+)?\s*(?:minutes?|mins?|m|minutos?)?$/);
+  if (m) return (m[1] === '-' ? -1 : 1) * ((/^\d+$/.test(m[2]) ? +m[2] : 1) * 60 + +(m[3] || 0));
+  m = s.match(/^([+-]?)(\d+):([0-5]\d)$/);
+  if (m) return (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3]);
+  m = s.match(/^([+-]?)(\d+)\s*(?:miles?|milles?|millas?)?\s*(?:and\s*a\s*half|et\s*demi|y\s*media)$/);
+  if (m) return (m[1] === '-' ? -1 : 1) * (+m[2] + .5);
+  s = s.replace(/\s*(?:dollars?|dolares?|euros?|milles?|miles?|millas?|minutes?|minutos?|mins?|years?|ans?|anos?)\.?$/, '').trim()
+    .replace(/(\d)\s*(?:and|et|y)\s*(?=\d+\s*\/)/g, '$1 ');
+  // Commas are decimal marks unless they form an unambiguous thousands grouping.
+  if (/^[+-]?\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+  else if (/^[+-]?\d+,\d+$/.test(s)) s = s.replace(',', '.');
+  m = s.match(/^([+-]?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+  if (m && +m[4]) return (m[1] === '-' ? -1 : 1) * (+m[2] + +m[3] / +m[4]);
+  m = s.match(/^([+-]?\d+)\s*\/\s*(\d+)$/);
+  if (m && +m[2]) return +m[1] / +m[2];
+  return /^[+-]?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
 }
 /* Glossary: in French and Spanish, words with an English meaning in GLOSS become dotted buttons.
    "l'école" is looked up whole, then as "école". */
@@ -1041,15 +1115,33 @@ document.addEventListener('click', e => {
 }, true);
 addEventListener('scroll', hideGloss, { passive: true, capture: true });
 function isRight(p, raw) {
-  if (p.num !== undefined && Math.abs(parseNum(raw) - p.num) < 1e-9) return true;
+  if (p.num !== undefined) {
+    const value = parseNum(raw);
+    if (Number.isFinite(value)) return Math.abs(value - p.num) < 1e-9;
+    // Never let punctuation removal turn a wrong number into an accepted alias.
+    // Numeric aliases must pass the parser; only written-out numbers use text matching.
+    if (/[0-9]/.test(raw) || /^\s*[+−-]/.test(raw)) return false;
+    const n = norm(raw);
+    return !!n && p.answers.some(a => !/[0-9]/.test(a) && norm(a) === n);
+  }
   const n = norm(raw);
   return !!n && p.answers.some(a => norm(a) === n);
 }
-
 /* ---------------- screens ---------------- */
 const SCREENS = ['home', 'chapter', 'notebook'];
-let lastActive = Date.now();
+let lastActive = Date.now(), viewVersion = 0, solveTimer = 0;
+function cancelPuzzleTransition() {
+  viewVersion++;
+  clearTimeout(solveTimer); solveTimer = 0;
+  $('doneOverlay').hidden = true;
+}
+function resetReadingView() {
+  curCh = 0; curDoc = CHAPTERS[0].docs[0]; wheelK = {}; wheelSel = {};
+  $('readerOverlay').hidden = true;
+  hideGloss(); show('home');
+}
 function show(name) {
+  cancelPuzzleTransition();
   SCREENS.forEach(s => { $(s).hidden = s !== name; });
   if (name === 'home') renderHome();
   if (name === 'notebook') renderNotebook();
@@ -1120,7 +1212,7 @@ function renderDoc(doc, host) {
     }
   });
   host.append(a);
-  if (GLOSS) host.append(el('p', 'gl-note', 'Tap a dotted word to see it in English.'));
+  if (GLOSS) host.append(el('p', 'gl-note', L.glossNote));
 }
 function markRead(ch, doc) {
   const c = chState(ch);
@@ -1128,9 +1220,9 @@ function markRead(ch, doc) {
 }
 
 /* ---------------- chapter ---------------- */
-let curCh = 0, curDoc = null, wheelK = {}, wheelSel = {};
+let curCh = 0, curDoc = null, wheelK = {}, wheelSel = {}, renderedPuzzle = null;
 function openChapter(i) {
-  if (!unlocked(i)) return;
+  if (!CHAPTERS[i] || !unlocked(i)) return;
   curCh = i;
   const ch = CHAPTERS[i];
   const c = chState(ch);
@@ -1142,10 +1234,13 @@ function openChapter(i) {
 $('chBack').addEventListener('click', () => show('home'));
 
 function renderChapter() {
-  const ch = CHAPTERS[curCh], c = chState(ch);
+  const ch = CHAPTERS[curCh];
+  if (!ch || !unlocked(curCh)) { resetReadingView(); return; }
+  const c = chState(ch);
+  if (!ch.docs.includes(curDoc)) curDoc = ch.docs[0];
   $('chNum').textContent = L.chapterOf(curCh + 1, CHAPTERS.length);
   $('chTitle').textContent = ch.title;
-  $('chStars').textContent = chStars(ch) + ' of ' + ch.puzzles.length * MAX_STARS + ' ★';
+  $('chStars').textContent = L.stars(chStars(ch), ch.puzzles.length * MAX_STARS);
   markRead(ch, curDoc);
   const tabs = $('docTabs'); tabs.textContent = '';
   ch.docs.forEach(d => {
@@ -1174,13 +1269,17 @@ function renderPuzzle() {
   box.textContent = '';
   const p = currentPuzzle();
   if (!p) {
+    renderedPuzzle = null;
     box.append(el('p', 'q', L.chSolved));
     const b = el('button', 'btn go', curCh + 1 < CHAPTERS.length ? L.nextChapter : L.backToCases);
     b.addEventListener('click', () => curCh + 1 < CHAPTERS.length ? openChapter(curCh + 1) : show('home'));
     box.append(b);
     return;
   }
-  const ps = pState(ch, p), idx = ch.puzzles.indexOf(p);
+  const ps = pState(ch, p), idx = ch.puzzles.indexOf(p), puzzleLang = lang, puzzleView = viewVersion;
+  renderedPuzzle = {ch, p, ps, lang};
+  const active = () => !ps.solved && puzzleLang === lang && puzzleView === viewVersion && !$('chapter').hidden
+    && CHAPTERS[curCh] === ch && (prog()[ch.id] || {}).puzzles?.[p.id] === ps;
   const top = el('div', 'ptop');
   top.append(el('span', 'lab', L.puzzleOf(idx + 1, ch.puzzles.length)), el('span', 'chip', skillName(p.skill)));
   box.append(top, glossed('p', 'q', p.q));
@@ -1206,7 +1305,7 @@ function renderPuzzle() {
       b.setAttribute('role', 'button'); b.tabIndex = 0;
       b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.click(); } });
       b.addEventListener('click', () => {
-        if (b.classList.contains('no') || b.classList.contains('ok')) return;
+        if (!active() || b.classList.contains('no') || b.classList.contains('ok')) return;
         ps.tries++;
         if (choice.ok) { b.classList.add('ok'); solve(ch, p, ps, choice.t); return; }
         b.classList.add('no'); sfx.wrong();
@@ -1227,9 +1326,9 @@ function renderPuzzle() {
     form.append(inp, go);
     form.addEventListener('submit', e => {
       e.preventDefault();
-      if (!inp.value.trim()) return;
+      if (!active() || !inp.value.trim()) return;
       ps.tries++;
-      if (isRight(p, inp.value)) { inp.className = 'ok'; solve(ch, p, ps, inp.value.trim().toUpperCase()); return; }
+      if (isRight(p, inp.value)) { inp.className = 'ok'; inp.disabled = true; go.disabled = true; solve(ch, p, ps, inp.value.trim().toUpperCase()); return; }
       inp.className = 'no'; sfx.wrong();
       fb.className = 'feedback bad';
       fb.textContent = ps.tries >= 2 && ps.hints < p.hints.length ? L.notYetHint : L.notYet;
@@ -1237,7 +1336,7 @@ function renderPuzzle() {
       persist();
     });
     box.append(form);
-    if (matchMedia('(pointer:fine)').matches) setTimeout(() => inp.focus(), 50);
+    if (matchMedia('(pointer:fine)').matches) setTimeout(() => { if (active()) inp.focus(); }, 50);
   }
   box.append(fb);
   const hints = el('div', 'hints');
@@ -1246,7 +1345,7 @@ function renderPuzzle() {
   const acts = el('div', 'pactions');
   if (ps.hints < p.hints.length) {
     const hb = el('button', 'btn small', ps.hints ? L.anotherHint : L.hint);
-    hb.addEventListener('click', () => { ps.hints++; sfx.click(); persist(); renderPuzzle(); });
+    hb.addEventListener('click', () => { if (!active()) return; ps.hints++; sfx.click(); persist(); renderPuzzle(); });
     acts.append(hb);
   }
   acts.append(el('span', 'note', L.worth(starText(Math.max(0, MAX_STARS - ps.hints), MAX_STARS))));
@@ -1254,6 +1353,7 @@ function renderPuzzle() {
 }
 
 function solve(ch, p, ps, shown) {
+  if (ps.solved || CHAPTERS[curCh] !== ch || (prog()[ch.id] || {}).puzzles?.[p.id] !== ps) return;
   ps.solved = true;
   ps.first = ps.tries === 1 && ps.hints === 0;
   ps.answer = shown;
@@ -1264,9 +1364,14 @@ function solve(ch, p, ps, shown) {
   const allDone = ch.puzzles.every(q => (c.puzzles[q.id] || {}).solved);
   if (allDone && !c.done) { c.done = true; c.doneAt = Date.now(); }
   persist();
-  setTimeout(() => {
+  const answeredLang = lang, answeredView = viewVersion;
+  clearTimeout(solveTimer);
+  solveTimer = setTimeout(() => {
+    solveTimer = 0;
+    if (answeredLang !== lang || answeredView !== viewVersion || $('chapter').hidden
+        || CHAPTERS[curCh] !== ch || (prog()[ch.id] || {}).puzzles?.[p.id] !== ps) return;
     renderChapter();
-    if (allDone) showDone(ch);
+    if (ch.puzzles.every(q => (chState(ch).puzzles[q.id] || {}).solved)) showDone(ch);
   }, 500);
 }
 
@@ -1523,6 +1628,8 @@ $('codeForm').addEventListener('submit', e => {
 $('wipeAll').addEventListener('click', () => {
   if (!wipeArmed) { wipeArmed = true; $('wipeAll').textContent = 'Tap again to erase all progress'; return; }
   if (lang === 'en') S.chapters = {}; else S.byLang[lang] = {};
+  KidMerge.stampReset(S, lang);
+  resetReadingView();
   persist(); wipeArmed = false; $('wipeAll').textContent = 'Erased';
   renderParent();
 });

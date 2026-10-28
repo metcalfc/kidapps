@@ -14,6 +14,7 @@ There are no accounts. The first time a device opens an app, the server gives it
 
 - Each app keeps its own codes in its own SQLite file (`dm.db`, `chain.db`, `signal.db`).
 - Each device keeps a working copy in `localStorage` and syncs it to the server. The apps keep working offline and catch up when they reconnect. Another device's progress shows up within about 20 seconds, or as soon as the app comes back to the front.
+- Chain Reaction and Signal merge independent changes from their last confirmed common save, using conditional writes and durable request IDs. Retrying a lost response cannot apply the same credit or debit twice. Practice works offline; Chain cash-in tickets require server confirmation so devices share one bank and daily limit. Old snapshots are imported once. If old copies disagree during the first upgrade, the existing server bank stays authoritative so a stale device cannot restore minutes already cashed in; known practice after the upgrade is merged. Progress already overwritten by an older app cannot be reconstructed from those snapshots.
 - Each family chooses its own 4-digit parent PIN the first time they open the parent screen. The PIN is stored in their save. It keeps kids out of the settings; it is not real security.
 - On iOS a home-screen app does not share storage with Safari. To carry the save across, the manifest's `start_url` includes the device's code, so the installed app opens on the same save.
 
@@ -23,14 +24,15 @@ Apps with `Shares: true` (DM Academy's Forge) can publish an item under its own 
 
 ### Under the hood
 
-The apps were first written as claude.ai artifacts, which save through `window.claude.use('db')`. `web/shared/save.js` provides that same small API against this server, so each app's own sync and merge code runs unchanged.
+The apps were first written as claude.ai artifacts, which save through `window.claude.use('db')`. `web/shared/save.js` provides identity and the compatible document API against this server. Chain Reaction and Signal use `sync-store.js` for ETags and conditional writes, `merge.js` for three-way progress merges, and `sync.js` to persist retryable operations before sending them. SQLite records applied mutation IDs atomically with each save. After a document has used this protocol, unconditional writes are rejected so an older open app cannot replace merged progress; reloading loads the updated app.
 
 ## Layout
 
 ```
 main.go, store.go, misses.go   Go server: static files, save API, manifest, service worker, daily backups
-web/dm/, web/chain/            the two apps (single-file HTML plus icons and launch screens)
-web/shared/                    save.js, the service worker template, self-hosted fonts
+web/dm/, web/chain/, web/signal/  the apps, icons, launch screens, and translated Signal stories
+web/shared/                    save transport, merge/sync helpers, service worker, fonts
+tests/, save_sync_test.go       app, content, sync, HTTP, and SQLite regressions
 deploy/                        Caddyfile, systemd units, deploy.sh
 tools/gen-icons.sh             regenerates icons and iPad launch screens (needs rsvg-convert)
 tools/gen-site.sh              landing page icons, favicons, and link-preview cards (run after gen-icons.sh)

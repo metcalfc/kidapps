@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -16,6 +17,16 @@ import (
 
 // ErrNotFound means the save code (or the document under it) does not exist.
 var ErrNotFound = errors.New("not found")
+
+// ErrConflict means the stored document changed since the caller read it.
+var ErrConflict = errors.New("save changed")
+
+// ErrConditionalRequired prevents an older client from overwriting a document
+// that has started using conditional, idempotent writes.
+var ErrConditionalRequired = errors.New("conditional save required")
+
+// ErrInvalidMutation means the mutation ID is not a bounded ASCII identifier.
+var ErrInvalidMutation = errors.New("invalid mutation ID")
 
 // Store is one app's SQLite database.
 type Store struct{ db *sql.DB }
@@ -32,6 +43,14 @@ CREATE TABLE IF NOT EXISTS saves (
 	data       TEXT NOT NULL,
 	updated_at INTEGER NOT NULL,
 	PRIMARY KEY (code, doc)
+);
+CREATE TABLE IF NOT EXISTS save_writes (
+	code       TEXT NOT NULL,
+	doc        TEXT NOT NULL,
+	mutation   TEXT NOT NULL,
+	created_at INTEGER NOT NULL,
+	PRIMARY KEY (code, doc, mutation),
+	FOREIGN KEY (code, doc) REFERENCES saves(code, doc) ON DELETE CASCADE
 );
 -- Things a kid publishes for friends to open by code, such as a dungeon. Only the save code
 -- that published one may change it.
@@ -61,8 +80,13 @@ func OpenStore(file string) (*Store, error) {
 func (s *Store) Close() error { return s.db.Close() }
 
 var codeRE = regexp.MustCompile(`^[A-Z]{3,8}-[0-9]{4}$`)
+var mutationRE = regexp.MustCompile(`^[A-Za-z0-9._:-]{8,128}$`)
+var saveETagRE = regexp.MustCompile(`^"[0-9a-fA-F]{64}"$`)
 
 func validCode(c string) bool { return codeRE.MatchString(c) }
+
+// SaveETag identifies the exact bytes returned by Get, without reformatting JSON.
+func SaveETag(data []byte) string { return fmt.Sprintf(`"%x"`, sha256.Sum256(data)) }
 
 // codeWords are short, friendly and hard to misread when a kid reads one out to a parent.
 var codeWords = strings.Fields(`
@@ -143,6 +167,13 @@ func (s *Store) Put(ctx context.Context, code, doc string, data []byte) error {
 	if n, _ := res.RowsAffected(); n == 0 {
 		return ErrNotFound
 	}
+	var conditional bool
+	if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM save_writes WHERE code = ? AND doc = ?)`, code, doc).Scan(&conditional); err != nil {
+		return err
+	}
+	if conditional {
+		return ErrConditionalRequired
+	}
 	_, err = tx.ExecContext(ctx, `INSERT INTO saves (code, doc, data, updated_at) VALUES (?, ?, ?, ?)
 		ON CONFLICT (code, doc) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`,
 		code, doc, string(data), now)
@@ -150,6 +181,68 @@ func (s *Store) Put(ctx context.Context, code, doc string, data []byte) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+// PutConditional atomically compares and replaces a document. expected is the
+// exact ETag read by the caller, or "*" to create a document that is still missing.
+// A repeated mutation returns the latest document, even after later writes, so a
+// client can recover a lost acknowledgement without applying an operation twice.
+func (s *Store) PutConditional(ctx context.Context, code, doc string, data []byte, mutationID, expected string) ([]byte, error) {
+	if !mutationRE.MatchString(mutationID) {
+		return nil, ErrInvalidMutation
+	}
+	now := time.Now().UnixMilli()
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	// Take the write lock before reading either the mutation history or the save.
+	// This also keeps the comparison atomic across separate Store connections.
+	res, err := tx.ExecContext(ctx, `UPDATE codes SET last_seen = ? WHERE code = ?`, now, code)
+	if err != nil {
+		return nil, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return nil, ErrNotFound
+	}
+	var replay bool
+	if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM save_writes WHERE code = ? AND doc = ? AND mutation = ?)`, code, doc, mutationID).Scan(&replay); err != nil {
+		return nil, err
+	}
+	var current string
+	err = tx.QueryRowContext(ctx, `SELECT data FROM saves WHERE code = ? AND doc = ?`, code, doc).Scan(&current)
+	missing := errors.Is(err, sql.ErrNoRows)
+	if err != nil && !missing {
+		return nil, err
+	}
+	if replay {
+		if missing {
+			return nil, ErrNotFound
+		}
+		if err := tx.Commit(); err != nil {
+			return nil, err
+		}
+		return []byte(current), nil
+	}
+	if expected == "*" {
+		if !missing {
+			return nil, ErrConflict
+		}
+	} else if missing || SaveETag([]byte(current)) != expected {
+		return nil, ErrConflict
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO saves (code, doc, data, updated_at) VALUES (?, ?, ?, ?)
+		ON CONFLICT (code, doc) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`, code, doc, string(data), now); err != nil {
+		return nil, err
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO save_writes (code, doc, mutation, created_at) VALUES (?, ?, ?, ?)`, code, doc, mutationID, now); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return append([]byte(nil), data...), nil
 }
 
 // Backup writes a consistent snapshot of the database to dst.

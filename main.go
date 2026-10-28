@@ -239,7 +239,9 @@ func (s *server) getSave(w http.ResponseWriter, r *http.Request, a App, st *Stor
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-store")
+	// Proxies must preserve the strong ETag used for the next If-Match write.
+	w.Header().Set("Cache-Control", "no-store, no-transform")
+	w.Header().Set("ETag", SaveETag(data))
 	w.Write(data)
 }
 
@@ -262,20 +264,61 @@ func (s *server) putSave(w http.ResponseWriter, r *http.Request, a App, st *Stor
 		return
 	}
 	var obj map[string]any
-	if err := json.Unmarshal(body, &obj); err != nil {
+	if err := json.Unmarshal(body, &obj); err != nil || obj == nil {
 		http.Error(w, "save must be a JSON object", http.StatusBadRequest)
 		return
 	}
 	// Stored byte for byte, so a reader sees exactly what the writer sent.
-	err = st.Put(r.Context(), code, doc, body)
+	mutations := r.Header.Values("X-Kidapps-Mutation")
+	conditional := len(mutations) > 0
+	var authoritative []byte
+	if conditional {
+		if len(mutations) != 1 || !mutationRE.MatchString(mutations[0]) {
+			http.Error(w, "invalid mutation ID", http.StatusBadRequest)
+			return
+		}
+		matches, nones := r.Header.Values("If-Match"), r.Header.Values("If-None-Match")
+		match, none := r.Header.Get("If-Match"), r.Header.Get("If-None-Match")
+		expected := match
+		switch {
+		case len(nones) == 1 && none == "*" && len(matches) == 0:
+			expected = "*"
+		case len(matches) == 1 && saveETagRE.MatchString(match) && len(nones) == 0:
+		default:
+			http.Error(w, "use one If-Match ETag or If-None-Match: *", http.StatusBadRequest)
+			return
+		}
+		authoritative, err = st.PutConditional(r.Context(), code, doc, body, mutations[0], expected)
+	} else {
+		if len(r.Header.Values("If-Match")) > 0 || len(r.Header.Values("If-None-Match")) > 0 {
+			http.Error(w, "conditional saves need a mutation ID", http.StatusBadRequest)
+			return
+		}
+		err = st.Put(r.Context(), code, doc, body)
+	}
 	if errors.Is(err, ErrNotFound) {
 		s.misses.record(r)
 		http.NotFound(w, r)
 		return
 	}
+	if errors.Is(err, ErrConflict) {
+		http.Error(w, "save changed; read it again before retrying", http.StatusPreconditionFailed)
+		return
+	}
+	if errors.Is(err, ErrConditionalRequired) {
+		http.Error(w, "this save requires conditional writes; reload the app", http.StatusConflict)
+		return
+	}
 	if err != nil {
 		log.Printf("put %s/%s: %v", a.ID, doc, err)
 		http.Error(w, "error", http.StatusInternalServerError)
+		return
+	}
+	if conditional {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "no-store, no-transform")
+		w.Header().Set("ETag", SaveETag(authoritative))
+		w.Write(authoritative)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
