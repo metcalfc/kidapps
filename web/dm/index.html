@@ -376,21 +376,20 @@ details.lesson[open] summary::after{content:"−"}
 .forge-edit-cols, .forge-play-cols{display:grid; gap:14px; align-items:start}
 @media (min-width:820px){ .forge-edit-cols{grid-template-columns:minmax(0,1fr) 290px} .forge-play-cols{grid-template-columns:minmax(0,1fr) 340px} }
 
-.fgrid{display:grid; grid-template-columns:repeat(12, 1fr); gap:2px; background:var(--line); border:2px solid var(--line); border-radius:12px; overflow:hidden; aspect-ratio:12 / 9; touch-action:none; user-select:none; -webkit-user-select:none; max-width:720px; width:100%}
-.fc{position:relative; border:0; padding:0; margin:0; display:grid; place-items:center; font-size:clamp(.9rem, 2.6vw, 1.5rem); font-weight:700; line-height:1; color:#1A2622; background:var(--surface); min-width:0; min-height:0}
-.fc.rock{background:#2B3631}
-.fc.floor, .fc.start, .fc.exit, .fc.key, .fc.mon, .fc.trap, .fc.chest, .fc.sign{background:#E9E2CC}
-.fc.door{background:#7A4A22; color:#F3D9A8}
-.fc.start{color:#2E6B4E} .fc.exit{color:#AE2F1C} .fc.key{color:#8F6610} .fc.trap{color:#A4321F} .fc.chest{color:#8F6610; font-size:clamp(.7rem, 1.9vw, 1.1rem); letter-spacing:-.08em} .fc.sign{color:#5A4630}
-.fc.sel{outline:3px solid var(--ember); outline-offset:-3px; z-index:1}
-.fc.fog{background:#0B100E}
-.fc.wall{background:#2B3631}
-.fc .fart{position:absolute; inset:8%; border-radius:50%; background:var(--ink); color:var(--brass); display:grid; place-items:center; font-family:var(--display); font-size:.8em}
-.fc .fart img{border-radius:50%}
-.fc .hero{position:absolute; inset:6%; border-radius:50%; background:var(--moss); border:2px solid var(--brass); z-index:2; overflow:hidden}
-.fc .hero img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
-.fgrid.play .fc{cursor:pointer}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .fc.floor, :root:not([data-theme="light"]) .fc.start, :root:not([data-theme="light"]) .fc.exit, :root:not([data-theme="light"]) .fc.key, :root:not([data-theme="light"]) .fc.mon, :root:not([data-theme="light"]) .fc.trap, :root:not([data-theme="light"]) .fc.chest, :root:not([data-theme="light"]) .fc.sign{background:#C9C0A6} }
+.fmapwrap{position:relative; overflow:auto; max-height:min(72vh, 820px); border:2px solid var(--line); border-radius:12px; background:#2B3631; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+.fmapwrap.play{background:#0B100E}
+.fmapwrap canvas{display:block; margin:0 auto; touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none}
+.fscale{display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; font-size:.82rem; color:var(--muted); font-variant-numeric:tabular-nums}
+.fscale i{display:block; height:8px; border:2px solid var(--ink); border-top:0}
+.forge-bar .zoom{display:inline-flex; gap:4px}
+.forge-new{display:flex; flex-wrap:wrap; align-items:center; gap:8px}
+.forge-new span{font-weight:700}
+.forge-new small{color:var(--muted); font-weight:400}
+.fkinds{display:grid; grid-template-columns:repeat(auto-fill, minmax(76px, 1fr)); gap:6px}
+.fkinds button{display:grid; gap:3px; justify-items:center; background:var(--surface); border:2px solid var(--line); border-radius:10px; padding:7px 4px; font-size:.8rem; font-weight:700; line-height:1.15}
+.fkinds button[aria-pressed="true"]{border-color:var(--brass); background:var(--brass-soft)}
+.fkinds canvas{width:56px; height:30px; border-radius:4px}
+.fkinds small{color:var(--muted); font-weight:400; font-size:.72rem}
 
 .tools{display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); gap:6px}
 .tools button{display:grid; gap:2px; justify-items:center; background:var(--surface); border:2px solid var(--line); border-radius:10px; padding:6px 4px; font-size:.78rem; font-weight:700; line-height:1.15}
@@ -519,7 +518,12 @@ details.lesson[open] summary::after{content:"−"}
         <div class="forge-box">
           <h3>Your dungeons</h3>
           <div class="forge-list" id="forge-list"></div>
-          <div class="actions"><button class="btn" id="forge-new" type="button">New dungeon</button></div>
+          <div class="forge-new">
+            <span>New dungeon:</span>
+            <button class="sm" id="forge-new-small" type="button">Small <small>60 × 45 ft</small></button>
+            <button class="sm" id="forge-new-medium" type="button">Medium <small>120 × 90 ft</small></button>
+            <button class="sm" id="forge-new-large" type="button">Large <small>160 × 120 ft</small></button>
+          </div>
         </div>
         <div class="forge-box">
           <h3>Guildmaster's commissions</h3>
@@ -548,8 +552,19 @@ details.lesson[open] summary::after{content:"−"}
       </div>
       <div id="fe-note" hidden></div>
       <div class="forge-edit-cols">
-        <div style="display:grid; gap:12px">
-          <div class="fgrid" id="fe-grid" role="grid" aria-label="Dungeon map"></div>
+        <div style="display:grid; gap:10px; min-width:0">
+          <div class="forge-bar">
+            <span class="help" id="fe-size"></span><span class="grow"></span>
+            <button class="sm" id="fe-undo" type="button">↶ Undo</button>
+            <span class="zoom" role="group" aria-label="Zoom">
+              <button class="sm" id="fe-zout" type="button" aria-label="Zoom out">−</button>
+              <button class="sm" id="fe-zfit" type="button">Fit</button>
+              <button class="sm" id="fe-zin" type="button" aria-label="Zoom in">+</button>
+            </span>
+          </div>
+          <div class="fmapwrap" id="fe-wrap"><canvas id="fe-map" aria-label="Dungeon map"></canvas></div>
+          <div class="fscale"><i id="fe-scalebar"></i><span>10 ft</span><span class="grow"></span><span>Every square is 5 ft. Two fingers move and zoom the map.</span></div>
+          <div class="forge-note" id="fe-read" aria-live="polite"></div>
           <div class="forge-box">
             <label for="fe-intro"><b>The story</b></label>
             <p class="help">What players read before they go in. Set the scene: where is this dungeon, and why are the heroes here?</p>
@@ -573,14 +588,15 @@ details.lesson[open] summary::after{content:"−"}
         <div class="fstats" id="fp-stats" aria-live="polite"></div>
       </div>
       <div class="forge-play-cols">
-        <div style="display:grid; gap:12px">
-          <div class="fgrid play" id="fp-grid" role="grid" aria-label="Dungeon map"></div>
+        <div style="display:grid; gap:12px; min-width:0">
+          <div class="fmapwrap play" id="fp-wrap"><canvas id="fp-map" aria-label="Dungeon map"></canvas></div>
           <div class="dpad" id="fp-dpad">
             <button class="up" type="button" data-d="up" aria-label="Up">▲</button>
             <button class="left" type="button" data-d="left" aria-label="Left">◀</button>
             <button class="down" type="button" data-d="down" aria-label="Down">▼</button>
             <button class="right" type="button" data-d="right" aria-label="Right">▶</button>
           </div>
+          <div class="actions" style="justify-content:center"><button class="btn ghost" id="fp-search" type="button">Search for secret doors</button></div>
         </div>
         <div style="display:grid; gap:12px">
           <div class="reading" id="fp-read"></div>
@@ -769,11 +785,23 @@ const MONSTERS = [
   {n:'Wyvern',       pl:'Wyverns',       xp:2300, hp:110,ac:13, hd:'13d10+39',weapon:'stinger',     atk:'2d6+4'},
   {n:'Young Green Dragon', pl:'Young Green Dragons', xp:3900, hp:136, ac:18, hd:'16d10+48', weapon:'bite', atk:'2d10+4'},
 ];
+// Each monster's Dexterity modifier, for Initiative.
+const MON_DEX = { Kobold:2, Bandit:1, Goblin:2, Wolf:2, Skeleton:2, Zombie:-2, Orc:1, Hobgoblin:1, 'Giant Spider':3, Bugbear:2, 'Dire Wolf':2, Ghoul:2,
+  Ogre:-1, Owlbear:1, Troll:1, Minotaur:0, Wight:2, 'Hill Giant':-1, Wyvern:0, 'Young Green Dragon':1 };
+const monDex = n => MON_DEX[n] ?? 0;
 // Monsters unlock as the DM ranks up: the biggest monster XP allowed at each rank (index matches RANKS).
 const UNLOCK_XP = [50, 100, 200, 450, 700, 1800, 99999];
 const DAILY_GOAL = 5, DAILY_BONUS = 25;
 const QUEST_NAMES = ["The Miller's Missing Mule", 'Rats in the Rusty Tankard', 'The Toll Bridge Troll', 'A Letter for the Mayor', 'Lights in the Whispering Pines', 'The Sunken Chapel Bell', "Crow's Hollow at Midnight"];
 const HERO_WEAPONS = [['longsword','1d8+3'],['greataxe','1d12+3'],['shortbow','1d6+2'],['dagger','1d4+2'],['fire bolt','1d10'],['rapier','1d8+3'],['warhammer','1d8+2'],['quarterstaff','1d6+1']];
+// How each attack is made, so a bow is shot and a spell is cast rather than everything being swung.
+const HERO_VERB = { shortbow:'You shoot your shortbow', 'fire bolt':'You cast fire bolt', dagger:'You stab with your dagger', rapier:'You thrust your rapier' };
+const heroAttack = w => HERO_VERB[w] || `You swing your ${w}`;
+const MELEE_WEAPONS = HERO_WEAPONS.filter(([w]) => w !== 'shortbow' && w !== 'fire bolt');
+const MON_VERB = { bite:'bites at', claws:'slashes its claws at', claw:'slashes its claw at', slam:'lashes out with a slam at', stinger:'stabs its stinger at' };
+const monAttack = mon => MON_VERB[mon.weapon] || `swings its ${mon.weapon} at`;
+const monHits = mon => mon.weapon === 'claws' ? 'hit' : 'hits';
+const monDeals = mon => mon.weapon === 'claws' ? 'deal' : 'deals';   // "its claws hit", "its bite hits"
 const SHOP = [['longsword',15],['shield',10],['shortbow',25],['chain shirt',50],['light crossbow',25],['healing potion',50],['rope (50 ft)',1],['lantern',5]];
 const RANKS = [[0,'Dice Apprentice'],[100,'Table Squire'],[250,'Scroll Keeper'],[500,'Lore Warden'],[850,'Encounter Architect'],[1300,'Dungeon Master'],[2000,'Guildmaster of Pinehurst']];
 const PRAISE = ['Natural 20!','Critical success.','The Guildmaster nods.','Your players will never know you just did math.','The goblins tremble.','Clean roll.','That is exactly how a DM thinks.','Pinehurst is in good hands.'];
@@ -791,6 +819,9 @@ const pick = arr => arr[rand(0,arr.length-1)];
 const fmt = n => Number.isInteger(n) ? String(n) : String(Math.round(n*100)/100);
 const signed = n => (n>=0 ? '+' : '-') + Math.abs(n);
 const an = name => (/^[aeiou]/i.test(name) ? 'An ' : 'A ') + name;   // "An Ogre", "A Goblin"
+const article = w => /^[aeiou]/i.test(String(w)) ? 'an' : 'a';      // mid-sentence: "an Athletics check"
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const aNum = n => n === 8 || n === 11 || n === 18 || (n >= 80 && n < 90) ? 'an' : 'a';   // "an 8", "an 11", "a 12"
 const $ = id => document.getElementById(id);
 // Put a picture from assets/ on a disc, keeping the text sigil underneath as a fallback.
 function setArt(el, key, text){
@@ -921,25 +952,25 @@ function parseAnswer(raw){
 // 1. The Dice Oracle: averages, max/min, comparing dice
 function genDiceAverage(){
   const mon = pickMon(), atk = parseDice(mon.atk), avg1 = DICE_AVG[atk.d], avg = diceAvg(atk);
-  return { flavor:`${an(mon.n)} swings its ${mon.weapon} at ${hero()} near ${place()}. The ${mon.weapon} deals ${atk.text} damage.`,
+  return { flavor:`${an(mon.n)} ${monAttack(mon)} ${hero()} near ${place()}. The ${mon.weapon} ${monDeals(mon)} ${atk.text} damage.`,
     steps:[{ q:`What's the average damage of ${atk.text}? (decimals like 5.5 are fine)`, answer:avg,
       hint:`The average of one d${atk.d} is (${atk.d} + 1) ÷ 2 = ${avg1}. Multiply by the number of dice, then add the bonus.`,
       solution:`${atk.n} × ${avg1} = ${fmt(atk.n*avg1)}, plus ${atk.m} = ${fmt(avg)}.` }] };
 }
 function genDiceStatBlock(){
   const mon = pickMon(), atk = parseDice(mon.atk), avg = diceAvg(atk);
-  return { flavor:`You're writing the ${mon.n}'s stat block into your DM notebook. Its ${mon.weapon} deals ${atk.text}.`,
+  return { flavor:`You're writing the ${mon.n}'s stat block into your DM notebook. Its ${mon.weapon} ${monDeals(mon)} ${atk.text}.`,
     steps:[{ q:`The Monster Manual prints the average damage rounded DOWN. What number goes in the stat block?`, answer:Math.floor(avg),
       hint:`Work out the average first (one d${atk.d} averages ${DICE_AVG[atk.d]}), then drop anything after the decimal point.`,
       solution:`The average is ${fmt(avg)}. Rounded down, the book prints ${Math.floor(avg)}.` }] };
 }
 function genDiceMaxMin(){
   const [w, d] = pick(HERO_WEAPONS), atk = parseDice(d), h = hero();
-  return { flavor:`${h} draws a ${w}, which deals ${atk.text} damage.`,
+  return { flavor: w === 'fire bolt' ? `${h} gets ready to cast fire bolt, which deals ${atk.text} damage.` : `${h} draws a ${w}, which deals ${atk.text} damage.`,
     steps:[{ q:`What's the MOST damage one hit can do?`, answer:atk.n*atk.d+atk.m,
-      hint:`Every die shows its biggest face.`, solution:`${atk.n} × ${atk.d} = ${atk.n*atk.d}, plus ${atk.m} = ${atk.n*atk.d+atk.m}.` },
+      hint:`Every die shows its biggest face.`, solution: atk.m ? `${atk.n} × ${atk.d} = ${atk.n*atk.d}, plus ${atk.m} = ${atk.n*atk.d+atk.m}.` : `${atk.n} × ${atk.d} = ${atk.n*atk.d}.` },
      { q:`What's the LEAST damage one hit can do?`, answer:atk.n+atk.m,
-      hint:`Every die shows a 1.`, solution:`${atk.n} × 1 = ${atk.n}, plus ${atk.m} = ${atk.n+atk.m}.` }] };
+      hint:`Every die shows a 1.`, solution: atk.m ? `${atk.n} × 1 = ${atk.n}, plus ${atk.m} = ${atk.n+atk.m}.` : `${atk.n} × 1 = ${atk.n}.` }] };
 }
 function genDiceCompare(){
   const a = {n:rand(1,3), d:pick([4,6,8]), m:0}, b = {n:rand(1,2), d:pick([8,10,12]), m:0};
@@ -955,7 +986,7 @@ function genDiceOverFight(){
   const [w, d] = pick(HERO_WEAPONS), atk = parseDice(d), avg = diceAvg(atk), k = rand(3,5), h = hero();
   return { flavor:`${h}'s ${w} deals ${atk.text}. You're guessing how long a fight will last.`,
     steps:[{ q:`What's the average damage of one hit? (decimals are fine)`, answer:avg,
-      hint:`One d${atk.d} averages ${DICE_AVG[atk.d]}.`, solution:`${atk.n} × ${DICE_AVG[atk.d]} + ${atk.m} = ${fmt(avg)}.` },
+      hint:`One d${atk.d} averages ${DICE_AVG[atk.d]}.`, solution: atk.m ? `${atk.n} × ${DICE_AVG[atk.d]} + ${atk.m} = ${fmt(avg)}.` : `${atk.n} × ${DICE_AVG[atk.d]} = ${fmt(avg)}.` },
      { q:`About how much damage over ${k} hits?`, answer:avg*k,
       hint:`Multiply the average by ${k}.`, solution:`${fmt(avg)} × ${k} = ${fmt(avg*k)}.` }] };
 }
@@ -1014,7 +1045,7 @@ function genEncounterFit(){
     if(count<2 || count>9) continue;
     return { flavor:`You want a ${DIFF[which]} fight for your ${S} level-${L} heroes. The budget is ${budget} XP, and each ${mon.n} costs ${mon.xp} XP.`,
       steps:[{ q:`How many ${mon.pl} fit in the budget?`, answer:count,
-        hint:`Divide the budget by ${mon.xp} and ignore the leftover.`, solution:`${budget} ÷ ${mon.xp} = ${fmt(budget/mon.xp)}. You can't send part of a ${mon.n}, so ${count}.` },
+        hint:`Divide the budget by ${mon.xp} and ignore the leftover.`, solution:`${budget} ÷ ${mon.xp} = ${fmt(budget/mon.xp)}. You can't send part of ${article(mon.n)} ${mon.n}, so ${count}.` },
        { q:`How much of the budget is left over?`, answer:left, hint:`${count} × ${mon.xp} = ${count*mon.xp}. Subtract from ${budget}.`, solution:`${budget} − ${count*mon.xp} = ${left} XP. Spend it on a trap, or save it.` }] };
   }
   return genEncounterBuild();
@@ -1076,21 +1107,21 @@ function genRoundsToDrop(){
   const mon = pickMon(m=>m.hp>=20), D = rand(8,25), rounds = Math.ceil(mon.hp/D);
   return { flavor:`Pacing check. The ${mon.n} has ${mon.hp} HP and your party deals about ${D} damage every round.`,
     steps:[{ q:`How many rounds until it drops?`, answer:rounds,
-      hint:`Divide, then round UP. A monster with 1 HP left still gets a turn.`, solution:`${mon.hp} ÷ ${D} = ${fmt(mon.hp/D)}, rounded up is ${rounds} rounds.` }] };
+      hint:`Divide, then round UP. A monster with 1 HP left still gets a turn.`, solution:`${mon.hp} ÷ ${D} = ${fmt(mon.hp/D)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}.` }] };
 }
 function genTrollRegen(){
   const D = rand(18,34), net = D-10, rounds = Math.ceil(84/net);
   return { challenge:true, flavor:`A Troll (84 HP) regenerates 10 HP at the start of each of its turns. Your party deals about ${D} damage per round.`,
     steps:[{ q:`How much HP does the Troll really lose each round?`, answer:net, hint:`${D} dealt, 10 healed back.`, solution:`${D} − 10 = ${net} per round.` },
      { q:`About how many rounds until it drops?`, answer:rounds,
-      hint:`84 ÷ ${net}, rounded up.`, solution:`84 ÷ ${net} = ${fmt(84/net)}, rounded up is ${rounds} rounds. (Fire stops the regeneration. Your players should figure that out.)` }] };
+      hint:`84 ÷ ${net}, rounded up.`, solution:`84 ÷ ${net} = ${fmt(84/net)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}. (Fire stops the regeneration. Your players should figure that out.)` }] };
 }
 function genHitDiceHp(){
   const mon = pickMon(m=>m.hd), hd = parseDice(mon.hd), avg = diceAvg(hd);
   return { flavor:`${an(mon.n)}'s hit points are listed as ${hd.text}.`,
     steps:[{ q:`What's its average HP, rounded down like the Monster Manual?`, answer:Math.floor(avg),
-      hint:`One d${hd.d} averages ${DICE_AVG[hd.d]}. Multiply by ${hd.n}, add ${hd.m}, round down.`,
-      solution:`${hd.n} × ${DICE_AVG[hd.d]} = ${fmt(hd.n*DICE_AVG[hd.d])}, ${hd.m>=0?'+':'−'} ${Math.abs(hd.m)} = ${fmt(avg)}, rounded down: ${Math.floor(avg)}.` }] };
+      hint:`One d${hd.d} averages ${DICE_AVG[hd.d]}. Multiply by ${hd.n}${hd.m > 0 ? `, add ${hd.m}` : hd.m < 0 ? `, take away ${-hd.m}` : ''}, round down.`,
+      solution:`${hd.n} × ${DICE_AVG[hd.d]} = ${fmt(hd.n*DICE_AVG[hd.d])}${hd.m ? `, ${hd.m>0?'+':'−'} ${Math.abs(hd.m)} = ${fmt(avg)}` : ''}, rounded down: ${Math.floor(avg)}.` }] };
 }
 
 // 6. Maps & Miles
@@ -1127,15 +1158,19 @@ function genPerimeter(){
 }
 
 // 7. Damage Doctor
+// Real monster weaknesses only: a Wight resists necrotic and a Skeleton is vulnerable to bludgeoning.
+// Otherwise the resistance comes from a real spell, Protection from Energy.
 function genResist(){
-  const mon = pickMon(), N = rand(5,23), h = hero(), type = pick(['slashing','piercing','bludgeoning','fire','cold']);
-  return { flavor:`The ${mon.n} is RESISTANT to ${type} damage. ${h} hits it with ${type} damage for ${N}.`,
+  const N = rand(5,23), h = hero(), real = rand(0,2) === 0;
+  const mon = real ? MONSTERS.find(m => m.n === 'Wight') : pickMon(), type = real ? 'necrotic' : pick(['acid','cold','fire','lightning','thunder']);
+  return { flavor: real ? `The Wight is RESISTANT to necrotic damage. ${h} hits it with necrotic damage for ${N}.`
+      : `An enemy mage casts Protection from Energy on the ${mon.n}, so it is RESISTANT to ${type} damage. ${h} hits it with ${type} damage for ${N}.`,
     steps:[{ q:`How much damage actually gets through? (round down)`, answer:Math.floor(N/2),
       hint:`Resistance means half, rounded down.`, solution:`${N} ÷ 2 = ${fmt(N/2)}, rounded down is ${Math.floor(N/2)}.` }] };
 }
 function genVulnerable(){
-  const mon = pickMon(), N = rand(4,16), h = hero(), type = pick(['bludgeoning','fire','radiant','thunder']);
-  return { flavor:`The ${mon.n} is VULNERABLE to ${type} damage. ${h} hits it with ${type} damage for ${N}.`,
+  const N = rand(4,16), h = hero(), w = pick(['warhammer','mace','quarterstaff','club']);
+  return { flavor:`Skeletons are VULNERABLE to bludgeoning damage. ${h} smashes one with a ${w} for ${N} bludgeoning damage.`,
     steps:[{ q:`How much damage does it take?`, answer:N*2, hint:`Vulnerable means double.`, solution:`${N} × 2 = ${N*2}.` }] };
 }
 function genCrit(){
@@ -1145,7 +1180,7 @@ function genCrit(){
   return { flavor:`${h} rolls a natural 20 with a ${w} (${atk.text})! On a critical hit you roll the damage dice TWICE, but add the bonus only once.`,
     steps:[{ q:`How many d${atk.d}s do you roll?`, answer:atk.n*2, hint:`Twice the normal number of dice.`, solution:`${atk.n} × 2 = ${atk.n*2} dice.` },
      { q:`The dice show ${rolls.join(', ')}. What's the total damage?`, answer:sum+atk.m,
-      hint:`Add up the dice, then add ${atk.m} once.`, solution:`${rolls.join(' + ')} = ${sum}, plus ${atk.m} = ${sum+atk.m}.` }] };
+      hint: atk.m ? `Add up the dice, then add ${atk.m} once.` : `Add up all the dice.`, solution: atk.m ? `${rolls.join(' + ')} = ${sum}, plus ${atk.m} = ${sum+atk.m}.` : `${rolls.join(' + ')} = ${sum}.` }] };
 }
 function genGroupAttack(){
   const mon = pickMon(m=>m.xp<=100), C = rand(3,6), d = rand(3,9), h = hero(), hp = rand(18,45), total = C*d;
@@ -1179,7 +1214,7 @@ const DC_LADDER = [['Very easy',5],['Easy',10],['Medium',15],['Hard',20],['Very 
 const SKILLS = [ // skill, ability, an example task
   ['Athletics','Strength','climbing a crumbling cliff'], ['Athletics','Strength','swimming across the fast river'],
   ['Acrobatics','Dexterity','keeping balance on a narrow ledge'], ['Sleight of Hand','Dexterity','slipping a key out of a guard\'s pocket'], ['Stealth','Dexterity','sneaking past sleeping wolves'],
-  ['Arcana','Intelligence','recognizing a glowing magic rune'], ['History','Intelligence','remembering who built the old chapel'], ['Investigation','Intelligence','working out how a trap is triggered'], ['Nature','Intelligence','knowing which berries are poisonous'], ['Religion','Intelligence','identifying a holy symbol'],
+  ['Arcana','Intelligence','recognizing a glowing magic rune'], ['History','Intelligence','remembering who built the old chapel'], ['Investigation','Intelligence','working out how a trap is triggered'], ['Nature','Intelligence','figuring out which berries are poisonous'], ['Religion','Intelligence','identifying a holy symbol'],
   ['Animal Handling','Wisdom','calming a spooked horse'], ['Insight','Wisdom','telling whether the mayor is lying'], ['Medicine','Wisdom','stabilizing a dying friend'], ['Perception','Wisdom','spotting a goblin hiding in the trees'], ['Survival','Wisdom','tracking an owlbear through the forest'],
   ['Deception','Charisma','lying to the gate guard'], ['Intimidation','Charisma','scaring a bandit into talking'], ['Performance','Charisma','playing a song at the inn'], ['Persuasion','Charisma','convincing the mayor to send help'],
 ];
@@ -1193,7 +1228,7 @@ const WEAPONS = [ // name, damage, properties, mastery
   ['Dagger','1d4','Finesse, Light, Thrown','Nick'],['Shortsword','1d6','Finesse, Light','Vex'],['Scimitar','1d6','Finesse, Light','Nick'],['Rapier','1d8','Finesse','Vex'],
   ['Longsword','1d8','Versatile (1d10)','Sap'],['Warhammer','1d8','Versatile (1d10)','Push'],['Quarterstaff','1d6','Versatile (1d8)','Topple'],['Spear','1d6','Thrown, Versatile (1d8)','Sap'],
   ['Greatsword','2d6','Heavy, Two-Handed','Graze'],['Greataxe','1d12','Heavy, Two-Handed','Cleave'],['Maul','2d6','Heavy, Two-Handed','Topple'],['Glaive','1d10','Heavy, Reach, Two-Handed','Graze'],
-  ['Halberd','1d10','Heavy, Reach, Two-Handed','Cleave'],['Handaxe','1d6','Light, Thrown','Vex'],['Mace','1d6','Simple','Sap'],['Javelin','1d6','Thrown','Slow'],
+  ['Halberd','1d10','Heavy, Reach, Two-Handed','Cleave'],['Handaxe','1d6','Light, Thrown','Vex'],['Mace','1d6','—','Sap'],['Javelin','1d6','Thrown','Slow'],
   ['Shortbow','1d6','Ammunition, Two-Handed','Vex'],['Longbow','1d8','Ammunition, Heavy, Two-Handed','Slow'],['Light crossbow','1d8','Ammunition, Loading, Two-Handed','Slow'],
   ['Heavy crossbow','1d10','Ammunition, Heavy, Loading, Two-Handed','Push'],['Hand crossbow','1d6','Ammunition, Light, Loading','Vex'] ];
 const MASTERY = {
@@ -1272,7 +1307,7 @@ function genPassivePerception(){
 function genSkillBonus(){
   const L = level(), [sk, ab] = pick(SKILLS), S = rand(8,18), h = hero(), m = mod(S);
   return { flavor:`${h} (level ${L}) is proficient in ${sk}, which uses ${ab}. Their ${ab} score is ${S}.`,
-    steps:[{ q:`What do they add to a ${sk} check? (modifier + Proficiency Bonus)`, answer:m+PB(L), hint:`${ab} ${S} → ${signed(m)}. Proficiency at level ${L} is +${PB(L)}.`, solution:`${signed(m)} + ${PB(L)} = ${signed(m+PB(L))}.` }] };
+    steps:[{ q:`What do they add to ${article(sk)} ${sk} check? (modifier + Proficiency Bonus)`, answer:m+PB(L), hint:`${ab} ${S} → ${signed(m)}. Proficiency at level ${L} is +${PB(L)}.`, solution:`${signed(m)} + ${PB(L)} = ${signed(m+PB(L))}.` }] };
 }
 function genSpellAbility(){
   const [c,,,ab] = pick(CLASSES.filter(c=>c[3]));
@@ -1283,7 +1318,7 @@ function genSpellAbility(){
 // 9. The d20 Test
 function genCheckVsDc(){
   const [sk, ab, task] = pick(SKILLS), b = rand(1,7), [dcName, dc] = pick(DC_LADDER.slice(1,4)), r = rand(2,19), h = hero(), total = r+b;
-  return { flavor:`${h} is ${task}. You call it ${dcName} (DC ${dc}). ${h} has +${b} to ${sk} and rolls a ${r}.`,
+  return { flavor:`${h} is ${task}. You call it ${dcName} (DC ${dc}). ${h} has +${b} to ${sk} and rolls ${aNum(r)} ${r}.`,
     steps:[{ q:`What's the total?`, answer:total, hint:`Roll + bonus.`, solution:`${r} + ${b} = ${total}.` },
      { q:`Does ${h} succeed? (Meet it or beat it.)`, choices:['Success','Failure'], answer: total>=dc ? 'Success':'Failure', hint:`Compare ${total} to DC ${dc}. Equal counts as a success.`, solution:`${total} ${total>=dc?'≥':'<'} ${dc}: ${total>=dc?'Success':'Failure'}.` }] };
 }
@@ -1300,7 +1335,7 @@ function genWhichSkill(){
   const [sk, ab, task] = pick(SKILLS), h = hero();
   return { flavor:`${h} is ${task}.`,
     steps:[{ q:`Which skill is that?`, choices:choicesFrom(sk, SKILLS.map(s=>s[0]), 4), answer:sk, hint:`Which ability does the task use? Then which skill under it fits?`, solution:`${task.charAt(0).toUpperCase()+task.slice(1)} is ${sk}.` },
-     { q:`And ${sk} uses which ability?`, choices:choicesFrom(ab, ABILITIES, 4), answer:ab, hint:`Str: Athletics. Dex: Acrobatics, Sleight of Hand, Stealth. Int: Arcana, History, Investigation, Nature, Religion. Wis: Animal Handling, Insight, Medicine, Perception, Survival. Cha: the four social skills.`, solution:`${sk} is a ${ab} skill.` }] };
+     { q:`And ${sk} uses which ability?`, choices:choicesFrom(ab, ABILITIES, 4), answer:ab, hint:`Str: Athletics. Dex: Acrobatics, Sleight of Hand, Stealth. Int: Arcana, History, Investigation, Nature, Religion. Wis: Animal Handling, Insight, Medicine, Perception, Survival. Cha: the four social skills.`, solution:`${sk} is ${article(ab)} ${ab} skill.` }] };
 }
 function genDcLadder(){
   const [name, dc] = pick(DC_LADDER);
@@ -1324,14 +1359,14 @@ function genAdvRules(){
 // 10. The Combat Round
 function genInitiative(){
   for(let t=0;t<30;t++){
-    const names = [...new Set([hero(), hero(), pickMon().n, pickMon().n])].slice(0,3);
+    const names = [...new Set([hero(), hero(), 'the ' + pickMon().n, 'the ' + pickMon().n])].slice(0,3);   // "the Goblin", next to the heroes' names
     if(names.length<3) continue;
-    const rows = names.map(n => { const r = rand(1,20), m = rand(-1,4); return {n, r, m, t:r+m}; });
+    const rows = names.map(n => { const r = rand(1,20), m = n.startsWith('the ') ? monDex(n.slice(4)) : rand(-1,4); return {n, r, m, t:r+m}; });
     if(new Set(rows.map(x=>x.t)).size<3) continue;
     const first = rows.reduce((a,b)=>b.t>a.t?b:a), ask = pick(rows);
-    return { flavor:`Roll for Initiative! ` + rows.map(x=>`${x.n} rolled ${x.r} with ${signed(x.m)} Dex`).join('. ') + '.',
+    return { flavor:`Roll for Initiative! ` + rows.map(x=>`${cap(x.n)} rolled ${x.r} with ${signed(x.m)} Dex`).join('. ') + '.',
       steps:[{ q:`What's ${ask.n}'s Initiative total?`, answer:ask.t, hint:`Roll + Dexterity modifier.`, solution:`${ask.r} ${pm(ask.m)} = ${ask.t}.` },
-       { q:`Who goes first?`, choices:shuffle(rows.map(x=>x.n)), answer:first.n, hint:`Highest total goes first.`, solution:`Order: ` + rows.slice().sort((a,b)=>b.t-a.t).map(x=>`${x.n} (${x.t})`).join(', ') + '.' }] };
+       { q:`Who goes first?`, choices:shuffle(rows.map(x=>cap(x.n))), answer:cap(first.n), hint:`Highest total goes first.`, solution:`Order: ` + rows.slice().sort((a,b)=>b.t-a.t).map(x=>`${x.n} (${x.t})`).join(', ') + '.' }] };
   }
   return genDifficultTerrain();
 }
@@ -1344,7 +1379,7 @@ function genDifficultTerrain(){
 function genJump(){
   const S = rand(8,20), h = hero();
   return { flavor:`A chasm splits the road to ${place()}. ${h} has Strength ${S}.`,
-    steps:[{ q:`With a 10-foot run-up, a Long Jump covers feet equal to the Strength SCORE. How far can ${h} jump?`, answer:S, hint:`The score, not the modifier.`, solution:`Strength ${S} = a ${S}-foot jump.` },
+    steps:[{ q:`With a 10-foot run-up, a Long Jump covers feet equal to the Strength SCORE. How far can ${h} jump?`, answer:S, hint:`The score, not the modifier.`, solution:`Strength ${S} = ${aNum(S)} ${S}-foot jump.` },
      { q:`From a standing start it's half that. How far? (decimals are fine)`, answer:S/2, hint:`${S} ÷ 2.`, solution:`${S} ÷ 2 = ${fmt(S/2)} feet.` },
      { q:`A High Jump is 3 + Strength MODIFIER feet with a run-up. How high?`, answer:3+mod(S), hint:`Strength ${S} gives a modifier of ${signed(mod(S))}.`, solution:`3 ${pm(mod(S))} = ${3+mod(S)} feet.` }] };
 }
@@ -1356,7 +1391,7 @@ function genFall(){
 }
 function genCover(){
   const mon = pickMon(), kind = pick([['Half Cover',2,'a low wall'],['Three-Quarters Cover',5,'an arrow slit']]);
-  return { flavor:`A ${mon.n} (AC ${mon.ac}) is shooting from behind ${kind[2]}, which gives it ${kind[0]}.`,
+  return { flavor:`${an(mon.n)} (AC ${mon.ac}) is fighting from behind ${kind[2]}, which gives it ${kind[0]}.`,
     steps:[{ q:`${kind[0]} adds +${kind[1]} to AC and Dexterity saves. What AC do the heroes need to hit now?`, answer:mon.ac+kind[1], hint:`${mon.ac} + ${kind[1]}.`, solution:`${mon.ac} + ${kind[1]} = ${mon.ac+kind[1]}. Total Cover means it can't be targeted at all.` }] };
 }
 function genActions(){
@@ -1417,7 +1452,7 @@ function genDeathSave(){
   else if(r>=10){ out = s+1>=3 ? 'Stable (three successes)' : 'One success'; why='10 or higher is a success.'+(s+1>=3?' Three successes: stable, but still Unconscious.':''); }
   else { out = f+1>=3 ? 'Dead' : 'One failure'; why='9 or lower is a failure.'+(f+1>=3?' Three failures: dead.':''); }
   const opts = ['One success','One failure','Two failures','Stable (three successes)','Dead','Back up with 1 HP'];
-  return { flavor:`${h} is at 0 HP with ${s} success${s===1?'':'es'} and ${f} failure${f===1?'':'s'} so far. They roll a ${r} on their Death Saving Throw.`,
+  return { flavor:`${h} is at 0 HP with ${s} success${s===1?'':'es'} and ${f} failure${f===1?'':'s'} so far. They roll ${aNum(r)} ${r} on their Death Saving Throw.`,
     steps:[{ q:`What happens?`, choices:choicesFrom(out, opts, 4), answer:out, hint:`DC 10. Natural 1 = two failures. Natural 20 = back up with 1 HP. Three of either kind ends it.`, solution:why }] };
 }
 function genConcentration(){
@@ -1438,9 +1473,11 @@ function genShortRest(){
     steps:[{ q:`Each die heals the roll + Con modifier. How many HP does ${h} regain?`, answer:sum+k*m, hint:`Add the rolls (${sum}), then add ${signed(m)} for EACH die (${k} times).`, solution:`${sum} + ${k} × ${m} = ${sum+k*m} HP.` }] };
 }
 function genLongRest(){
-  const L = rand(1,8), h = hero(), back = Math.max(1, Math.floor(L/2));
-  return { flavor:`${h} is level ${L}, so they have ${L} Hit Point Dice in total, and they've spent all of them. The party takes a Long Rest (8 hours).`,
-    steps:[{ q:`A Long Rest restores all HP and HALF your total Hit Point Dice (rounded down, minimum 1). How many dice come back?`, answer:back, hint:`${L} ÷ 2, rounded down, but never less than 1.`, solution:`${L} ÷ 2 = ${fmt(L/2)} → ${Math.floor(L/2)}${Math.floor(L/2)<1?', bumped up to the minimum of 1':''}. ${back} ${back===1?'die':'dice'} back.` }] };
+  const L = rand(2,10), k = rand(1,L), h = hero();
+  return { flavor:`${h} is level ${L}, so they have ${L} Hit Point Dice in total. They spent ${k} of them on Short Rests today.`,
+    steps:[{ q:`How many Hit Point Dice does ${h} have left right now?`, answer:L-k, hint:`Take the ones spent away from the total.`, solution:`${L} − ${k} = ${L-k}.` },
+      { q:`Then the party takes a Long Rest (8 hours). How many Hit Point Dice does ${h} have when they wake up?`, answer:L,
+        hint:`A Long Rest gives back all your HP and all your spent Hit Point Dice.`, solution:`All ${k} spent dice come back: ${L-k} + ${k} = ${L}, the full ${L}.` }] };
 }
 function genCureWounds(){
   const h = hero(), W = rand(12,18), m = mod(W), slot = rand(1,3), n = 2 + 2*(slot-1), rolls = []; for(let i=0;i<n;i++) rolls.push(rand(1,8));
@@ -1459,7 +1496,7 @@ function genExhaustion(){
 // 12. Spellbook
 function genSlots(){
   const L = rand(1,5), slots = FULL_CASTER_SLOTS[L], h = heroAs('Wizard'), k = rand(1, Math.max(1, slots[0]-1));
-  const cast = shuffle(['Magic Missile','Shield','Thunderwave','Sleep','Healing Word','Cure Wounds']).slice(0,k);
+  const cast = shuffle(['Magic Missile','Shield','Thunderwave','Sleep','Burning Hands','Detect Magic']).slice(0,k);
   return { flavor:`${h} is level ${L}, with ${slots[0]} level-1 spell slots${slots[1]?' and '+slots[1]+' level-2 slots':''}. Today they've cast ${cast.join(' and ')} (all level 1).`,
     steps:[{ q:`How many level-1 slots are left?`, answer:slots[0]-k, hint:`${slots[0]} − ${k}.`, solution:`${slots[0]} − ${k} = ${slots[0]-k}. Slots come back after a Long Rest.` }] };
 }
@@ -1508,7 +1545,7 @@ function genArmorClass(){
   const dexPart = rule==='full' ? m : rule===0 ? 0 : Math.min(m, 2), ac = base + dexPart + (shield?2:0);
   const ruleText = rule==='full' ? 'adds the full Dex modifier' : rule===0 ? 'ignores Dex entirely (heavy armor)' : 'adds Dex up to a maximum of +2 (medium armor)';
   const Name = name.charAt(0).toUpperCase()+name.slice(1);
-  return { flavor:`${h} has Dexterity ${D} and wears ${name}${shield?' and carries a shield':''}. ${Name} is AC ${base} and ${ruleText}.`,
+  return { flavor:`${h} has Dexterity ${D} and wears ${name.toLowerCase()}${shield?' and carries a shield':''}. ${Name} is AC ${base} and ${ruleText}.`,
     steps:[{ q:`What's the Dex modifier?`, answer:m, hint:'(score − 10) ÷ 2, rounded down.', solution:`(${D} − 10) ÷ 2 → ${signed(m)}.` },
      { q:`What's ${h}'s AC?${shield?' (A shield adds +2.)':''}`, answer:ac, hint: rule===0 ? `Heavy armor: just ${base}${shield?' + 2':''}.` : rule===2 ? `Dex counts, but only up to +2.` : `${base} + Dex${shield?' + 2':''}.`,
        solution:`${base} ${pm(dexPart)}${rule===2 && m>2 ? ' (Dex capped at +2)' : rule===0 ? ' (no Dex)' : ''}${shield?' + 2':''} = ${ac}.` }] };
@@ -1677,7 +1714,7 @@ const MODULES = [
   { id:'survive', section:'rules', sigil:'0 HP', title:'Hit Points & Dying', tag:'Death saves, rests, healing, concentration',
     lesson:`<p><b>At 0 HP</b> you fall Unconscious. Each turn, roll a <b>Death Saving Throw</b>: 10 or higher is a success, 9 or lower a failure. Three successes: stable. Three failures: dead. A natural 1 counts as two failures. A natural 20: you're back up with 1 HP. Taking damage at 0 HP is a failure (two for a crit).</p>
       <p><b>Instant death</b>: if the damage that drops you to 0 has leftover equal to or more than your max HP, you die outright. A friend can stabilize you with a DC 10 Wisdom (Medicine) check.</p>
-      <p><b>Rests.</b> A <b>Short Rest</b> is 1 hour: spend Hit Point Dice, each healing the roll + Con modifier. A <b>Long Rest</b> is 8 hours: all HP back, plus half your total Hit Point Dice (minimum 1).</p>
+      <p><b>Rests.</b> A <b>Short Rest</b> is 1 hour: spend Hit Point Dice, each healing the roll + Con modifier. A <b>Long Rest</b> is 8 hours: all HP back, and all your spent Hit Point Dice.</p>
       <p><b>Healing.</b> Potion of Healing: 2d4 + 2, drunk as a Bonus Action. Cure Wounds: 2d8 + spellcasting modifier, +2d8 per slot level above 1. Healing never passes max HP. <b>Temporary HP</b> don't stack: keep the higher amount.</p>
       <p><b>Concentration.</b> When you take damage, make a Con save: DC 10 or half the damage, whichever is higher. <b>Exhaustion</b>: −2 on D20 Tests and −5 feet Speed per level. Level 6 is death.</p>`,
     gens:[genInstantDeath, genDeathSave, genDeathSave, genConcentration, genTempHp, genShortRest, genLongRest, genCureWounds, genExhaustion] },
@@ -1739,7 +1776,7 @@ function addXp(n){
   const after = rankFor(progress.xp);
   if(after.idx > before){
     const newly = MONSTERS.filter(m => m.xp > UNLOCK_XP[before] && m.xp <= UNLOCK_XP[after.idx]).map(m => m.n);
-    toast(`Rank up! You are now a ${after.name}.` + (newly.length ? ` Unlocked: ${newly.join(', ')}.` : ''));
+    toast(`Rank up! You are now ${article(after.name)} ${after.name}.` + (newly.length ? ` Unlocked: ${newly.join(', ')}.` : ''));
   }
 }
 let toastTimer;
@@ -1996,7 +2033,7 @@ function bossHit(firstTry){
 function bossAttack(){
   const atk = parseDice(boss.mon.atk), roll = rollDice(atk);
   boss.heroHp -= roll.total;
-  bossLog(`The ${boss.mon.n}'s ${boss.mon.weapon} hits you for ${roll.total} (${atk.text}: ${roll.rolls.join(' + ')}${atk.m ? ' + ' + atk.m : ''}).`);
+  bossLog(`The ${boss.mon.n}'s ${boss.mon.weapon} ${monHits(boss.mon)} you for ${roll.total} (${atk.text}: ${roll.rolls.join(' + ')}${atk.m ? ' + ' + atk.m : ''}).`);
   renderBossBars();
   if(boss.heroHp <= 0) bossEnd(false);
 }
@@ -2029,106 +2066,501 @@ $('boss-flee').addEventListener('click', bossLeave);
 
 // ---------- Dungeon Forge ----------
 // Build a dungeon on a gold budget, beat it yourself, then publish it under a share code that a
-// friend types in to play it. The math is in the building (the budget, and the Guildmaster's
-// commissions: area, perimeter, splitting XP and treasure) and in the playing (saving throws,
-// attack rolls, damage, counting loot). The story and the signs are the builder's own writing,
-// read by whoever plays.
+// friend types in to play it. The math is in the building (the budget is mostly feet of wall, and
+// the Guildmaster's commissions: area, perimeter, splitting XP and treasure) and in the playing
+// (saving throws, checks, attack rolls, damage, counting loot). The story and the signs are the
+// builder's own writing, read by whoever plays.
 //
-// A dungeon: { id, title, intro, cells, things, rev, tested, share }
-//   cells   FORGE_W × FORGE_H characters, row by row, keys of PIECES (' ' is solid rock)
-//   things  { cellIndex: {mon:'Goblin'} | {size:'s'|'m'|'l'} | {text:'...'} } for m, $ and s
+// Every square is 5 feet. Walls sit on the grid lines between squares, the way a DM draws on graph
+// paper: digging out floor puts walls up around it, and the builder can draw more walls, choose
+// what they are made of, and put doors in them.
+//
+// A dungeon: { id, v:2, size, title, intro, cells, ground, walls, things, rev, tested, share }
+//   size    a key of SIZES: how many squares across and down
+//   cells   one character per square, row by row, keys of PIECES (' ' is solid rock)
+//   ground  one character per square: what its floor is made of, keys of GROUNDS
+//   walls   one character per grid line, in wallKey order, '.' where there is no wall
+//   things  { cellIndex: {mon} | {size} | {text} | {trap, depth} } for m, $, s and t
 //   rev     bumped on every edit; tested is the rev the builder last beat, and sharing needs both equal
 //   share   the share code, once published
-const FORGE_W = 12, FORGE_H = 9, FORGE_MAX = 12;
+// Version 1 dungeons (12 × 9, walls were rock squares, locked doors filled a square) are upgraded as they load.
+const FORGE_MAX = 12;
+const SIZES = {
+  small:{ name:'Small', w:12, h:9, mult:1 },
+  medium:{ name:'Medium', w:24, h:18, mult:2 },
+  large:{ name:'Large', w:32, h:24, mult:3 },
+};
 const PIECES = {
-  ' ': { name:'Rock', glyph:'' },
-  '.': { name:'Floor', cost:1, glyph:'', tip:'Drag across the map to paint rooms and halls. A room is floor squares joined side by side, with rock or locked doors around it.' },
-  'S': { name:'Start', cost:0, glyph:'★', tip:'Where the heroes come in. One per dungeon.' },
-  'E': { name:'Exit', cost:0, glyph:'▼', tip:'Reach it to win. One per dungeon.' },
-  'D': { name:'Locked door', cost:5, glyph:'▮', tip:'Blocks the way until a hero has a key. A door also separates two rooms.' },
+  ' ': { name:'Rock' },
+  '.': { name:'Floor' },
+  'S': { name:'Start', glyph:'★', tip:'Where the heroes come in. One per dungeon.' },
+  'E': { name:'Exit', glyph:'▼', tip:'Reach it to win. One per dungeon.' },
   'k': { name:'Key', cost:5, glyph:'⚷', tip:'Opens one locked door.' },
-  'm': { name:'Monster', glyph:'', tip:'A monster costs one fifth of its XP in gold. Bigger monsters unlock as you rank up.' },
-  't': { name:'Trap', cost:10, glyph:'✶', tip:'Whoever steps here makes a Dexterity saving throw.' },
-  '$': { name:'Chest', glyph:'◆', tip:'Treasure for players to count.' },
+  'm': { name:'Monster', tip:'A monster costs one fifth of its XP in gold. Big monsters need room: a Large one stands on 2 × 2 squares, a Huge one on 3 × 3. Bigger monsters unlock as you rank up.' },
+  't': { name:'Trap', tip:'Hidden until a hero steps on it.' },
+  '$': { name:'Chest', tip:'Treasure for players to count.' },
   's': { name:'Sign', cost:2, glyph:'✎', tip:'Write a message for whoever finds it: a clue, a warning, a riddle.' },
 };
+const GROUNDS = { s:{ name:'Stone', wall:'stone' }, c:{ name:'Cave', wall:'cave' }, w:{ name:'Wood', wall:'wood' } };
+const WALLS = {
+  stone:{ name:'Stone', cost:2, does:'Solid. Nothing gets through.' },
+  cave:{ name:'Cave', cost:1, does:'Rough rock, cheap to dig. Cave walls are never straight.' },
+  wood:{ name:'Wood', cost:1, does:'Cheap, but heroes can smash through it: hit Armor Class 15 and do 10 damage.' },
+  bars:{ name:'Iron bars', cost:3, does:'Heroes can see through but not walk through. Good for jail cells.' },
+};
+const DOORS = {
+  door:{ name:'Door', cost:3, does:'Opens. Anyone can walk through.' },
+  locked:{ name:'Locked door', cost:5, does:'Needs a key.' },
+  portcullis:{ name:'Portcullis', cost:8, does:'An iron gate. Heroes can see through it, and lift it with a Strength check.' },
+  secret:{ name:'Secret door', cost:10, does:'Looks like a wall until a hero searches and passes an Investigation check. On D&D maps the DM marks it with an S.' },
+};
+const TRAPS = {
+  spike:{ name:'Spike trap', glyph:'✶', cost:() => 10, does:'A Dexterity saving throw, or 2d6 damage. Half damage if they make it.' },
+  pit:{ name:'Pit', cost:t => t.depth / 2, does:'A hidden pit. A Dexterity saving throw, or fall in: 1d6 damage for every 10 feet.' },
+  spiked:{ name:'Spiked pit', cost:t => t.depth / 2 + 10, does:'A hidden pit with spikes at the bottom: the fall, plus 2d10 more.' },
+  net:{ name:'Net', glyph:'#', cost:() => 10, does:'Drops on a hero, who needs a Strength check to tear free.' },
+  dart:{ name:'Poison darts', glyph:'➹', cost:() => 10, does:'A Constitution saving throw against the poison, or 2d6 more damage.' },
+};
+const PIT_DEPTHS = [10, 20, 30];
+const isPit = t => !!t && (t.trap === 'pit' || t.trap === 'spiked');
 const CHESTS = { s:{ name:'Small chest', cost:10, gold:20 }, m:{ name:'Medium chest', cost:25, gold:50 }, l:{ name:'Large chest', cost:50, gold:100 } };
-const TOOLS = [['.','Floor','▢'],['S','Start','★'],['E','Exit','▼'],['D','Door','▮'],['k','Key','⚷'],['m','Monster','☠'],['t','Trap','✶'],['$','Chest','◆'],['s','Sign','✎'],['select','Change','☝'],['erase','Rock','✕']];
-const TILE_CLASS = { ' ':'rock', '.':'floor', S:'start', E:'exit', D:'door', k:'key', m:'mon', t:'trap', $:'chest', s:'sign' };
+// Large monsters stand on 2 × 2 squares (10 ft), Huge ones on 3 × 3 (15 ft). The rest take one square.
+const MON_SPAN = { 'Giant Spider':2, 'Dire Wolf':2, Ogre:2, Owlbear:2, Troll:2, Minotaur:2, Wyvern:2, 'Young Green Dragon':2, 'Hill Giant':3 };
+const monSpan = n => MON_SPAN[n] || 1;
+const TOOLS = [
+  ['room','Room','▭','free floor'], ['hall','Hall','┅','free floor'], ['wall','Wall','┃','1–3 gp / 5 ft'], ['door','Door','⊓','3–10 gp'],
+  ['S','Start','★',''], ['E','Exit','▼',''], ['k','Key','⚷','5 gp'], ['m','Monster','☠','XP ÷ 5'], ['t','Trap','✶','5–25 gp'],
+  ['$','Chest','◆','10–50 gp'], ['s','Sign','✎','2 gp'], ['select','Change','☝',''], ['measure','Measure','↔',''], ['erase','Rock','✕',''],
+];
+const TOOL_TIPS = {
+  room:'Drag from one corner to the other to dig out a rectangle room. Walls go up around it.',
+  hall:'Drag to dig a hall or a twisty cave passage, one square at a time.',
+  wall:'Drag from dot to dot to build a wall on the grid lines. Draw over a wall to change what it is made of.',
+  door:'Tap a wall to put a door in it. Tap the same door again to take it out.',
+  select:'Tap a monster, trap, chest or sign on the map to change it.',
+  measure:'Tap a room to see how big it is.',
+  erase:'Drag over floor to fill it back in with rock. Tap a door or an inside wall to take it out.',
+};
 const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
-const forgeBudget = () => 150 + 100 * rankFor(progress.xp).idx;
+const forgeBudget = d => (200 + 100 * rankFor(progress.xp).idx) * (SIZES[d && d.size] || SIZES.small).mult;
 const monCost = n => { const m = MONSTERS.find(x => x.n === n); return m ? Math.max(5, m.xp / 5) : 10; };
 const forgeDefaults = () => ({ dungeons:[], board:[], played:{}, stats:{ right:0, tries:0, commissions:0 } });
-let forge = load('pda-forge', forgeDefaults());
-function forgeSave(){ save('pda-forge', forge); }
 
-// ----- Rules every dungeon follows -----
-function neighbors(i){
-  const x = i % FORGE_W, y = Math.floor(i / FORGE_W), out = [];
-  if(y > 0) out.push(i - FORGE_W); if(x < FORGE_W-1) out.push(i + 1); if(y < FORGE_H-1) out.push(i + FORGE_W); if(x > 0) out.push(i - 1);
+// ----- The map: squares, and walls on the lines between them -----
+// A wall key is "hX,Y" for the line along the top of square X,Y, or "vX,Y" for the line down its left side.
+const parseKey = k => { const c = k.indexOf(','); return [k[0], +k.slice(1, c), +k.slice(c + 1)]; };
+const wallSides = (t, x, y) => t === 'h' ? [[x, y - 1], [x, y]] : [[x - 1, y], [x, y]];
+const wallCount = (W, H) => W * (H + 1) + (W + 1) * H;
+function wallKey(W, H, i){ if(i < W * (H + 1)) return 'h' + (i % W) + ',' + Math.floor(i / W); i -= W * (H + 1); return 'v' + (i % (W + 1)) + ',' + Math.floor(i / (W + 1)); }
+function wallIndex(W, H, k){ const [t, x, y] = parseKey(k); return t === 'h' ? y * W + x : W * (H + 1) + y * (W + 1) + x; }
+// One character per wall: what it is made of, the door in it, and whether it was drawn by hand.
+// Hand-drawn walls stay when there is floor on both sides; the automatic ones come down.
+const WALL_M = ['stone','cave','wood','bars'], DOOR_K = ['','door','locked','portcullis','secret'];
+const WALL_CH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn';
+function decodeWalls(W, H, s){
+  const m = new Map();
+  for(let i = 0; i < s.length; i++){
+    const n = WALL_CH.indexOf(s[i]);
+    if(n >= 0) m.set(wallKey(W, H, i), { m: WALL_M[Math.floor(n / 10)], door: DOOR_K[Math.floor(n % 10 / 2)] || null, manual: n % 2 === 1 });
+  }
+  return m;
+}
+function encodeWalls(M){
+  const out = new Array(wallCount(M.W, M.H)).fill('.');
+  M.edges.forEach((e, k) => { out[wallIndex(M.W, M.H, k)] = WALL_CH[WALL_M.indexOf(e.m) * 10 + Math.max(0, DOOR_K.indexOf(e.door || '')) * 2 + (e.manual ? 1 : 0)]; });
+  return out.join('');
+}
+// A working copy of a dungeon's map: { W, H, cells:[], ground:[], edges:Map, things }.
+function mapOf(d){ const S = SIZES[d.size] || SIZES.small; return { W:S.w, H:S.h, cells:[...d.cells], ground:[...d.ground], edges:decodeWalls(S.w, S.h, d.walls || ''), things:d.things }; }
+function mapStore(d, M){ d.cells = M.cells.join(''); d.ground = M.ground.join(''); d.walls = encodeWalls(M); }
+const inMap = (M, x, y) => x >= 0 && y >= 0 && x < M.W && y < M.H;
+const isFloor = (M, x, y) => inMap(M, x, y) && M.cells[y * M.W + x] !== ' ';
+const cellWalls = (x, y) => ['h' + x + ',' + y, 'h' + x + ',' + (y + 1), 'v' + x + ',' + y, 'v' + (x + 1) + ',' + y];
+// The squares beside square i, each with the wall line between them: [[j, key]].
+function steps(M, i){
+  const x = i % M.W, y = Math.floor(i / M.W), out = [];
+  if(y > 0) out.push([i - M.W, 'h' + x + ',' + y]);
+  if(x < M.W - 1) out.push([i + 1, 'v' + (x + 1) + ',' + y]);
+  if(y < M.H - 1) out.push([i + M.W, 'h' + x + ',' + (y + 1)]);
+  if(x > 0) out.push([i - 1, 'v' + x + ',' + y]);
   return out;
 }
-// Rooms are floor squares joined side by side. Rock and locked doors split them apart.
-function forgeRooms(cells){
-  const roomOf = new Array(cells.length).fill(-1), rooms = [];
-  for(let i = 0; i < cells.length; i++){
-    if(roomOf[i] >= 0 || cells[i] === ' ' || cells[i] === 'D') continue;
-    const r = { cells:[], minX:FORGE_W, maxX:-1, minY:FORGE_H, maxY:-1 }, stack = [i];
+function edgeBetween(M, a, b){ const s = steps(M, a).find(([j]) => j === b); return s ? s[1] : null; }
+// Floor beside rock always has a wall, made of what the floor is. A wall between two floors stays
+// only if it was drawn by hand, and a wall with no floor on either side goes.
+function normalize(M){
+  const one = (t, x, y) => {
+    const k = t + x + ',' + y, [[ax, ay], [bx, by]] = wallSides(t, x, y), a = isFloor(M, ax, ay), b = isFloor(M, bx, by), e = M.edges.get(k);
+    if(a && b){ if(e && !e.manual) M.edges.delete(k); }
+    else if(a || b){ if(!e){ const [fx, fy] = a ? [ax, ay] : [bx, by]; M.edges.set(k, { m:(GROUNDS[M.ground[fy * M.W + fx]] || GROUNDS.s).wall, door:null, manual:false }); } }
+    else if(e) M.edges.delete(k);
+  };
+  for(let y = 0; y <= M.H; y++) for(let x = 0; x < M.W; x++) one('h', x, y);
+  for(let y = 0; y < M.H; y++) for(let x = 0; x <= M.W; x++) one('v', x, y);
+}
+// Rooms are floor squares with no wall between them. Walls and doors split them apart.
+function forgeRooms(M){
+  const roomOf = new Array(M.cells.length).fill(-1), rooms = [];
+  for(let i = 0; i < M.cells.length; i++){
+    if(roomOf[i] >= 0 || M.cells[i] === ' ') continue;
+    const r = { cells:[], walls:0, doors:[], mats:new Set(), minX:M.W, maxX:-1, minY:M.H, maxY:-1 }, stack = [i];
     roomOf[i] = rooms.length;
     while(stack.length){
-      const j = stack.pop(), x = j % FORGE_W, y = Math.floor(j / FORGE_W);
+      const j = stack.pop(), x = j % M.W, y = Math.floor(j / M.W);
       r.cells.push(j); r.minX = Math.min(r.minX, x); r.maxX = Math.max(r.maxX, x); r.minY = Math.min(r.minY, y); r.maxY = Math.max(r.maxY, y);
-      neighbors(j).forEach(n => { if(roomOf[n] < 0 && cells[n] !== ' ' && cells[n] !== 'D'){ roomOf[n] = rooms.length; stack.push(n); } });
+      steps(M, j).forEach(([n, k]) => { if(roomOf[n] < 0 && M.cells[n] !== ' ' && !M.edges.has(k)){ roomOf[n] = rooms.length; stack.push(n); } });
+      cellWalls(x, y).forEach(k => { const e = M.edges.get(k); if(e){ r.walls++; r.mats.add(e.m); if(e.door) r.doors.push(e.door); } });
     }
     r.w = r.maxX - r.minX + 1; r.h = r.maxY - r.minY + 1; r.rect = r.cells.length === r.w * r.h;
     rooms.push(r);
   }
   return { rooms, roomOf };
 }
+// The squares a monster covers when it stands with its top-left corner on square i, or null unless
+// they are all floor with no walls running between them.
+function footprint(M, i, n){
+  const x0 = i % M.W, y0 = Math.floor(i / M.W), out = [];
+  for(let y = y0; y < y0 + n; y++) for(let x = x0; x < x0 + n; x++){
+    if(!isFloor(M, x, y)) return null;
+    if(x > x0 && M.edges.has('v' + x + ',' + y)) return null;
+    if(y > y0 && M.edges.has('h' + x + ',' + y)) return null;
+    out.push(y * M.W + x);
+  }
+  return out;
+}
+// Which monster is on each square: Map(square → the square its monster is listed on).
+function monsterSquares(M){
+  const occ = new Map();
+  M.cells.forEach((c, i) => { if(c === 'm') (footprint(M, i, monSpan((M.things[i] || {}).mon)) || [i]).forEach(j => occ.set(j, i)); });
+  return occ;
+}
+// A pit can cover several squares; stepping on any of them opens all of it.
+function pitGroup(M, i){
+  const seen = new Set([i]), stack = [i];
+  while(stack.length){ const j = stack.pop(); steps(M, j).forEach(([n, k]) => { if(!seen.has(n) && M.cells[n] === 't' && isPit(M.things[n]) && !M.edges.has(k)){ seen.add(n); stack.push(n); } }); }
+  return [...seen];
+}
+
+// ----- Rules every dungeon follows -----
 // What the budget panel lists: [label, count, each, total].
 function forgeCosts(d){
-  const lines = [], add = (label, n, each) => { if(n) lines.push([label, n, each, n * each]); };
-  const count = ch => [...d.cells].filter(c => c === ch).length;
-  add('Floor squares', [...d.cells].filter(c => c !== ' ' && c !== 'D').length, 1);
-  add('Locked doors', count('D'), PIECES.D.cost); add('Keys', count('k'), PIECES.k.cost);
-  add('Traps', count('t'), PIECES.t.cost); add('Signs', count('s'), PIECES.s.cost);
-  const mons = {}, chests = {};
-  [...d.cells].forEach((c, i) => {
-    const t = d.things[i] || {};
-    if(c === 'm'){ mons[t.mon] = (mons[t.mon] || 0) + 1; }
+  const M = mapOf(d), lines = [], add = (label, n, each) => { if(n) lines.push([label, n, each, n * each]); };
+  const count = ch => M.cells.filter(c => c === ch).length;
+  add('Floor squares', M.cells.filter(c => c !== ' ').length, 0);
+  const walls = {}, doors = {};
+  M.edges.forEach(e => { if(e.door) doors[e.door] = (doors[e.door] || 0) + 1; else walls[e.m] = (walls[e.m] || 0) + 1; });
+  Object.keys(WALLS).forEach(k => add(`${WALLS[k].name} wall, ${(walls[k] || 0) * 5} ft`, walls[k] || 0, WALLS[k].cost));
+  Object.keys(DOORS).forEach(k => add(doors[k] === 1 ? DOORS[k].name : DOORS[k].name + 's', doors[k] || 0, DOORS[k].cost));
+  add('Keys', count('k'), PIECES.k.cost); add('Signs', count('s'), PIECES.s.cost);
+  const traps = {}, mons = {}, chests = {};
+  M.cells.forEach((c, i) => {
+    const t = M.things[i] || {};
+    if(c === 't'){ const T = TRAPS[t.trap] || TRAPS.spike, label = isPit(t) ? `${T.name}, ${t.depth} ft deep` : T.name; traps[label] = traps[label] || [0, T.cost(t)]; traps[label][0]++; }
+    if(c === 'm') mons[t.mon] = (mons[t.mon] || 0) + 1;
     if(c === '$'){ const s = t.size || 's'; chests[s] = (chests[s] || 0) + 1; }
   });
-  Object.keys(mons).sort((a,b) => monCost(a) - monCost(b)).forEach(n => add(mons[n] === 1 ? n : (MONSTERS.find(m => m.n === n) || {pl:n}).pl, mons[n], monCost(n)));
+  Object.keys(traps).forEach(l => add(l, traps[l][0], traps[l][1]));
+  Object.keys(mons).sort((a, b) => monCost(a) - monCost(b)).forEach(n => add(mons[n] === 1 ? n : (MONSTERS.find(m => m.n === n) || { pl:n }).pl, mons[n], monCost(n)));
   ['s','m','l'].forEach(s => add(CHESTS[s].name + 's', chests[s] || 0, CHESTS[s].cost));
   return { lines, total: lines.reduce((a, l) => a + l[3], 0) };
 }
 function forgeProblems(d){
-  const out = [], n = ch => [...d.cells].filter(c => c === ch).length;
+  const M = mapOf(d), out = [], n = ch => M.cells.filter(c => c === ch).length;
   if(n('S') !== 1) out.push('Put a Start square on the map.');
   if(n('E') !== 1) out.push('Put an Exit square on the map.');
-  const cost = forgeCosts(d).total, budget = forgeBudget();
+  M.cells.forEach((c, i) => {
+    if(c !== 'm') return;
+    const name = (M.things[i] || {}).mon || 'Goblin', s = monSpan(name);
+    if(s > 1 && !footprint(M, i, s)) out.push(`${an(name)} needs ${s} × ${s} squares (${s * 5} ft × ${s * 5} ft) of floor with no walls through it. Move it or make more room.`);
+  });
+  const cost = forgeCosts(d).total, budget = forgeBudget(d);
   if(cost > budget) out.push(`It costs ${cost} gold and your budget is ${budget}. Take something out.`);
   return out;
 }
 function chestGold(d){ return [...d.cells].reduce((a, c, i) => a + (c === '$' ? CHESTS[(d.things[i] || {}).size || 's'].gold : 0), 0); }
-function roomXp(d, room){ return room.cells.reduce((a, i) => { if(d.cells[i] !== 'm') return a; const m = MONSTERS.find(x => x.n === (d.things[i] || {}).mon); return a + (m ? m.xp : 0); }, 0); }
+function roomXp(M, room){ return room.cells.reduce((a, i) => { if(M.cells[i] !== 'm') return a; const m = MONSTERS.find(x => x.n === (M.things[i] || {}).mon); return a + (m ? m.xp : 0); }, 0); }
 // "4", "4 and 5", "4, 5 and 2": dice the way a person reads them out.
 function saidList(xs){ return xs.length < 2 ? String(xs[0]) : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1]; }
 function sentences(t){ return (String(t).match(/[^.!?]*[a-z][^.!?]*[.!?]+/gi) || []).length; }
 
+// A version 1 dungeon: 12 × 9 squares, rock squares as walls and locked doors on squares of their
+// own. Its floor becomes stone, and each door square becomes floor with a locked door on the line
+// that splits the two rooms it joined.
+function forgeUpgrade(d){
+  if(d.v === 2 && SIZES[d.size]) return d;
+  const W = 12, H = 9, cells = [...String(d.cells || '').slice(0, W * H).padEnd(W * H, ' ')], things = d.things || {}, doors = [];
+  cells.forEach((c, i) => { if(c === 'D'){ cells[i] = '.'; doors.push(i); } else if(!PIECES[c]) cells[i] = ' '; });
+  const M = { W, H, cells, ground:new Array(W * H).fill('s'), edges:new Map(), things };
+  normalize(M);
+  doors.forEach(i => {
+    const x = i % W, y = Math.floor(i / W), f = (a, b) => isFloor(M, a, b);
+    const k = f(x - 1, y) && f(x + 1, y) ? 'v' + x + ',' + y : f(x, y - 1) && f(x, y + 1) ? 'h' + x + ',' + y
+      : f(x - 1, y) ? 'v' + x + ',' + y : f(x + 1, y) ? 'v' + (x + 1) + ',' + y : f(x, y - 1) ? 'h' + x + ',' + y : 'h' + x + ',' + (y + 1);
+    M.edges.set(k, { m:'stone', door:'locked', manual:true });
+  });
+  cells.forEach((c, i) => { if(c === 't' && !(things[i] && TRAPS[things[i].trap])) things[i] = { trap:'spike' }; });
+  return Object.assign(d, { v:2, size:'small', cells:cells.join(''), ground:M.ground.join(''), walls:encodeWalls(M), things });
+}
+function forgeUpgradeAll(){ (forge.dungeons || []).forEach(forgeUpgrade); }
 // A dungeon that came from someone else's device: keep only what the rules allow.
 function forgeClean(raw){
-  const d = raw && typeof raw === 'object' ? raw : {};
-  let cells = typeof d.cells === 'string' ? d.cells : '';
-  cells = [...cells.slice(0, FORGE_W * FORGE_H).padEnd(FORGE_W * FORGE_H, ' ')].map(c => PIECES[c] ? c : ' ').join('');
+  const d = raw && typeof raw === 'object' ? raw : {}, v2 = d.v === 2 && SIZES[d.size];
+  const S = v2 ? SIZES[d.size] : SIZES.small, n = S.w * S.h, nw = wallCount(S.w, S.h);
+  const cells = [...String(typeof d.cells === 'string' ? d.cells : '').slice(0, n).padEnd(n, ' ')].map(c => PIECES[c] || (!v2 && c === 'D') ? c : ' ').join('');
   const things = {};
   [...cells].forEach((c, i) => {
     const t = (d.things && d.things[i]) || {};
     if(c === 'm') things[i] = { mon: MONSTERS.some(m => m.n === t.mon) ? t.mon : 'Goblin' };
     if(c === '$') things[i] = { size: CHESTS[t.size] ? t.size : 's' };
     if(c === 's') things[i] = { text: String(t.text || '').slice(0, 160) };
+    if(c === 't'){ const trap = TRAPS[t.trap] ? t.trap : 'spike'; things[i] = isPit({ trap }) ? { trap, depth: PIT_DEPTHS.includes(t.depth) ? t.depth : 10 } : { trap }; }
   });
-  return { title: String(d.title || 'A dungeon').slice(0, 40), intro: String(d.intro || '').slice(0, 400), author: String(d.author || '').slice(0, 30), cells, things };
+  const out = { title: String(d.title || 'A dungeon').slice(0, 40), intro: String(d.intro || '').slice(0, 400), author: String(d.author || '').slice(0, 30), cells, things };
+  if(!v2) return forgeUpgrade(out);
+  Object.assign(out, { v:2, size:d.size,
+    ground: [...String(typeof d.ground === 'string' ? d.ground : '').slice(0, n).padEnd(n, 's')].map(c => GROUNDS[c] ? c : 's').join(''),
+    walls: [...String(typeof d.walls === 'string' ? d.walls : '').slice(0, nw).padEnd(nw, '.')].map(c => WALL_CH.includes(c) ? c : '.').join('') });
+  const M = mapOf(out); normalize(M); mapStore(out, M);
+  return out;
+}
+
+let forge = load('pda-forge', forgeDefaults());
+forgeUpgradeAll();
+function forgeSave(){ save('pda-forge', forge); }
+
+// ----- Drawing a map -----
+// The map is drawn the way a DM draws one: parchment floor with a faint 5-foot grid, hatched rock,
+// and walls as heavy lines. Cave walls wobble, and neighbouring cave walls share their corners.
+const MAPC = { rock:'#2B3631', hatch:'#3F4D46', fog:'#0B100E', s:'#E9E2CC', c:'#D3C6AA', w:'#E0BE88', grid:'rgba(60,48,28,.22)', ember:'#AE2F1C' };
+function mapHash(a, b){ let h = Math.imul(a + 7919, 374761393) ^ Math.imul(b + 104729, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967295; }
+const lerp = (p, q, f) => ({ x: p.x + (q.x - p.x) * f, y: p.y + (q.y - p.y) * f });
+function edgePts(t, x, y, m, s){
+  const p0 = { x: x * s, y: y * s }, p1 = t === 'h' ? { x: (x + 1) * s, y: y * s } : { x: x * s, y: (y + 1) * s }, mid = lerp(p0, p1, .5);
+  if(m !== 'cave') return [p0, mid, p1];
+  const j = (vx, vy) => ({ x: (mapHash(vx, vy) - .5) * s * .22, y: (mapHash(vy + 31, vx + 17) - .5) * s * .22 });
+  const a = j(x, y), b = t === 'h' ? j(x + 1, y) : j(x, y + 1), w = (mapHash(x * 3 + (t === 'h' ? 1 : 2), y * 5) - .5) * s * .3;
+  return [{ x: p0.x + a.x, y: p0.y + a.y }, { x: mid.x + (t === 'h' ? 0 : w), y: mid.y + (t === 'h' ? w : 0) }, { x: p1.x + b.x, y: p1.y + b.y }];
+}
+function strokeLine(c, pts, width, color){ c.lineWidth = width; c.strokeStyle = color; c.beginPath(); c.moveTo(pts[0].x, pts[0].y); for(let i = 1; i < pts.length; i++) c.lineTo(pts[i].x, pts[i].y); c.stroke(); }
+function strokeWall(c, pts, m, s){
+  const t = Math.max(3, s * .16); c.lineJoin = 'round';
+  if(m === 'stone'){ c.lineCap = 'square'; strokeLine(c, pts, t, '#1F2522'); }
+  else if(m === 'cave'){ c.lineCap = 'round'; strokeLine(c, pts, t * 1.55, '#3B3228'); strokeLine(c, pts, t * .55, '#6E5E49'); }
+  else if(m === 'wood'){ c.lineCap = 'square'; strokeLine(c, pts, t, '#4E321A'); c.lineCap = 'butt'; strokeLine(c, pts, t * .42, '#A8733B'); }
+  else if(m === 'bars'){
+    c.lineCap = 'round'; strokeLine(c, pts, Math.max(1.2, t * .3), '#2E3A44');
+    const a = pts[0], b = pts[pts.length - 1], n = Math.max(2, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / (s / 5)));
+    c.fillStyle = '#2E3A44';
+    for(let i = 0; i <= n; i++){ const p = lerp(a, b, i / n); c.beginPath(); c.arc(p.x, p.y, Math.max(1.6, t * .36), 0, Math.PI * 2); c.fill(); }
+  }
+}
+function strokeDoor(c, pts, kind, s){
+  const [p0, mid, p1] = pts, t = Math.max(3, s * .16), L = s * .56, ang = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+  c.save(); c.translate(mid.x, mid.y);
+  if(kind === 'secret'){
+    c.font = `700 ${Math.max(9, s * .46)}px Georgia, serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.lineWidth = Math.max(2, s * .1); c.strokeStyle = MAPC.s; c.strokeText('S', 0, 1); c.fillStyle = MAPC.ember; c.fillText('S', 0, 1);
+  } else if(kind === 'portcullis'){
+    c.rotate(ang); c.lineCap = 'butt'; c.strokeStyle = '#2E3A44'; c.lineWidth = Math.max(1.5, t * .35);
+    c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(L / 2, 0); c.stroke();
+    c.lineWidth = Math.max(1.2, t * .28);
+    for(let i = 0; i <= 4; i++){ const xx = -L / 2 + i * L / 4; c.beginPath(); c.moveTo(xx, -t * .9); c.lineTo(xx, t * .9); c.stroke(); }
+  } else {
+    c.rotate(ang); c.fillStyle = '#A86B32'; c.strokeStyle = '#3E2814'; c.lineWidth = Math.max(1, t * .25);
+    c.fillRect(-L / 2, -t * .75, L, t * 1.5); c.strokeRect(-L / 2, -t * .75, L, t * 1.5);
+    if(kind === 'locked'){ c.fillStyle = '#E2B452'; c.beginPath(); c.arc(0, 0, Math.max(2, t * .55), 0, Math.PI * 2); c.fill(); c.stroke(); }
+  }
+  c.restore();
+}
+// One wall. A door leaves a gap in the middle (a secret door keeps the whole wall); 'open' is a door already gone through.
+function drawEdge(c, t, x, y, e, s){
+  const pts = edgePts(t, x, y, e.m, s);
+  if(e.door && e.door !== 'secret'){ strokeWall(c, [pts[0], lerp(pts[0], pts[1], .44)], e.m, s); strokeWall(c, [lerp(pts[1], pts[2], .56), pts[2]], e.m, s); }
+  else strokeWall(c, pts, e.m, s);
+  return pts;
+}
+function drawFloor(c, x, y, g, s){
+  const x0 = x * s, y0 = y * s;
+  c.fillStyle = MAPC[g] || MAPC.s; c.fillRect(x0, y0, s, s);
+  if(g === 'w'){ c.strokeStyle = 'rgba(110,70,30,.28)'; c.lineWidth = 1; for(const f of [1/3, 2/3]){ c.beginPath(); c.moveTo(x0, y0 + s * f + .5); c.lineTo(x0 + s, y0 + s * f + .5); c.stroke(); } }
+  if(g === 'c'){ c.fillStyle = 'rgba(90,72,48,.35)'; for(let i = 0; i < 3; i++){ c.beginPath(); c.arc(x0 + mapHash(x * 7 + i, y) * s, y0 + mapHash(y * 7 + i, x + 3) * s, Math.max(.8, s * .035), 0, Math.PI * 2); c.fill(); } }
+}
+function drawPit(c, x, y, s, t, open){
+  const p = s * .1;
+  c.fillStyle = open ? MAPC.fog : 'rgba(30,22,16,.78)'; c.fillRect(x * s + p, y * s + p, s - 2 * p, s - 2 * p);
+  c.fillStyle = MAPC.s; c.textAlign = 'center'; c.textBaseline = 'middle';
+  if(t.trap === 'spiked'){ c.font = `700 ${s * .4}px system-ui, sans-serif`; c.fillText('✶', x * s + s / 2, y * s + s * .4); }
+  if(!open){ c.font = `700 ${Math.max(8, s * .26)}px system-ui, sans-serif`; c.fillText(t.depth + ' ft', x * s + s / 2, y * s + s * (t.trap === 'spiked' ? .74 : .5)); }
+}
+function drawGlyph(c, x, y, s, glyph, color, scale){
+  c.fillStyle = color; c.font = `700 ${s * (scale || .55)}px system-ui, -apple-system, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(glyph, x * s + s / 2, y * s + s / 2 + 1);
+}
+// Monster and hero pictures from assets/, on a disc like a tabletop token. The letter shows until the picture loads.
+const ART_IMG = {};
+function artImg(key){
+  let im = ART_IMG[key];
+  if(!im){ im = ART_IMG[key] = new Image(); im.decoding = 'async'; im.onload = forgeRedraw; im.src = 'assets/' + key + '.png'; }
+  return im.complete && im.naturalWidth ? im : null;
+}
+function drawToken(c, cx, cy, r, key, letter, ring){
+  c.save(); c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fillStyle = '#1A2622'; c.fill();
+  const im = artImg(key);
+  if(im){ c.clip(); c.drawImage(im, cx - r, cy - r, r * 2, r * 2); }
+  else { c.fillStyle = '#E2B452'; c.font = `700 ${r}px Cinzel, Georgia, serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(letter, cx, cy + 1); }
+  c.restore();
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.lineWidth = Math.max(1.5, r * .12); c.strokeStyle = ring; c.stroke();
+}
+// o: { play, seen, opened, found, pits, hero } when playing; { sel, measure, preview, dots, hover } when building.
+function drawForgeMap(c, M, s, o){
+  const W = M.W, H = M.H, play = !!o.play, seen = i => !play || o.seen.has(i), vis = (x, y) => isFloor(M, x, y) && seen(y * W + x);
+  c.fillStyle = MAPC.rock; c.fillRect(0, 0, W * s, H * s);
+  // Hatching on the rock beside floor, the way hand-drawn dungeon maps shade their walls.
+  c.strokeStyle = MAPC.hatch; c.lineWidth = 1;
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+    const i = y * W + x; if(M.cells[i] !== ' ' || !seen(i)) continue;
+    let near = false; for(let dy = -1; dy <= 1 && !near; dy++) for(let dx = -1; dx <= 1; dx++) if(isFloor(M, x + dx, y + dy)){ near = true; break; }
+    if(!near) continue;
+    const x0 = x * s, y0 = y * s, flip = mapHash(x, y) < .5;
+    c.save(); c.beginPath(); c.rect(x0, y0, s, s); c.clip(); c.beginPath();
+    for(let k = 1; k <= 4; k++){ const d = k * s / 2.5; if(flip){ c.moveTo(x0 + d, y0); c.lineTo(x0, y0 + d); } else { c.moveTo(x0 + s - d, y0); c.lineTo(x0 + s, y0 + d); } }
+    c.stroke(); c.restore();
+  }
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++) if(vis(x, y)) drawFloor(c, x, y, M.ground[y * W + x], s);
+  c.strokeStyle = MAPC.grid; c.lineWidth = 1; c.beginPath();
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++) if(vis(x, y)) c.rect(x * s + .5, y * s + .5, s, s);
+  c.stroke();
+  if(play){
+    o.pits.forEach(i => { if(seen(i)) drawPit(c, i % W, Math.floor(i / W), s, M.things[i] || {}, true); });
+    // Fog starts one square out, so a hidden hall behind a secret door looks like the rock around it.
+    const near = i => { const x = i % W, y = Math.floor(i / W); for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++) if(inMap(M, x + dx, y + dy) && seen((y + dy) * W + x + dx)) return true; return false; };
+    c.fillStyle = MAPC.fog; for(let i = 0; i < W * H; i++) if(!seen(i) && !near(i)) c.fillRect((i % W) * s, Math.floor(i / W) * s, s, s);
+  }
+  if(o.measure){ c.fillStyle = 'rgba(174,47,28,.2)'; o.measure.forEach(i => c.fillRect((i % W) * s, Math.floor(i / W) * s, s, s)); }
+  const doors = [];
+  M.edges.forEach((e, k) => {
+    const [t, x, y] = parseKey(k), [[ax, ay], [bx, by]] = wallSides(t, x, y);
+    if(play && !vis(ax, ay) && !vis(bx, by)) return;
+    let door = e.door;
+    if(play && door === 'secret') door = o.found.has(k) ? 'door' : null;
+    if(play && o.opened.has(k)){ if(e.door) drawEdge(c, t, x, y, { m:e.m, door:'open' }, s); return; }
+    const pts = drawEdge(c, t, x, y, { m:e.m, door }, s);
+    if(door) doors.push([pts, door]);
+  });
+  doors.forEach(([pts, kind]) => strokeDoor(c, pts, kind, s));
+  M.cells.forEach((ch, i) => {
+    if(ch === ' ' || ch === '.') return;
+    const x = i % W, y = Math.floor(i / W), t = M.things[i] || {};
+    if(ch === 'm'){
+      const name = t.mon || 'Goblin', n = monSpan(name), f = footprint(M, i, n), span = f ? n : 1;
+      if(play && !(f || [i]).some(seen)) return;
+      drawToken(c, (x + span / 2) * s, (y + span / 2) * s, span * s * .42, monSlug(name), name.charAt(0), '#E2B452');
+      return;
+    }
+    if(!seen(i)) return;
+    if(ch === 't'){ if(play) return; if(isPit(t)) drawPit(c, x, y, s, t, false); else drawGlyph(c, x, y, s, (TRAPS[t.trap] || TRAPS.spike).glyph, '#A4321F'); return; }
+    if(ch === '$'){ const z = CHESTS[t.size] ? t.size : 's'; drawGlyph(c, x, y, s, { s:'◆', m:'◆◆', l:'◆◆◆' }[z], '#8F6610', { s:.55, m:.4, l:.3 }[z]); return; }
+    drawGlyph(c, x, y, s, PIECES[ch].glyph, { S:'#2E6B4E', E:'#AE2F1C', k:'#8F6610', s:'#5A4630' }[ch]);
+  });
+  if(play) drawToken(c, (o.hero % W + .5) * s, (Math.floor(o.hero / W) + .5) * s, s * .42, 'hero', 'H', '#5EAF88');
+  if(o.sel >= 0){
+    const t = M.things[o.sel] || {}, n = M.cells[o.sel] === 'm' && footprint(M, o.sel, monSpan(t.mon)) ? monSpan(t.mon) : 1;
+    c.strokeStyle = MAPC.ember; c.lineWidth = 3; c.strokeRect((o.sel % W) * s + 1.5, Math.floor(o.sel / W) * s + 1.5, n * s - 3, n * s - 3);
+  }
+  if(o.dots){
+    c.fillStyle = 'rgba(26,38,34,.5)';
+    for(let y = 0; y <= H; y++) for(let x = 0; x <= W; x++) if(isFloor(M, x - 1, y - 1) || isFloor(M, x, y - 1) || isFloor(M, x - 1, y) || isFloor(M, x, y)){ c.beginPath(); c.arc(x * s, y * s, Math.max(1.5, s * .06), 0, Math.PI * 2); c.fill(); }
+  }
+  const hv = o.hover;
+  if(hv && hv.vertex){ c.strokeStyle = MAPC.ember; c.lineWidth = 2.5; c.beginPath(); c.arc(hv.x * s, hv.y * s, Math.max(5, s * .2), 0, Math.PI * 2); c.stroke(); }
+  if(hv && hv.edge){ const [t, x, y] = parseKey(hv.edge); c.lineCap = 'round'; strokeLine(c, edgePts(t, x, y, 'stone', s), Math.max(6, s * .3), 'rgba(174,47,28,.45)'); }
+  if(o.preview){
+    const p = o.preview, w = (p.x1 - p.x0 + 1) * s, h = (p.y1 - p.y0 + 1) * s;
+    c.fillStyle = 'rgba(174,47,28,.16)'; c.fillRect(p.x0 * s, p.y0 * s, w, h);
+    c.setLineDash([6, 4]); c.strokeStyle = MAPC.ember; c.lineWidth = 2.5; c.strokeRect(p.x0 * s, p.y0 * s, w, h); c.setLineDash([]);
+  }
+}
+// A small picture of a floor, wall or door kind for the pickers.
+function forgeSwatch(kind, which){
+  const cv = mk('canvas'), k = Math.min(window.devicePixelRatio || 1, 3), s = 30;
+  cv.width = 56 * k; cv.height = 30 * k; const c = cv.getContext('2d'); c.setTransform(k, 0, 0, k, 0, 0);
+  c.fillStyle = MAPC.rock; c.fillRect(0, 0, 56, 30);
+  const g = which === 'ground' ? kind : which === 'wall' && kind === 'cave' ? 'c' : which === 'wall' && kind === 'wood' ? 'w' : 's';
+  c.save(); c.translate(-2, 0);
+  drawFloor(c, 0, 0, g, s); drawFloor(c, 1, 0, g, s);
+  c.strokeStyle = MAPC.grid; c.lineWidth = 1; c.strokeRect(.5, .5, s, s); c.strokeRect(s + .5, .5, s, s);
+  if(which === 'ground'){ const e = { m:GROUNDS[kind].wall }; ['h0,0','h1,0','h0,1','h1,1'].forEach(key => { const [t, x, y] = parseKey(key); drawEdge(c, t, x, y, e, s); }); }
+  else { const e = { m: which === 'door' ? 'stone' : kind, door: which === 'door' ? kind : null }, pts = drawEdge(c, 'v', 1, 0, e, s); if(e.door) strokeDoor(c, pts, kind, s); }
+  c.restore();
+  return cv;
+}
+
+// ----- A map on the screen -----
+// A canvas in a scrolling box. It fits the box, zooms with the buttons, a pinch or ctrl-scroll, and
+// hands one-finger touches to the page. Two fingers always move and zoom instead.
+function mapView(cv, wrap, o){
+  const v = { ctx: cv.getContext('2d'), zoom:1, s:20 };
+  v.base = () => { const M = o.map(); return Math.min((wrap.clientWidth - 4) / M.W, (Math.min(window.innerHeight * .72, 820) - 4) / M.H); };
+  v.size = () => {
+    const M = o.map(); if(!M || !wrap.clientWidth) return;
+    v.s = Math.max(8, Math.min(96, Math.round(v.base() * v.zoom)));
+    const w = M.W * v.s, h = M.H * v.s, k = Math.min(window.devicePixelRatio || 1, 4096 / Math.max(w, h));
+    cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+    v.ctx.setTransform(cv.width / w, 0, 0, cv.height / h, 0, 0);
+    if(o.resized) o.resized(v);
+    v.draw();
+  };
+  v.draw = () => { const M = o.map(); if(M && wrap.clientWidth) o.draw(v.ctx, M, v.s); };
+  v.at = e => { const r = cv.getBoundingClientRect(); return { fx: (e.clientX - r.left) / v.s, fy: (e.clientY - r.top) / v.s }; };
+  // Zoom so the map point under (cx, cy) on screen ends up under (tx, ty).
+  v.zoomAround = (z, cx, cy, tx = cx, ty = cy) => {
+    const r = cv.getBoundingClientRect(), px = (cx - r.left) / v.s, py = (cy - r.top) / v.s;
+    v.zoom = Math.max(.6, Math.min(6, z)); v.size();
+    const r2 = cv.getBoundingClientRect(); wrap.scrollLeft += r2.left + px * v.s - tx; wrap.scrollTop += r2.top + py * v.s - ty;
+  };
+  v.zoomCenter = z => { const r = wrap.getBoundingClientRect(); v.zoomAround(z, r.left + r.width / 2, r.top + r.height / 2); };
+  // Scroll so square i is comfortably in view.
+  v.follow = i => {
+    const M = o.map(), x = (i % M.W + .5) * v.s + cv.offsetLeft, y = (Math.floor(i / M.W) + .5) * v.s + cv.offsetTop, m = v.s * 2.5;
+    if(x - wrap.scrollLeft < m || wrap.scrollLeft + wrap.clientWidth - x < m) wrap.scrollLeft = x - wrap.clientWidth / 2;
+    if(y - wrap.scrollTop < m || wrap.scrollTop + wrap.clientHeight - y < m) wrap.scrollTop = y - wrap.clientHeight / 2;
+  };
+  const ptrs = new Map(); let gest = null, lock = false, active = false;
+  cv.addEventListener('pointerdown', e => {
+    try{ cv.setPointerCapture(e.pointerId); }catch(x){}
+    ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    if(ptrs.size === 2){
+      if(active){ active = false; if(o.cancel) o.cancel(); }
+      lock = true;
+      const [a, b] = [...ptrs.values()], r = cv.getBoundingClientRect(), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      gest = { d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: v.zoom, px: (mx - r.left) / v.s, py: (my - r.top) / v.s };
+      return;
+    }
+    if(ptrs.size > 2 || lock || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault(); active = true; if(o.down) o.down(v.at(e));
+  });
+  cv.addEventListener('pointermove', e => {
+    if(ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    if(gest && ptrs.size >= 2){
+      const [a, b] = [...ptrs.values()], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      v.zoom = Math.max(.6, Math.min(6, gest.z0 * Math.hypot(a.x - b.x, a.y - b.y) / gest.d0)); v.size();
+      const r = cv.getBoundingClientRect(); wrap.scrollLeft += r.left + gest.px * v.s - mx; wrap.scrollTop += r.top + gest.py * v.s - my;
+      return;
+    }
+    if(active){ if(o.move) o.move(v.at(e)); return; }
+    if(e.pointerType === 'mouse' && !ptrs.size && o.hover) o.hover(v.at(e));
+  });
+  const up = e => { ptrs.delete(e.pointerId); if(ptrs.size < 2) gest = null; if(!ptrs.size) lock = false; if(active){ active = false; if(o.up) o.up(); } };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('pointerleave', e => { if(e.pointerType === 'mouse' && !active && o.hover) o.hover(null); });
+  wrap.addEventListener('wheel', e => { if(!e.ctrlKey) return; e.preventDefault(); v.zoomAround(v.zoom * Math.exp(-e.deltaY * .01), e.clientX, e.clientY); }, { passive:false });
+  new ResizeObserver(() => v.size()).observe(wrap);
+  return v;
+}
+// A monster picture finished loading: redraw whichever map is showing.
+function forgeRedraw(){
+  if(!$('forge-edit').hidden && ed.M) feView.draw();
+  if(!$('forge-play').hidden && fp.M) fpView.draw();
 }
 
 // ----- Asking a question (used by commissions and by play) -----
@@ -2179,11 +2611,12 @@ function forgeAsk(box, st){
 // Each one is built to a spec; claiming it asks a second question about what was built, so
 // knowing the spec is not enough to answer.
 const COMMISSION_XP = 40;
+const findRoom = test => { for(const d of forge.dungeons){ const M = mapOf(d), r = forgeRooms(M).rooms.find(r => test(r, M)); if(r) return { d, r }; } return null; };
 const COMMISSIONS = {
   area: {
     make: () => ({ n: pick([12, 15, 16, 18, 20, 24, 28, 30]) }),
     text: c => `The Duke wants a throne room: a rectangular room with an area of exactly ${c.n} squares.`,
-    find: c => { for(const d of forge.dungeons){ const r = forgeRooms(d.cells).rooms.find(r => r.rect && r.cells.length === c.n); if(r) return { d, r }; } return null; },
+    find: c => findRoom(r => r.rect && r.cells.length === c.n),
     miss: c => `None of your dungeons has a rectangular room of exactly ${c.n} squares yet.`,
     ask: (c, f) => { const p = 2 * (f.r.w + f.r.h); return { q:`Your throne room in “${f.d.title}” is ${f.r.w} squares by ${f.r.h}. Every square is 5 feet. How many feet of wall go all the way around it?`, answer: p * 5,
       hint:'Go around the edge: length + width + length + width, in squares. Then change squares into feet.', solution:`${f.r.w} + ${f.r.h} + ${f.r.w} + ${f.r.h} = ${p} squares, and ${p} × 5 = ${p * 5} feet.` }; },
@@ -2191,7 +2624,7 @@ const COMMISSIONS = {
   perimeter: {
     make: () => ({ p: pick([12, 14, 16, 18, 20, 22]) }),
     text: c => `The miners want a hall with a perimeter of exactly ${c.p} squares: a rectangle whose four sides add up to ${c.p}.`,
-    find: c => { for(const d of forge.dungeons){ const r = forgeRooms(d.cells).rooms.find(r => r.rect && 2 * (r.w + r.h) === c.p); if(r) return { d, r }; } return null; },
+    find: c => findRoom(r => r.rect && 2 * (r.w + r.h) === c.p),
     miss: c => `None of your dungeons has a rectangular room whose sides add up to ${c.p} yet.`,
     ask: (c, f) => ({ q:`Your hall in “${f.d.title}” is ${f.r.w} squares by ${f.r.h}. How many squares of floor does it have?`, answer: f.r.w * f.r.h,
       hint:'That is its area: length times width.', solution:`${f.r.w} × ${f.r.h} = ${f.r.w * f.r.h} squares.` }),
@@ -2199,7 +2632,7 @@ const COMMISSIONS = {
   xp: {
     make: () => { const n = partySize(); return { n, xp: n * 25 * rand(2, 4) }; },
     text: c => `Bandits are bothering the miller. Put monsters worth exactly ${c.xp} XP in all into one room, for your party of ${c.n}.`,
-    find: c => { for(const d of forge.dungeons){ const r = forgeRooms(d.cells).rooms.find(r => roomXp(d, r) === c.xp); if(r) return { d, r }; } return null; },
+    find: c => findRoom((r, M) => roomXp(M, r) === c.xp),
     miss: c => `None of your rooms has monsters adding up to exactly ${c.xp} XP yet. Add up each monster's XP.`,
     ask: c => ({ q:`Your ${c.n} heroes beat the room and share the ${c.xp} XP equally. How much XP does each hero get?`, answer: c.xp / c.n,
       hint:'Sharing equally means dividing.', solution:`${c.xp} ÷ ${c.n} = ${c.xp / c.n} XP each.` }),
@@ -2217,12 +2650,12 @@ const COMMISSIONS = {
       hint:'Sharing equally means dividing.', solution:`${c.g} ÷ ${c.n} = ${c.g / c.n} gold pieces each.` }),
   },
   budget: {
-    make: () => { const b = forgeBudget(); return { b, spend: b - 5 * rand(3, 12) }; },
+    make: () => ({ spend: forgeBudget() - 5 * rand(3, 12) }),
     text: c => `The Guildmaster is watching the money. Build a dungeon that costs exactly ${c.spend} gold.`,
     find: c => { const d = forge.dungeons.find(d => forgeCosts(d).total === c.spend); return d ? { d } : null; },
     miss: c => `None of your dungeons costs exactly ${c.spend} gold yet. Check the budget panel while you build.`,
-    ask: c => ({ q:`Your budget was ${c.b} gold and you spent ${c.spend}. How much is left over?`, answer: c.b - c.spend,
-      hint:'Take what you spent away from the budget.', solution:`${c.b} − ${c.spend} = ${c.b - c.spend} gold left.` }),
+    ask: (c, f) => { const b = forgeBudget(f.d); return { q:`The budget for “${f.d.title}” is ${b} gold and you spent ${c.spend}. How much is left over?`, answer: b - c.spend,
+      hint:'Take what you spent away from the budget.', solution:`${b} − ${c.spend} = ${b - c.spend} gold left.` }; },
   },
   story: {
     make: () => ({}),
@@ -2230,6 +2663,30 @@ const COMMISSIONS = {
     find: () => { const d = forge.dungeons.find(d => sentences(d.intro) >= 3 && [...d.cells].filter((c, i) => c === 's' && String((d.things[i] || {}).text || '').trim().split(/\s+/).length >= 3).length >= 2); return d ? { d } : null; },
     miss: () => 'Not yet: one dungeon needs a story of three sentences or more and two signs that say something (at least three words each).',
     ask: null,
+  },
+  jail: {
+    make: () => ({}),
+    text: () => 'The sheriff needs a jail: a room with iron bars in its walls, so the guards can see the prisoners.',
+    find: () => findRoom(r => r.mats.has('bars')),
+    miss: () => 'None of your rooms has iron bars in its walls yet. Pick Wall, then Iron bars, and draw them.',
+    ask: (c, f) => ({ q:`Your jail in “${f.d.title}” has ${f.r.cells.length} squares of floor. Each square is 5 ft × 5 ft, which is 25 square feet. How many square feet is the jail?`, answer: f.r.cells.length * 25,
+      hint:'Multiply the number of squares by 25.', solution:`${f.r.cells.length} × 25 = ${f.r.cells.length * 25} square feet.` }),
+  },
+  secret: {
+    make: () => ({}),
+    text: () => 'The thieves\' guild wants a hidden room: a room whose only way in is a secret door.',
+    find: () => findRoom(r => r.doors.length > 0 && r.doors.every(k => k === 'secret')),
+    miss: () => 'None of your rooms has a secret door as its only way in yet.',
+    ask: (c, f) => ({ q:`Your hidden room in “${f.d.title}” has ${f.r.walls} sections of wall around it, counting the secret door. Each section is 5 feet long. How many feet of wall is that?`, answer: f.r.walls * 5,
+      hint:'Each section is 5 feet. Multiply.', solution:`${f.r.walls} × 5 = ${f.r.walls * 5} feet.` }),
+  },
+  pit: {
+    make: () => ({ depth: pick([20, 30]) }),
+    text: c => `The dwarves want a pit trap at least ${c.depth} feet deep in one of your dungeons.`,
+    find: c => { for(const d of forge.dungeons){ const i = [...d.cells].findIndex((ch, j) => ch === 't' && isPit(d.things[j]) && d.things[j].depth >= c.depth); if(i >= 0) return { d, t: d.things[i] }; } return null; },
+    miss: c => `None of your dungeons has a pit ${c.depth} feet deep or deeper yet. Pick Trap, then Pit, then the depth.`,
+    ask: (c, f) => ({ q:`A hero falls into your ${f.t.depth}-foot pit in “${f.d.title}”. Falling does 1d6 damage for every 10 feet. How many d6 does the hero roll for the fall?`, answer: f.t.depth / 10,
+      hint:'How many tens are in the number of feet?', solution:`${f.t.depth} ÷ 10 = ${f.t.depth / 10}, so ${f.t.depth / 10}d6.` }),
   },
 };
 // Tops the board up to three jobs; true when it had to add one (so there is something to save).
@@ -2267,10 +2724,11 @@ function renderBoard(){
 
 // ----- Forge home -----
 function forgeStatus(d){
-  const cost = forgeCosts(d).total;
-  return `${cost} gold · ` + (d.share ? (d.tested === d.rev ? 'Shared' : 'Shared, changed since') : d.tested === d.rev ? 'Tested, ready to share' : 'Not tested yet');
+  const cost = forgeCosts(d).total, S = SIZES[d.size] || SIZES.small;
+  return `${S.name} · ${cost} gold · ` + (d.share ? (d.tested === d.rev ? 'Shared' : 'Shared, changed since') : d.tested === d.rev ? 'Tested, ready to share' : 'Not tested yet');
 }
 function renderForge(){
+  forgeUpgradeAll();
   ['forge-home','forge-edit','forge-play'].forEach(id => $(id).hidden = id !== 'forge-home');
   const list = $('forge-list'); list.textContent = '';
   if(!forge.dungeons.length) list.append(mk('p', 'help', 'No dungeons yet. Start one!'));
@@ -2283,7 +2741,7 @@ function renderForge(){
     if(d.share){ const s = mk('small', '', 'Code: '); s.append(mk('span', 'share-code', d.share)); item.append(s); }
     list.append(item);
   });
-  $('forge-new').disabled = forge.dungeons.length >= FORGE_MAX;
+  Object.keys(SIZES).forEach(k => $('forge-new-' + k).disabled = forge.dungeons.length >= FORGE_MAX);
   renderBoard();
   const played = $('forge-played'); played.textContent = '';
   Object.entries(forge.played || {}).slice(-6).reverse().forEach(([code, p]) => {
@@ -2293,11 +2751,12 @@ function renderForge(){
     played.append(item);
   });
 }
-$('forge-new').addEventListener('click', () => {
-  const d = { id: Date.now().toString(36), title: `Dungeon ${forge.dungeons.length + 1}`, intro:'', cells: ' '.repeat(FORGE_W * FORGE_H), things:{}, rev:1, tested:0, share:null };
+Object.keys(SIZES).forEach(size => $('forge-new-' + size).addEventListener('click', () => {
+  const S = SIZES[size], n = S.w * S.h;
+  const d = { id: Date.now().toString(36), v:2, size, title: `Dungeon ${forge.dungeons.length + 1}`, intro:'', cells: ' '.repeat(n), ground: 's'.repeat(n), walls: '.'.repeat(wallCount(S.w, S.h)), things:{}, rev:1, tested:0, share:null };
   forge.dungeons.push(d); forgeSave(); forgeEdit(d.id);
-  forgeNote('Pick Floor and drag across the map to dig out your first room. Then add a Start and an Exit.');
-});
+  forgeNote(`A ${S.name.toLowerCase()} map: ${S.w} × ${S.h} squares. Every square is 5 feet, so the whole map is ${S.w * 5} ft × ${S.h * 5} ft. Pick Room and drag from corner to corner to dig your first room. Then add a Start and an Exit.`);
+}));
 async function forgeJoin(raw){
   const code = KidSave.normalize(raw), msg = $('forge-join-msg');
   if(!code){ msg.textContent = 'Dungeon codes look like OTTER-4821.'; return; }
@@ -2319,46 +2778,244 @@ async function forgeJoin(raw){
 $('forge-join').addEventListener('submit', e => { e.preventDefault(); forgeJoin($('forge-code').value); });
 
 // ----- Editor -----
-const ed = { d:null, tool:'.', sel:-1, mon:'Goblin', size:'s', painting:false, changed:false };
+// ed.M is the working map; every finished stroke writes it back to ed.d and saves.
+const ed = { d:null, M:null, tool:'room', ground:'s', wall:'stone', door:'door', trap:'spike', depth:10, mon:'Goblin', size:'s', sel:-1, measure:null, preview:null, hover:null, stroke:null, undo:[] };
+const feView = mapView($('fe-map'), $('fe-wrap'), {
+  map: () => ed.M,
+  draw: (c, M, s) => drawForgeMap(c, M, s, { sel:ed.sel, measure:ed.measure, preview:ed.preview, dots:ed.tool === 'wall', hover:ed.hover }),
+  down: p => feDown(p), move: p => feMove(p), up: () => feUp(), cancel: () => feCancel(), hover: p => feHover(p),
+  resized: v => { $('fe-scalebar').style.width = v.s * 2 + 'px'; },
+});
 function forgeNote(text, kind){ const n = $('fe-note'); n.hidden = !text; n.className = 'forge-note' + (kind ? ' ' + kind : ''); n.textContent = text || ''; }
+// The line under the map: what the tool in hand does, and live sizes while drawing. Only ever our own text.
+function feRead(html, bad){ const r = $('fe-read'); r.className = 'forge-note' + (bad ? ' bad' : ''); r.innerHTML = html; }
 function forgeEdit(id){
+  forgeUpgradeAll();
   ed.d = forge.dungeons.find(d => d.id === id); if(!ed.d) return renderForge();
-  ed.sel = -1; ed.tool = '.'; forgeNote('');
+  Object.assign(ed, { M: mapOf(ed.d), sel:-1, measure:null, preview:null, hover:null, stroke:null, undo:[] });
+  forgeNote('');
   if(!MON().some(m => m.n === ed.mon)) ed.mon = MON()[0].n;
   ['forge-home','forge-edit','forge-play'].forEach(x => $(x).hidden = x !== 'forge-edit');
   $('fe-title').value = ed.d.title; $('fe-intro').value = ed.d.intro || '';
-  const grid = $('fe-grid'); grid.textContent = '';
-  for(let i = 0; i < FORGE_W * FORGE_H; i++){ const c = mk('button', 'fc'); c.type = 'button'; c.dataset.i = i; c.setAttribute('aria-label', `Square ${i % FORGE_W + 1}, ${Math.floor(i / FORGE_W) + 1}`); grid.append(c); }
-  renderTools(); renderEditor();
+  const S = SIZES[ed.d.size];
+  $('fe-size').textContent = `${S.name} map: ${S.w} × ${S.h} squares = ${S.w * 5} × ${S.h * 5} ft`;
+  renderTools(); renderInspect(); renderBudget(); feRead(TOOL_TIPS[ed.tool] || PIECES[ed.tool].tip);
+  feView.zoom = 1; feView.size();
   window.scrollTo(0, 0);
 }
-function drawCell(c, ch, thing){
-  c.className = 'fc ' + TILE_CLASS[ch]; c.textContent = '';
-  if(ch === 'm'){ const n = thing.mon || 'Goblin', a = mk('span', 'fart'); setArt(a, monSlug(n), n.charAt(0)); c.append(a); c.title = n; }
-  else if(ch === '$'){ const z = CHESTS[thing.size] ? thing.size : 's'; c.append(mk('span', '', { s:'◆', m:'◆◆', l:'◆◆◆' }[z])); c.title = CHESTS[z].name; }
-  else { if(PIECES[ch].glyph) c.append(mk('span', '', PIECES[ch].glyph)); c.title = ch === ' ' ? '' : PIECES[ch].name; }
+function edChanged(){ ed.d.rev = (ed.d.rev || 0) + 1; forgeSave(); forgeNote(''); }
+const edSnapshot = () => ({ cells:ed.d.cells, ground:ed.d.ground, walls:ed.d.walls, things:JSON.stringify(ed.d.things) });
+function edRestore(s){ Object.assign(ed.d, { cells:s.cells, ground:s.ground, walls:s.walls, things:JSON.parse(s.things) }); ed.M = mapOf(ed.d); }
+function edUndo(){
+  const s = ed.undo.pop(); if(!s) return feRead('Nothing to undo.');
+  edRestore(s); ed.sel = -1; ed.measure = null; edChanged(); renderInspect(); renderBudget(); feView.draw(); feRead('Undone.');
 }
-function renderEditor(){
-  const d = ed.d, cells = $('fe-grid').children;
-  for(let i = 0; i < cells.length; i++){ drawCell(cells[i], d.cells[i], d.things[i] || {}); if(i === ed.sel) cells[i].classList.add('sel'); }
-  renderInspect(); renderBudget();
+const clampCell = (M, p) => ({ x: Math.max(0, Math.min(M.W - 1, Math.floor(p.fx))), y: Math.max(0, Math.min(M.H - 1, Math.floor(p.fy))) });
+const clampVertex = (M, p) => ({ x: Math.max(0, Math.min(M.W, Math.round(p.fx))), y: Math.max(0, Math.min(M.H, Math.round(p.fy))) });
+// The grid line nearest a point, and how far away it is in squares.
+function nearestEdge(M, fx, fy){
+  const dv = Math.abs(fx - Math.round(fx)), dh = Math.abs(fy - Math.round(fy));
+  if(dv < dh){ const x = Math.round(fx), y = Math.floor(fy); return x >= 0 && x <= M.W && y >= 0 && y < M.H ? { key:'v' + x + ',' + y, d:dv } : null; }
+  const x = Math.floor(fx), y = Math.round(fy); return x >= 0 && x < M.W && y >= 0 && y <= M.H ? { key:'h' + x + ',' + y, d:dh } : null;
+}
+function digFloor(M, x, y, g){
+  if(!inMap(M, x, y)) return false;
+  const i = y * M.W + x; if(M.cells[i] !== ' ' && M.ground[i] === g) return false;
+  if(M.cells[i] === ' ') M.cells[i] = '.';
+  M.ground[i] = g;
+  cellWalls(x, y).forEach(k => { const e = M.edges.get(k); if(e && !e.manual) M.edges.delete(k); });
+  return true;
+}
+function fillRock(M, x, y){
+  const i = y * M.W + x; if(!inMap(M, x, y) || M.cells[i] === ' ') return false;
+  // Filling in floor under part of a big monster takes the monster away too.
+  const a = monsterSquares(M).get(i); if(a !== undefined && a !== i){ M.cells[a] = '.'; delete M.things[a]; }
+  M.cells[i] = ' '; delete M.things[i];
+  return true;
+}
+function setPiece(M, i, ch){
+  if(ch === 'S' || ch === 'E') M.cells.forEach((c, j) => { if(c === ch && j !== i) M.cells[j] = '.'; });
+  M.cells[i] = ch;
+  if(ch === 'm') M.things[i] = { mon: ed.mon };
+  else if(ch === '$') M.things[i] = { size: ed.size };
+  else if(ch === 's') M.things[i] = { text:'' };
+  else if(ch === 't') M.things[i] = isPit({ trap:ed.trap }) ? { trap:ed.trap, depth:ed.depth } : { trap:ed.trap };
+  else delete M.things[i];
+}
+function feDown(p){
+  const M = ed.M, tool = ed.tool, c = clampCell(M, p);
+  ed.stroke = { tool, snap: edSnapshot(), changed:false, last:p, n:0, keys:new Set() };
+  ed.measure = null; ed.hover = null;
+  if(tool === 'room'){ ed.stroke.start = c; ed.preview = { x0:c.x, y0:c.y, x1:c.x, y1:c.y }; roomText(); }
+  else if(tool === 'wall') ed.stroke.v = clampVertex(M, p);
+  else if(tool === 'door') placeDoor(p);
+  else if(tool === 'measure') measureAt(c);
+  else if(tool === 'select') selectAt(c);
+  else if(tool === 'hall' || tool === 'erase' || (tool === 't' && isPit({ trap:ed.trap }))) dragPaint(p, p, true);
+  else placePiece(c);
+  feView.draw();
+}
+function feMove(p){
+  const M = ed.M, st = ed.stroke; if(!st) return;
+  if(st.tool === 'room'){
+    const c = clampCell(M, p), a = st.start;
+    ed.preview = { x0:Math.min(a.x, c.x), y0:Math.min(a.y, c.y), x1:Math.max(a.x, c.x), y1:Math.max(a.y, c.y) }; roomText();
+  } else if(st.tool === 'wall'){
+    // Walk from the last dot to this one along the grid, a line at a time.
+    const v = clampVertex(M, p); let { x, y } = st.v;
+    while(x !== v.x || y !== v.y){
+      const dx = v.x - x, dy = v.y - y; let key;
+      if(Math.abs(dx) >= Math.abs(dy)){ const nx = x + Math.sign(dx); key = 'h' + Math.min(x, nx) + ',' + y; x = nx; }
+      else { const ny = y + Math.sign(dy); key = 'v' + x + ',' + Math.min(y, ny); y = ny; }
+      buildWall(key);
+    }
+    st.v = v; ed.hover = { vertex:true, x:v.x, y:v.y };
+    if(st.n){ const W = WALLS[ed.wall]; feRead(`New wall: <b>${st.n}</b> ${st.n === 1 ? 'section' : 'sections'} × 5 ft = <b>${st.n * 5} ft</b> of ${W.name.toLowerCase()}. That costs ${st.n} × ${W.cost} = <b>${st.n * W.cost}</b> gold.`); }
+  } else if(st.tool === 'hall' || st.tool === 'erase' || st.tool === 't') dragPaint(st.last, p, false);
+  st.last = p; feView.draw();
+}
+function feUp(){
+  const st = ed.stroke; if(!st) return;
+  if(st.tool === 'room' && ed.preview){
+    const p = ed.preview, M = ed.M;
+    for(let y = p.y0; y <= p.y1; y++) for(let x = p.x0; x <= p.x1; x++){
+      if(digFloor(M, x, y, ed.ground)) st.changed = true;
+      // Digging a room clears any walls inside it.
+      [['h' + x + ',' + y, y > p.y0], ['v' + x + ',' + y, x > p.x0]].forEach(([k, inside]) => { if(inside && M.edges.has(k)){ M.edges.delete(k); st.changed = true; } });
+    }
+    ed.preview = null;
+  }
+  ed.stroke = null;
+  if(st.changed){ normalize(ed.M); ed.undo.push(st.snap); if(ed.undo.length > 60) ed.undo.shift(); mapStore(ed.d, ed.M); edChanged(); renderBudget(); renderInspect(); }
+  feView.draw();
+}
+function feCancel(){ const st = ed.stroke; if(!st) return; ed.stroke = null; ed.preview = null; edRestore(st.snap); feView.draw(); }
+function feHover(p){
+  const M = ed.M; ed.hover = null;
+  if(p && ed.tool === 'wall'){ const v = clampVertex(M, p); ed.hover = { vertex:true, x:v.x, y:v.y }; }
+  if(p && ed.tool === 'door'){ const ne = nearestEdge(M, p.fx, p.fy); if(ne && M.edges.has(ne.key)) ed.hover = { edge:ne.key }; }
+  feView.draw();
+}
+function roomText(){
+  const p = ed.preview, w = p.x1 - p.x0 + 1, h = p.y1 - p.y0 + 1;
+  feRead(`<b>${w} × ${h}</b> squares = <b>${w * 5} ft × ${h * 5} ft</b>. Floor: ${w} × ${h} = <b>${w * h}</b> squares. Wall around it: ${w} + ${h} + ${w} + ${h} = <b>${2 * (w + h)}</b> sections, or <b>${10 * (w + h)} ft</b>.`);
+}
+function buildWall(key){
+  const M = ed.M, st = ed.stroke, [t, x, y] = parseKey(key), [[ax, ay], [bx, by]] = wallSides(t, x, y);
+  if(!isFloor(M, ax, ay) && !isFloor(M, bx, by)){ feRead('Walls go next to floor. Dig out a room first, then draw walls in it.', true); return; }
+  const e = M.edges.get(key);
+  if(e && e.manual && e.m === ed.wall) return;
+  M.edges.set(key, { m:ed.wall, door: e ? e.door : null, manual:true });
+  if(!st.keys.has(key)){ st.keys.add(key); st.n++; }
+  st.changed = true;
+}
+// Hall digs, Rock fills in, and pits paint, all along the path of the finger.
+function dragPaint(a, b, first){
+  const M = ed.M, st = ed.stroke, n = Math.ceil(Math.hypot(b.fx - a.fx, b.fy - a.fy) * 4);
+  for(let i = first ? 0 : 1; i <= n; i++){
+    const f = n ? i / n : 0, fx = a.fx + (b.fx - a.fx) * f, fy = a.fy + (b.fy - a.fy) * f, c = clampCell(M, { fx, fy }), j = c.y * M.W + c.x;
+    if(st.tool === 'erase'){
+      // Each wall is changed once per stroke: a tap on a door takes out the door, not the wall too.
+      const ne = nearestEdge(M, fx, fy), e = ne && ne.d < .2 && !st.keys.has(ne.key) ? M.edges.get(ne.key) : null;
+      if(e){
+        st.keys.add(ne.key);
+        const [t, x, y] = parseKey(ne.key), [[ax, ay], [bx, by]] = wallSides(t, x, y);
+        if(e.door){ e.door = null; st.changed = true; feRead('Took out the door.'); continue; }
+        if(isFloor(M, ax, ay) && isFloor(M, bx, by)){ M.edges.delete(ne.key); st.changed = true; feRead('Took out the wall.'); continue; }
+      }
+      if(fillRock(M, c.x, c.y)){ st.changed = true; normalize(M); }
+    } else if(st.tool === 'hall'){
+      if(digFloor(M, c.x, c.y, ed.ground)){ st.changed = true; st.n++; normalize(M); }
+    } else if(M.cells[j] === '.' && !monsterSquares(M).has(j)){ setPiece(M, j, 't'); st.changed = true; st.n++; }
+  }
+  if(st.tool === 'hall' && st.n) feRead(`Dug <b>${st.n}</b> ${st.n === 1 ? 'square' : 'squares'} of ${GROUNDS[ed.ground].name.toLowerCase()} floor. In a straight line that's <b>${st.n * 5} ft</b> of hall.`);
+  if(st.tool === 't' && st.n) feRead(`A pit <b>${st.n}</b> ${st.n === 1 ? 'square' : 'squares'} big and ${ed.depth} ft deep. Pits only go on empty floor.`);
+}
+function placeDoor(p){
+  const M = ed.M, ne = nearestEdge(M, p.fx, p.fy), D = DOORS[ed.door];
+  let e = ne && M.edges.get(ne.key);
+  // A door in the open gap between a hall and a room puts the wall up around it too.
+  if(!e && ne && ne.d < .35){
+    const [t, x, y] = parseKey(ne.key), [[ax, ay], [bx, by]] = wallSides(t, x, y);
+    if(isFloor(M, ax, ay) && isFloor(M, bx, by)){ e = { m: GROUNDS[M.ground[ay * M.W + ax]].wall, door:null, manual:true }; M.edges.set(ne.key, e); }
+  }
+  if(!e){ feRead('Doors go on a wall line, or in the gap where a hall meets a room. Tap right on the line.', true); return; }
+  if(e.door === ed.door){ e.door = null; feRead(`Took out the ${D.name.toLowerCase()}.`); }
+  else { e.door = ed.door; e.manual = true; feRead(`${D.name}: ${D.does}`); }
+  ed.stroke.changed = true;
+}
+function placePiece(c){
+  const M = ed.M, st = ed.stroke, i = c.y * M.W + c.x, t = ed.tool;
+  if(M.cells[i] === ' '){ feRead('That is solid rock. Dig out floor there first.', true); return; }
+  const occ = monsterSquares(M), here = occ.get(i);
+  if(t === 'm'){
+    // Big monsters stand with their top-left corner on the tapped square, or as near it as fits.
+    const n = monSpan(ed.mon), free = j => M.cells[j] === '.' || (here !== undefined && occ.get(j) === here);
+    let at = -1;
+    for(let dy = 0; dy < n && at < 0; dy++) for(let dx = 0; dx < n && at < 0; dx++){
+      if(!inMap(M, c.x - dx, c.y - dy)) continue;
+      const a = (c.y - dy) * M.W + c.x - dx, f = footprint(M, a, n);
+      if(f && f.every(j => free(j) && (!occ.has(j) || occ.get(j) === here))) at = a;
+    }
+    if(at < 0){ feRead(`${an(ed.mon)} is ${n === 3 ? 'Huge' : 'Large'}: it needs ${n} × ${n} squares (${n * 5} ft × ${n * 5} ft) of empty floor with no walls through it.`, true); return; }
+    if(here !== undefined){ M.cells[here] = '.'; delete M.things[here]; }
+    setPiece(M, at, 'm'); ed.sel = at;
+    feRead(n > 1 ? `${an(ed.mon)} is ${n === 3 ? 'Huge' : 'Large'}, so it takes ${n} × ${n} squares: ${n * 5} ft × ${n * 5} ft.` : `${an(ed.mon)}.`);
+  } else {
+    if(M.cells[i] === t && 'SEk'.includes(t)) return;
+    if(here !== undefined){ M.cells[here] = '.'; delete M.things[here]; }
+    setPiece(M, i, t); ed.sel = 'm$st'.includes(t) ? i : -1;
+    if(t === 't') feRead(`${TRAPS[ed.trap].name}: ${TRAPS[ed.trap].does}`);
+  }
+  st.changed = true;
+}
+function selectAt(c){
+  const M = ed.M, i = c.y * M.W + c.x, a = monsterSquares(M).get(i);
+  ed.sel = a !== undefined ? a : '$st'.includes(M.cells[i]) && M.cells[i] !== ' ' ? i : -1;
+  renderInspect();
+}
+function measureAt(c){
+  const M = ed.M, R = forgeRooms(M), k = R.roomOf[c.y * M.W + c.x];
+  if(k < 0){ feRead('That is solid rock. Tap inside a room.'); return; }
+  const r = R.rooms[k]; ed.measure = r.cells;
+  let s = `This room has <b>${r.cells.length}</b> squares of floor. Each square is 5 ft × 5 ft, so that is <b>${r.cells.length * 25}</b> square feet. `;
+  if(r.rect) s += `It is a rectangle, <b>${r.w} × ${r.h}</b> squares, which is <b>${r.w * 5} ft × ${r.h * 5} ft</b>. `;
+  s += `The walls around it are <b>${r.walls}</b> sections × 5 ft = <b>${r.walls * 5} ft</b>` + (r.doors.length ? `, with ${r.doors.length} ${r.doors.length === 1 ? 'door' : 'doors'} in them.` : '.');
+  feRead(s);
 }
 function renderTools(){
   const box = $('fe-tools'); box.textContent = '';
-  TOOLS.forEach(([key, name, glyph]) => {
+  TOOLS.forEach(([key, name, glyph, cost]) => {
     const b = mk('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(ed.tool === key));
-    const cost = key === '.' ? '1 gp' : key === 'm' ? 'XP ÷ 5' : key === '$' ? '10–50 gp' : PIECES[key] && PIECES[key].cost ? PIECES[key].cost + ' gp' : key === 'S' || key === 'E' ? '1 gp' : '';
     b.append(mk('span', '', glyph), document.createTextNode(name)); if(cost) b.append(mk('small', '', cost));
-    b.addEventListener('click', () => { ed.tool = key; if(key !== 'select') ed.sel = -1; renderTools(); renderEditor(); });
+    b.addEventListener('click', () => {
+      ed.tool = key; ed.hover = null; ed.measure = null; if(key !== 'select') ed.sel = -1;
+      renderTools(); renderInspect(); feRead(TOOL_TIPS[key] || PIECES[key].tip); feView.draw();
+    });
     box.append(b);
   });
 }
+// A row of picture buttons: what a room, wall or door is made of.
+function kindPicker(box, title, list, which, cur, onPick, cost){
+  box.append(mk('label', '', title));
+  const row = mk('div', 'fkinds');
+  Object.entries(list).forEach(([k, d]) => {
+    const b = mk('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(cur === k));
+    b.append(forgeSwatch(k, which), mk('span', '', d.name), mk('small', '', cost(k, d)));
+    b.addEventListener('click', () => onPick(k)); row.append(b);
+  });
+  box.append(row);
+}
 function renderInspect(){
-  const box = $('fe-inspect'), d = ed.d; box.textContent = '';
-  const ch = ed.sel >= 0 ? d.cells[ed.sel] : null, t = ed.sel >= 0 ? d.things[ed.sel] : null;
+  const box = $('fe-inspect'), M = ed.M; box.textContent = '';
+  const ch = ed.sel >= 0 ? M.cells[ed.sel] : null, t = ed.sel >= 0 ? M.things[ed.sel] : null;
+  const changed = () => { mapStore(ed.d, M); edChanged(); renderBudget(); feView.draw(); };
   const monPicker = (value, onPick) => {
     const lab = mk('label', '', 'Which monster?'), sel = mk('select'); lab.htmlFor = sel.id = 'fe-mon';
-    MON().slice().sort((a, b) => a.xp - b.xp).forEach(m => { const o = mk('option', '', `${m.n}: ${m.xp} XP, costs ${monCost(m.n)} gold`); o.value = m.n; sel.append(o); });
+    MON().slice().sort((a, b) => a.xp - b.xp).forEach(m => {
+      const n = monSpan(m.n), o = mk('option', '', `${m.n}: ${m.xp} XP, costs ${monCost(m.n)} gold${n > 1 ? ` (${n === 3 ? 'Huge' : 'Large'}, ${n} × ${n} squares)` : ''}`);
+      o.value = m.n; sel.append(o);
+    });
     if(!MON().some(m => m.n === value)){ const o = mk('option', '', value); o.value = value; sel.append(o); }
     sel.value = value; sel.addEventListener('change', () => onPick(sel.value)); box.append(lab, sel);
   };
@@ -2368,65 +3025,73 @@ function renderInspect(){
     ['s','m','l'].forEach(s => { const b = mk('button', 'sm', `${CHESTS[s].name.split(' ')[0]}: ${CHESTS[s].gold} gold inside, costs ${CHESTS[s].cost}`); b.type = 'button'; b.setAttribute('aria-pressed', String(value === s)); b.addEventListener('click', () => onPick(s)); row.append(b); });
     box.append(row);
   };
-  if(ch === 'm'){ box.append(mk('h3', '', 'Monster')); monPicker(t.mon, v => { t.mon = v; ed.mon = v; edChanged(); renderEditor(); }); return; }
-  if(ch === '$'){ box.append(mk('h3', '', 'Chest')); sizePicker(t.size, v => { t.size = v; ed.size = v; edChanged(); renderEditor(); }); return; }
-  if(ch === 's'){
-    box.append(mk('h3', '', 'Sign'));
-    const lab = mk('label', '', 'What does it say?'), ta = mk('textarea'); lab.htmlFor = ta.id = 'fe-sign'; ta.maxLength = 160; ta.value = t.text || '';
-    ta.placeholder = 'Beware: the third step is a trap…';
-    ta.addEventListener('input', () => { t.text = ta.value; edChanged(); });
-    box.append(lab, ta); return;
+  const trapPicker = (trap, depth, onPick) => {
+    box.append(mk('label', '', 'What kind of trap?'));
+    const row = mk('div', 'choices');
+    Object.entries(TRAPS).forEach(([k, T]) => { const b = mk('button', 'sm', T.name); b.type = 'button'; b.setAttribute('aria-pressed', String(trap === k)); b.addEventListener('click', () => onPick(k, depth)); row.append(b); });
+    box.append(row, mk('p', 'help', TRAPS[trap].does));
+    if(isPit({ trap })){
+      box.append(mk('label', '', 'How deep?'));
+      const dr = mk('div', 'choices');
+      PIT_DEPTHS.forEach(n => { const b = mk('button', 'sm', `${n} ft: ${n / 10}d6, costs ${TRAPS[trap].cost({ depth:n })} a square`); b.type = 'button'; b.setAttribute('aria-pressed', String(depth === n)); b.addEventListener('click', () => onPick(trap, n)); dr.append(b); });
+      box.append(dr);
+    }
+  };
+  if(ed.tool === 'select' && t){
+    if(ch === 'm'){ box.append(mk('h3', '', 'Monster')); monPicker(t.mon, v => {
+      const n = monSpan(v), old = t.mon; t.mon = v;
+      if(n > 1 && !footprint(M, ed.sel, n)){ t.mon = old; feRead(`${an(v)} needs ${n} × ${n} squares of floor here, with no walls through them. Put it somewhere bigger with the Monster tool.`, true); renderInspect(); return; }
+      ed.mon = v; changed(); renderInspect(); }); return; }
+    if(ch === '$'){ box.append(mk('h3', '', 'Chest')); sizePicker(t.size, v => { t.size = v; ed.size = v; changed(); renderInspect(); }); return; }
+    if(ch === 't'){
+      box.append(mk('h3', '', 'Trap'));
+      // Changing one square of a pit changes the whole pit.
+      trapPicker(t.trap, t.depth || 10, (k, n) => {
+        (isPit(t) ? pitGroup(M, ed.sel) : [ed.sel]).forEach(j => { M.things[j] = isPit({ trap:k }) ? { trap:k, depth:n } : { trap:k }; });
+        ed.trap = k; ed.depth = n; changed(); renderInspect();
+      });
+      return;
+    }
+    if(ch === 's'){
+      box.append(mk('h3', '', 'Sign'));
+      const lab = mk('label', '', 'What does it say?'), ta = mk('textarea'); lab.htmlFor = ta.id = 'fe-sign'; ta.maxLength = 160; ta.value = t.text || '';
+      ta.placeholder = 'Beware: the third step is a trap…';
+      ta.addEventListener('input', () => { t.text = ta.value; mapStore(ed.d, M); edChanged(); });
+      box.append(lab, ta); return;
+    }
   }
   const tool = TOOLS.find(x => x[0] === ed.tool);
-  box.append(mk('h3', '', tool[1]));
-  box.append(mk('p', 'help', ed.tool === 'select' ? 'Tap a monster, chest or sign on the map to change it.' : ed.tool === 'erase' ? 'Tap or drag to turn squares back into solid rock.' : PIECES[ed.tool].tip));
+  box.append(mk('h3', '', tool[1]), mk('p', 'help', TOOL_TIPS[ed.tool] || PIECES[ed.tool].tip));
+  if(ed.tool === 'room' || ed.tool === 'hall') kindPicker(box, 'Made of', GROUNDS, 'ground', ed.ground, k => { ed.ground = k; renderInspect(); }, k => `walls ${WALLS[GROUNDS[k].wall].cost} gp / 5 ft`);
+  if(ed.tool === 'wall') kindPicker(box, 'Made of', WALLS, 'wall', ed.wall, k => { ed.wall = k; renderInspect(); feRead(`${WALLS[k].name}: ${WALLS[k].does}`); }, (k, d) => `${d.cost} gp / 5 ft`);
+  if(ed.tool === 'door') kindPicker(box, 'Kind of door', DOORS, 'door', ed.door, k => { ed.door = k; renderInspect(); feRead(`${DOORS[k].name}: ${DOORS[k].does}`); }, (k, d) => `${d.cost} gp`);
   if(ed.tool === 'm') monPicker(ed.mon, v => { ed.mon = v; renderInspect(); });
+  if(ed.tool === 't') trapPicker(ed.trap, ed.depth, (k, n) => { ed.trap = k; ed.depth = n; renderInspect(); feRead(isPit({ trap:k }) ? 'Drag across empty floor to dig the pit. It can cover several squares.' : TRAPS[k].does); });
   if(ed.tool === '$') sizePicker(ed.size, v => { ed.size = v; renderInspect(); });
 }
 function renderBudget(){
-  const box = $('fe-budget'), { lines, total } = forgeCosts(ed.d), budget = forgeBudget();
+  const box = $('fe-budget'), { lines, total } = forgeCosts(ed.d), budget = forgeBudget(ed.d);
   box.textContent = ''; box.className = 'forge-box budget' + (total > budget ? ' over' : '');
   box.append(mk('h3', '', 'Budget'));
   const tbl = mk('table');
   if(!lines.length){ const tr = mk('tr'); tr.append(mk('td', '', 'Nothing built yet')); tbl.append(tr); }
-  lines.forEach(([label, n, each, sum]) => { const tr = mk('tr'); tr.append(mk('td', '', label), mk('td', '', `${n} × ${each}`), mk('td', '', sum)); tbl.append(tr); });
+  lines.forEach(([label, n, each, sum]) => { const tr = mk('tr'); tr.append(mk('td', '', label), mk('td', '', each ? `${n} × ${each}` : n), mk('td', '', each ? sum : 'free')); tbl.append(tr); });
   const tot = mk('div', 'total'); tot.append(mk('span', '', 'Spent'), mk('span', '', `${total} of ${budget} gold`));
   const bar = mk('div', 'bar'), fill = mk('i'); fill.style.width = Math.min(100, total / budget * 100) + '%'; bar.append(fill);
   box.append(tbl, tot, bar);
-  if(total > budget) box.append(mk('p', 'help', 'Over budget. Take something out before you test it.'));
-  else box.append(mk('p', 'help', `Your budget grows as you rank up.`));
+  box.append(mk('p', 'help', total > budget ? 'Over budget. Take something out before you test it.' : 'Floor is free. You pay for every 5 ft of wall. Your budget grows as you rank up.'));
 }
-function edChanged(){ ed.d.rev = (ed.d.rev || 0) + 1; ed.changed = true; forgeSave(); forgeNote(''); }
-function setCell(i, ch){
-  const d = ed.d, cells = [...d.cells];
-  if(ch === 'S' || ch === 'E') cells.forEach((c, j) => { if(c === ch && j !== i) cells[j] = '.'; });
-  cells[i] = ch; d.cells = cells.join('');
-  if(ch === 'm') d.things[i] = { mon: ed.mon }; else if(ch === '$') d.things[i] = { size: ed.size }; else if(ch === 's') d.things[i] = { text:'' }; else delete d.things[i];
-}
-function paint(i, first){
-  const d = ed.d, cur = d.cells[i], t = ed.tool;
-  if(t === 'select'){ if(first){ ed.sel = 'm$s'.includes(cur) ? i : -1; renderEditor(); } return; }
-  if(t === 'erase'){ if(cur !== ' '){ setCell(i, ' '); ed.changed = true; if(ed.sel === i) ed.sel = -1; } }
-  else if(t === '.'){ if(cur === ' ' || (first && cur !== '.')){ setCell(i, '.'); ed.changed = true; } }
-  else if(first){
-    if(cur === t && !'m$s'.includes(t)) return;
-    setCell(i, t); ed.changed = true; ed.sel = 'm$s'.includes(t) ? i : -1;
-  }
-  else return;
-  const c = $('fe-grid').children[i]; drawCell(c, d.cells[i], d.things[i] || {}); if(i === ed.sel) c.classList.add('sel');
-  if(t === 'S' || t === 'E' || first) renderEditor(); else renderBudget();
-}
-(function(){
-  const grid = $('fe-grid');
-  const at = e => { const t = document.elementFromPoint(e.clientX, e.clientY); const c = t && t.closest ? t.closest('.fc') : null; return c && grid.contains(c) ? +c.dataset.i : -1; };
-  grid.addEventListener('pointerdown', e => { const i = at(e); if(i < 0) return; e.preventDefault(); ed.painting = true; ed.changed = false; try{ grid.setPointerCapture(e.pointerId); }catch(x){} paint(i, true); });
-  grid.addEventListener('pointermove', e => { if(!ed.painting) return; const i = at(e); if(i >= 0) paint(i, false); });
-  const end = () => { if(!ed.painting) return; ed.painting = false; if(ed.changed){ edChanged(); ed.changed = false; } renderEditor(); };
-  grid.addEventListener('pointerup', end); grid.addEventListener('pointercancel', end);
-})();
 $('fe-title').addEventListener('input', () => { ed.d.title = $('fe-title').value.trim() || 'Untitled dungeon'; edChanged(); });
 $('fe-intro').addEventListener('input', () => { ed.d.intro = $('fe-intro').value; edChanged(); });
 $('fe-back').addEventListener('click', renderForge);
+$('fe-undo').addEventListener('click', edUndo);
+$('fe-zin').addEventListener('click', () => feView.zoomCenter(feView.zoom * 1.3));
+$('fe-zout').addEventListener('click', () => feView.zoomCenter(feView.zoom / 1.3));
+$('fe-zfit').addEventListener('click', () => { feView.zoom = 1; feView.size(); });
+document.addEventListener('keydown', e => {
+  if($('view-forge').hidden || $('forge-edit').hidden || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); edUndo(); }
+});
 $('fe-test').addEventListener('click', () => { const p = forgeProblems(ed.d); if(p.length) return forgeNote(p.join(' '), 'bad'); forgePlay(ed.d, 'test'); });
 $('fe-share').addEventListener('click', async () => {
   const d = ed.d, p = forgeProblems(d);
@@ -2434,7 +3099,7 @@ $('fe-share').addEventListener('click', async () => {
   if(d.tested !== d.rev) return forgeNote('Beat your own dungeon first (Test it), so you know your friends can finish it. Any change means testing it again.', 'bad');
   const owner = KidSave.code();
   if(!owner) return forgeNote('This device is not connected to the Academy yet. Try again in a moment.', 'bad');
-  const body = JSON.stringify({ owner, data: { v:1, title:d.title, intro:d.intro || '', author: settings.dm || '', cells:d.cells, things:d.things } });
+  const body = JSON.stringify({ owner, data: { v:2, size:d.size, title:d.title, intro:d.intro || '', author: settings.dm || '', cells:d.cells, ground:d.ground, walls:d.walls, things:d.things } });
   forgeNote('Sharing…');
   try{
     let res = d.share ? await fetch('api/shares/' + encodeURIComponent(d.share), { method:'PUT', headers:{ 'Content-Type':'application/json' }, body }) : null;
@@ -2454,66 +3119,142 @@ $('fe-delete').addEventListener('click', () => {
 });
 
 // ----- Playing a dungeon -----
-// Rooms light up as a hero walks into them. Keys open locked doors; traps, chests and monsters
-// are questions. Monsters have a third of their usual hit points so a fight is a few rounds.
-const fp = { d:null, mode:'test', code:null, cells:null, pos:0, hp:0, max:0, keys:0, gold:0, kills:0, seen:null, busy:false, over:false };
+// A hero sees the room they are in, and through iron bars and portcullises. Traps stay hidden until
+// stepped on, and secret doors look like wall until a search finds them. Keys open locked doors;
+// traps, chests, monsters, portcullises and smashing wood are questions. Monsters have a third of
+// their usual hit points so a fight is a few rounds.
+const fp = { d:null, M:null, mode:'test', code:null, pos:0, hp:0, max:0, keys:0, gold:0, kills:0, seen:null, opened:null, found:null, pits:null, occ:null, busy:false, over:false };
 const HERO_AC = 14;
+const CHECK_HINT = 'Add your bonus to the roll. You succeed if the total is the DC or higher.';
+const fpView = mapView($('fp-map'), $('fp-wrap'), {
+  map: () => fp.M,
+  draw: (c, M, s) => drawForgeMap(c, M, s, { play:true, seen:fp.seen, opened:fp.opened, found:fp.found, pits:fp.pits, hero:fp.pos }),
+  down: p => { const M = fp.M, x = Math.floor(p.fx), y = Math.floor(p.fy); if(!inMap(M, x, y)) return; const i = y * M.W + x; if(steps(M, fp.pos).some(([j]) => j === i)) fpMove(i); },
+});
 function forgePlay(d, mode, code){
-  Object.assign(fp, { d, mode, code: code || null, cells:[...d.cells], keys:0, gold:0, kills:0, seen:new Set(), busy:false, over:false });
-  fp.pos = fp.cells.indexOf('S'); fp.max = fp.hp = 20 + 6 * rankFor(progress.xp).idx;
+  const M = mapOf(d);
+  Object.assign(fp, { d, M, mode, code: code || null, keys:0, gold:0, kills:0, seen:new Set(), opened:new Set(), found:new Set(), pits:new Set(), occ:monsterSquares(M), busy:false, over:false });
+  fp.pos = M.cells.indexOf('S'); fp.max = fp.hp = 20 + 6 * rankFor(progress.xp).idx;
   ['forge-home','forge-edit','forge-play'].forEach(x => $(x).hidden = x !== 'forge-play');
   $('fp-title').textContent = d.title; $('fp-log').textContent = ''; $('fp-enc').hidden = true;
-  const grid = $('fp-grid'); grid.textContent = '';
-  for(let i = 0; i < FORGE_W * FORGE_H; i++){ const c = mk('button', 'fc fog'); c.type = 'button'; c.dataset.i = i; c.tabIndex = -1; grid.append(c); }
   const read = $('fp-read'); read.textContent = '';
   read.append(mk('h3', '', d.title));
   if(mode === 'friend' && d.author) read.append(mk('small', '', `A dungeon by DM ${d.author}`));
   read.append(mk('p', '', d.intro || 'No story was written for this dungeon. Find the exit!'));
-  fpReveal(fp.pos); fpRender();
+  fpReveal();
+  // Big maps open zoomed in enough to tap a square, following the hero.
+  fpView.zoom = 1; fpView.size();
+  if(fpView.s < 26){ fpView.zoom = 26 / fpView.base(); fpView.size(); }
+  fpView.follow(fp.pos); fpRender();
   fpLog(mode === 'test' ? 'Testing your dungeon. Beat it to unlock sharing.' : 'Find the exit. Tap a square next to you, or use the arrows.');
   window.scrollTo(0, 0);
 }
 function fpLog(line){ const log = $('fp-log'); const d = mk('div', '', line); log.prepend(d); while(log.children.length > 8) log.lastChild.remove(); }
-function fpReveal(i){
-  const R = forgeRooms(fp.cells), room = R.roomOf[i];
-  const cells = room >= 0 ? R.rooms[room].cells : [i];
-  cells.forEach(j => { fp.seen.add(j); neighbors(j).forEach(n => fp.seen.add(n)); });
+// What the hero can see: their room, and on through open doors, iron bars and portcullises.
+function fpReveal(){
+  const M = fp.M, vis = new Set([fp.pos]), stack = [fp.pos];
+  while(stack.length){
+    const i = stack.pop();
+    steps(M, i).forEach(([n, k]) => {
+      if(vis.has(n) || M.cells[n] === ' ') return;
+      const e = M.edges.get(k);
+      if(e && !fp.opened.has(k) && e.m !== 'bars' && e.door !== 'portcullis') return;
+      vis.add(n); stack.push(n);
+    });
+  }
+  vis.forEach(i => {
+    fp.seen.add(i);
+    const x = i % M.W, y = Math.floor(i / M.W);
+    for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++) if(inMap(M, x + dx, y + dy) && M.cells[(y + dy) * M.W + x + dx] === ' ') fp.seen.add((y + dy) * M.W + x + dx);
+  });
+}
+// The squares the hero can walk to without going through a closed door or wall.
+function fpRoom(){
+  const M = fp.M, room = new Set([fp.pos]), stack = [fp.pos];
+  while(stack.length){ const i = stack.pop(); steps(M, i).forEach(([n, k]) => { if(!room.has(n) && M.cells[n] !== ' ' && (!M.edges.has(k) || fp.opened.has(k))){ room.add(n); stack.push(n); } }); }
+  return room;
 }
 function fpRender(){
-  const cells = $('fp-grid').children;
-  for(let i = 0; i < cells.length; i++){
-    const c = cells[i];
-    if(!fp.seen.has(i)){ c.className = 'fc fog'; c.textContent = ''; continue; }
-    drawCell(c, fp.cells[i], fp.d.things[i] || {});
-    if(fp.cells[i] === ' ') c.className = 'fc wall';
-    if(i === fp.pos){ const h = mk('span', 'hero'); setArt(h, 'hero', ''); c.append(h); }
-  }
+  fpView.draw();
   const st = $('fp-stats'); st.textContent = '';
   [['HP', `${Math.max(0, fp.hp)} / ${fp.max}`], ['Keys', fp.keys], ['Gold', fp.gold]].forEach(([k, v]) => { const s = mk('span', '', k + ' '); s.append(mk('b', '', v)); st.append(s); });
 }
 function fpHurt(n){ fp.hp -= n; fpRender(); }
+function fpOffer(box, text, yes, no){
+  return new Promise(resolve => {
+    box.textContent = ''; box.hidden = false; box.append(mk('p', 'q', text));
+    const act = mk('div', 'actions'), a = mk('button', 'btn', yes), b = mk('button', 'btn ghost', no); a.type = b.type = 'button';
+    a.addEventListener('click', () => resolve(true)); b.addEventListener('click', () => resolve(false));
+    act.append(a, b); box.append(act); a.focus();
+  });
+}
+// Trying to cross the wall line `key`: true when the hero gets through.
+async function fpThrough(key){
+  const e = fp.M.edges.get(key), door = e.door === 'secret' && !fp.found.has(key) ? null : e.door, box = $('fp-enc');
+  if(door === 'door' || door === 'secret'){ fp.opened.add(key); fpLog(door === 'secret' ? 'You push the secret door open.' : 'You open the door.'); return true; }
+  if(door === 'locked'){
+    if(!fp.keys){ fpLog('A locked door. You need a key.'); return false; }
+    fp.keys--; fp.opened.add(key); fpLog('You unlock the door.'); return true;
+  }
+  if(door === 'portcullis'){
+    fp.busy = true; const ok = await fpLift(box); box.hidden = true; fp.busy = false;
+    if(!ok){ fpLog('The portcullis is too heavy this time. Try again.'); return false; }
+    fp.opened.add(key); fpLog('You heave the portcullis up and duck under it.'); return true;
+  }
+  if(e.m === 'wood'){
+    fp.busy = true;
+    const go = await fpOffer(box, 'A wooden wall. The planks look old. Smash through it?', 'Smash it', 'Leave it');
+    if(go) await fpSmash(box);
+    box.hidden = true; fp.busy = false;
+    if(go){ fp.opened.add(key); fpLog('You smash a hole through the wooden wall.'); }
+    return go;
+  }
+  fpLog(e.m === 'bars' ? 'Iron bars. You can see through them, but you cannot get past.' : e.m === 'cave' ? 'Rough cave wall.' : 'A solid stone wall.');
+  return false;
+}
 async function fpMove(to){
   if(fp.busy || fp.over || to < 0) return;
-  const ch = fp.cells[to];
-  if(ch === ' '){ fpLog('Solid rock.'); return; }
-  if(ch === 'D'){
-    if(!fp.keys){ fpLog('A locked door. You need a key.'); return; }
-    fp.keys--; fp.cells[to] = '.'; fpLog('You unlock the door.');
-  }
-  fp.pos = to; fpReveal(to); fpRender();
-  const thing = fp.d.things[to] || {}, enc = $('fp-enc');
-  if(ch === 'k'){ fp.keys++; fp.cells[to] = '.'; fpLog('You pick up a key.'); fpRender(); }
-  else if(ch === 's'){ fpLog('You found a sign.'); const read = $('fp-read'); read.textContent = ''; read.append(mk('h3', '', 'A sign reads:'), mk('p', '', thing.text || '(It is blank.)')); }
-  else if('t$m'.includes(ch)){
-    fp.busy = true;
-    if(ch === 't') await fpTrap(enc);
-    if(ch === '$') await fpChest(enc, thing);
-    if(ch === 'm') await fpFight(enc, thing.mon);
-    enc.hidden = true; fp.busy = false;
+  const M = fp.M, key = edgeBetween(M, fp.pos, to);
+  if(key && M.edges.has(key) && !fp.opened.has(key) && !(await fpThrough(key))) return;
+  if(M.cells[to] === ' '){ fpLog('Solid rock.'); return; }
+  fp.pos = to; fpReveal(); fpRender(); fpView.follow(to);
+  const ch = M.cells[to], thing = M.things[to] || {}, enc = $('fp-enc'), mon = fp.occ.get(to);
+  if(mon !== undefined){
+    fp.busy = true; await fpFight(enc, (M.things[mon] || {}).mon); enc.hidden = true; fp.busy = false;
     if(fp.hp <= 0) return fpEnd(false);
-    fp.cells[to] = '.'; fpRender();
+    M.cells[mon] = '.'; [...fp.occ].forEach(([j, a]) => { if(a === mon) fp.occ.delete(j); }); fpRender();
+  }
+  else if(fp.pits.has(to)) fpLog('You climb down into the open pit and out the other side.');
+  else if(ch === 'k'){ fp.keys++; M.cells[to] = '.'; fpLog('You pick up a key.'); fpRender(); }
+  else if(ch === 's'){ fpLog('You found a sign.'); const read = $('fp-read'); read.textContent = ''; read.append(mk('h3', '', 'A sign reads:'), mk('p', '', thing.text || '(It is blank.)')); }
+  else if(ch === 't' || ch === '$'){
+    fp.busy = true;
+    if(ch === '$') await fpChest(enc, thing);
+    else if(isPit(thing)) await fpPit(enc, thing);
+    else if(thing.trap === 'net') await fpNet(enc);
+    else if(thing.trap === 'dart') await fpDarts(enc);
+    else await fpTrap(enc);
+    enc.hidden = true; fp.busy = false;
+    if(isPit(thing)) pitGroup(M, to).forEach(j => { M.cells[j] = '.'; fp.pits.add(j); });
+    else M.cells[to] = '.';
+    if(fp.hp <= 0) return fpEnd(false);
+    fpRender();
   }
   else if(ch === 'E') fpEnd(true);
+}
+async function fpSearch(){
+  if(fp.busy || fp.over) return;
+  fp.busy = true;
+  const box = $('fp-enc'), dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 5), tot = roll + bonus, made = tot >= dc;
+  await forgeAsk(box, { q:`You search the walls for anything hidden. Make an Intelligence (Investigation) check, DC ${dc}. You rolled ${roll}, and your Investigation bonus is +${bonus}. Do you succeed?`,
+    choices:['Success', 'Fail'], answer: made ? 'Success' : 'Fail', next:'Next', hint:CHECK_HINT,
+    solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
+  box.hidden = true; fp.busy = false;
+  if(!made){ fpLog('You search, but you do not find anything.'); return; }
+  const M = fp.M, room = fpRoom(); let n = 0;
+  room.forEach(i => steps(M, i).forEach(([j, k]) => { const e = M.edges.get(k); if(e && e.door === 'secret' && !fp.found.has(k)){ fp.found.add(k); n++; } }));
+  fpLog(n ? (n === 1 ? 'You find a secret door!' : `You find ${n} secret doors!`) : 'You search carefully. Nothing is hidden in this room.');
+  fpRender();
 }
 async function fpTrap(box){
   const dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
@@ -2527,6 +3268,75 @@ async function fpTrap(box){
     ? { q:`You twist away, so you take half damage. The spikes rolled 2d6: ${a} and ${b}. How much damage is half of that, rounded down?`, answer: dmg, hint:'Add the two dice, then cut it in half. If there is a half left over, drop it.', solution:`${a} + ${b} = ${full}, and half of ${full} rounded down is ${dmg}.` }
     : { q:`The spikes get you. They rolled 2d6: ${a} and ${b}. How much damage do you take?`, answer: dmg, hint:'Add the two dice.', solution:`${a} + ${b} = ${dmg}.` });
   fpHurt(dmg); fpLog(`The trap deals ${dmg} damage.`);
+}
+// A pit: a Dexterity save to grab the edge, or fall 1d6 for every 10 feet (and 2d10 more onto spikes).
+async function fpPit(box, t){
+  const dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
+  fpLog('The floor gives way!');
+  await forgeAsk(box, { q:`The floor gives way under you! Make a Dexterity saving throw, DC ${dc}, to grab the edge. You rolled ${roll}, and your Dexterity bonus is +${bonus}. Do you make the save?`,
+    choices:['Made it', 'Failed'], answer: made ? 'Made it' : 'Failed', next:'Next', hint:CHECK_HINT,
+    solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}. You ${made ? 'make' : 'fail'} the save.` });
+  if(made){ fpLog('You grab the edge and pull yourself up.'); return; }
+  const n = t.depth / 10;
+  await forgeAsk(box, { q:`You fall ${t.depth} feet! Falling does 1d6 damage for every 10 feet you fall. How many d6 do you roll?`, answer: n,
+    hint:'How many tens are in the number of feet?', solution:`${t.depth} ÷ 10 = ${n}, so you roll ${n}d6.`, next:'Roll them' });
+  const fall = Array.from({ length:n }, () => rand(1, 6)), spikes = t.trap === 'spiked' ? [rand(1, 10), rand(1, 10)] : [], all = fall.concat(spikes), dmg = all.reduce((a, b) => a + b, 0);
+  await forgeAsk(box, { q: spikes.length
+      ? `Your fall ${n === 1 ? 'die shows' : 'dice show'} ${saidList(fall)}. Then you land on spikes, which roll 2d10: ${saidList(spikes)}. How much damage do you take in all?`
+      : `Your ${n === 1 ? 'die shows' : 'dice show'} ${saidList(fall)}. How much damage do you take?`,
+    answer: dmg, hint:'Add up all the dice.', solution:`${all.join(' + ')} = ${dmg}.` });
+  fpHurt(dmg); fpLog(`The fall deals ${dmg} damage. You climb out.`);
+}
+// A net: Strength checks to tear free. Rats nibble while the hero is stuck.
+async function fpNet(box){
+  fpLog('A net drops on you!');
+  for(let tries = 0; tries < 3; tries++){
+    const dc = rand(10, 13), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
+    await forgeAsk(box, { q:`${tries ? 'You are still stuck. Try again: make a' : 'A heavy net drops on you! Make a'} Strength check, DC ${dc}, to tear free. You rolled ${roll}, and your Strength bonus is +${bonus}. Do you break free?`,
+      choices:['Free!', 'Still stuck'], answer: made ? 'Free!' : 'Still stuck', next:'Next', hint:CHECK_HINT,
+      solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
+    if(made){ fpLog('You tear free of the net.'); return; }
+    const bite = rand(1, 3); fpHurt(bite); fpLog(`Rats nibble at you while you are stuck: ${bite} damage.`);
+    if(fp.hp <= 0) return;
+  }
+  fpLog('You finally wriggle free of the net.');
+}
+// Poison darts: a Constitution save, or the poison adds 2d6 to the dart's 1d4.
+async function fpDarts(box){
+  const dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 3), tot = roll + bonus, made = tot >= dc;
+  fpLog('Darts shoot out of the wall!');
+  await forgeAsk(box, { q:`Darts shoot out of the wall, and they are poisoned! Make a Constitution saving throw, DC ${dc}. You rolled ${roll}, and your Constitution bonus is +${bonus}. Do you resist the poison?`,
+    choices:['Resisted', 'Poisoned'], answer: made ? 'Resisted' : 'Poisoned', next:'Next', hint:CHECK_HINT,
+    solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
+  const dart = rand(1, 4), p1 = rand(1, 6), p2 = rand(1, 6), dmg = made ? dart : dart + p1 + p2;
+  await forgeAsk(box, made
+    ? { q:`You shrug off the poison, but the dart still stings. Its 1d4 rolls ${dart}. How much damage do you take?`, answer: dmg, hint:'It is just the one die.', solution:`${dart} damage.` }
+    : { q:`The dart does 1d4 and the poison does 2d6. The dart die shows ${dart}, and the poison dice show ${p1} and ${p2}. How much damage do you take in all?`, answer: dmg, hint:'Add all three dice.', solution:`${dart} + ${p1} + ${p2} = ${dmg}.` });
+  fpHurt(dmg); fpLog(`The darts deal ${dmg} damage.`);
+}
+async function fpLift(box){
+  const dc = rand(10, 14), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
+  await forgeAsk(box, { q:`An iron portcullis blocks the way. Make a Strength check, DC ${dc}, to lift it. You rolled ${roll}, and your Strength bonus is +${bonus}. Can you lift it?`,
+    choices:['Lifted it', 'Too heavy'], answer: made ? 'Lifted it' : 'Too heavy', next:'Next', hint:CHECK_HINT,
+    solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
+  return made;
+}
+// Smashing a wooden wall: attack rolls against AC 15 until 10 damage is done. Only hand weapons smash.
+async function fpSmash(box){
+  const [wname, wtext] = pick(MELEE_WEAPONS), wd = parseDice(wtext), bonus = 3 + 2 + Math.floor((level() - 1) / 4);
+  let hp = 10;
+  while(hp > 0){
+    const roll = rand(2, 19), tot = roll + bonus, hit = tot >= 15;
+    await forgeAsk(box, { q:`${heroAttack(wname)} at the planks. Your d20 roll is ${roll} and your attack bonus is +${bonus}. Wood has Armor Class 15. Hit or miss?`,
+      choices:['Hit', 'Miss'], answer: hit ? 'Hit' : 'Miss', next:'Next',
+      hint:'Add the bonus to the roll. You hit if the total is the Armor Class or higher.',
+      solution:`${roll} + ${bonus} = ${tot}, which is ${hit ? 'at least' : 'less than'} AC 15: ${hit ? 'a hit' : 'a miss'}.` });
+    if(!hit){ fpLog('You miss the wall.'); continue; }
+    const r = rollDice(wd);
+    await forgeAsk(box, { q:`Your ${wname} does ${wd.text} damage. The ${r.rolls.length === 1 ? 'die shows' : 'dice show'} ${saidList(r.rolls)}${wd.m ? `, and you add ${wd.m}` : ''}. How much damage do you do to the wall?`, answer: r.total,
+      hint: wd.m ? 'Add up the dice, then add the bonus.' : 'Add up the dice.', solution:`${r.rolls.join(' + ')}${wd.m ? ' + ' + wd.m : ''} = ${r.total}.` });
+    hp -= r.total; fpLog(hp > 0 ? `The planks crack. The wall has ${hp} hit points left.` : 'The planks give way!');
+  }
 }
 async function fpChest(box, thing){
   const gold = CHESTS[thing.size || 's'].gold, v = pick([5, 10]), n = rand(1, Math.max(1, Math.floor(gold * 0.6 / v))), coins = gold - n * v;
@@ -2543,7 +3353,7 @@ async function fpFight(box, name){
   const foe = () => { const f = mk('div', 'foe'), s = mk('div', 'sigil'), bar = mk('div', 'bar'), fill = mk('i'); setArt(s, monSlug(mon.n), mon.n.charAt(0)); fill.style.width = Math.max(0, hp / max * 100) + '%'; bar.append(fill); f.append(s, mk('b', '', mon.n), bar, mk('span', '', `${Math.max(0, hp)} / ${max} HP · AC ${mon.ac}`)); return f; };
   while(hp > 0 && fp.hp > 0){
     const roll = rand(2, 19), tot = roll + bonus, hit = tot >= mon.ac;
-    const p1 = forgeAsk(box, { q:`You swing your ${wname}. Your d20 roll is ${roll} and your attack bonus is +${bonus}. The ${mon.n}'s Armor Class is ${mon.ac}. Hit or miss?`,
+    const p1 = forgeAsk(box, { q:`${heroAttack(wname)}. Your d20 roll is ${roll} and your attack bonus is +${bonus}. The ${mon.n}'s Armor Class is ${mon.ac}. Hit or miss?`,
       choices:['Hit', 'Miss'], answer: hit ? 'Hit' : 'Miss', next:'Next',
       hint:'Add the bonus to the roll. You hit if the total is the Armor Class or higher.',
       solution:`${roll} + ${bonus} = ${tot}, which is ${hit ? 'at least' : 'less than'} AC ${mon.ac}: ${hit ? 'a hit' : 'a miss'}.` });
@@ -2557,7 +3367,7 @@ async function fpFight(box, name){
     } else fpLog(`You miss the ${mon.n}.`);
     if(hp <= 0) break;
     const mroll = rand(1, 20) + 4;
-    if(mroll >= HERO_AC){ const ad = rollDice(parseDice(mon.atk)); fpHurt(ad.total); fpLog(`The ${mon.n}'s ${mon.weapon} hits you for ${ad.total}.`); }
+    if(mroll >= HERO_AC){ const ad = rollDice(parseDice(mon.atk)); fpHurt(ad.total); fpLog(`The ${mon.n}'s ${mon.weapon} ${monHits(mon)} you for ${ad.total}.`); }
     else fpLog(`The ${mon.n} attacks and misses.`);
   }
   if(fp.hp > 0){ fp.kills++; fpLog(`The ${mon.n} is defeated!`); }
@@ -2581,12 +3391,12 @@ function fpEnd(won){
   act.append(again, back); box.append(act); again.focus();
 }
 function fpStep(dir){
-  const x = fp.pos % FORGE_W, y = Math.floor(fp.pos / FORGE_W);
-  const to = dir === 'up' ? (y > 0 ? fp.pos - FORGE_W : -1) : dir === 'down' ? (y < FORGE_H-1 ? fp.pos + FORGE_W : -1) : dir === 'left' ? (x > 0 ? fp.pos - 1 : -1) : (x < FORGE_W-1 ? fp.pos + 1 : -1);
+  const M = fp.M, x = fp.pos % M.W, y = Math.floor(fp.pos / M.W);
+  const to = dir === 'up' ? (y > 0 ? fp.pos - M.W : -1) : dir === 'down' ? (y < M.H - 1 ? fp.pos + M.W : -1) : dir === 'left' ? (x > 0 ? fp.pos - 1 : -1) : (x < M.W - 1 ? fp.pos + 1 : -1);
   fpMove(to);
 }
 $('fp-dpad').addEventListener('click', e => { const b = e.target.closest('button'); if(b) fpStep(b.dataset.d); });
-$('fp-grid').addEventListener('click', e => { const c = e.target.closest('.fc'); if(!c) return; const i = +c.dataset.i; if(neighbors(fp.pos).includes(i)) fpMove(i); });
+$('fp-search').addEventListener('click', fpSearch);
 document.addEventListener('keydown', e => {
   if($('view-forge').hidden || $('forge-play').hidden || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
   const dir = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' }[e.key];
@@ -2595,8 +3405,12 @@ document.addEventListener('keydown', e => {
 $('fp-leave').addEventListener('click', () => { if(fp.busy && !fp.over) $('fp-enc').hidden = true; fp.busy = false; fp.mode === 'test' ? forgeEdit(fp.d.id) : renderForge(); });
 // Another device's progress arrived: point the editor at the fresh copy, and redraw unless mid-game.
 function forgeRefresh(){
+  forgeUpgradeAll();
   if($('view-forge').hidden || !$('forge-play').hidden) return;
-  if(!$('forge-edit').hidden && ed.d){ const d = forge.dungeons.find(x => x.id === ed.d.id); if(d){ ed.d = d; renderEditor(); return; } }
+  if(!$('forge-edit').hidden && ed.d){
+    const d = forge.dungeons.find(x => x.id === ed.d.id);
+    if(d){ ed.d = d; ed.M = mapOf(d); ed.sel = -1; ed.measure = null; renderInspect(); renderBudget(); feView.draw(); return; }
+  }
   renderForge();
 }
 
@@ -2709,13 +3523,13 @@ $('trk-add-party').addEventListener('click', () => {
 });
 $('trk-add-monster').addEventListener('click', () => {
   const mon = MONSTERS.find(m => m.n === $('trk-monster').value); if(!mon) return;
-  trkAdd({ name:mon.n, init: rand(1,20) + 1, hp: mon.hp, ac: mon.ac, kind:'monster' });
+  trkAdd({ name:mon.n, init: rand(1,20) + monDex(mon.n), hp: mon.hp, ac: mon.ac, kind:'monster' });
   trkNote(`${mon.n} added with ${mon.hp} HP, AC ${mon.ac}, and a rolled Initiative.`);
   trkSort(); trkSave(); renderTracker();
 });
 $('trk-next').addEventListener('click', () => {
   if(!trk.list.length) return;
-  trk.turn = (trk.turn + 1) % trk.list.length; if(trk.turn === 0){ trk.round++; trkNote(`Round ${trk.round}. Everyone's Reaction comes back.`); }
+  trk.turn = (trk.turn + 1) % trk.list.length; if(trk.turn === 0){ trk.round++; trkNote(`Round ${trk.round}.`); }
   trk.open = null; trkSave(); renderTracker();
 });
 $('trk-sort').addEventListener('click', () => { trkSort(); trkSave(); renderTracker(); });
