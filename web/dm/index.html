@@ -459,7 +459,7 @@ details.lesson[open] summary::after{content:"−"}
   <section id="view-home">
     <div class="greet">
       <h2 id="greeting">Welcome, Dungeon Master.</h2>
-      <p>Every good DM does math and knows the rules without the players noticing. Pick a lesson.</p>
+      <p>Practice the math and rules that help you run a fun game. Pick a lesson.</p>
     </div>
     <div class="daily" id="daily"></div>
     <div class="hall" id="hall"></div>
@@ -492,7 +492,7 @@ details.lesson[open] summary::after{content:"−"}
   <!-- Boss fight -->
   <section id="view-boss" hidden>
     <div class="tray" id="boss-pick">
-      <div class="greet"><h2>Boss Fight</h2><p>Every right answer is an attack. Get one wrong twice and the boss hits back. Higher ranks unlock bigger bosses.</p></div>
+      <div class="greet"><h2>Boss Fight</h2><p>Answer correctly to attack. Two incorrect tries on the same question let the boss attack. Higher ranks unlock bigger bosses.</p></div>
       <div class="boss-grid" id="boss-grid"></div>
     </div>
     <div class="panel" id="boss-arena" hidden>
@@ -610,10 +610,11 @@ details.lesson[open] summary::after{content:"−"}
   <!-- Initiative tracker -->
   <section id="view-tracker" hidden>
     <div class="tracker">
-      <div class="greet"><h2>Initiative Tracker</h2><p>For the real game. Highest Initiative goes first. Tap a name to deal damage or add a condition.</p></div>
+      <div class="greet"><h2>Initiative Tracker</h2><p>Add combatants, enter their Initiative, then tap Start fight. Highest Initiative goes first. Tap a name to track damage and conditions.</p></div>
       <div class="trk-bar">
         <span class="round">Round <span id="trk-round">1</span></span>
-        <button class="btn" id="trk-next" type="button">Next turn →</button>
+        <button class="btn" id="trk-start" type="button">Start fight</button>
+        <button class="btn" id="trk-next" type="button" disabled>Next turn →</button>
         <button class="btn ghost" id="trk-sort" type="button">Sort</button>
         <button class="btn ghost" id="trk-clear" type="button">Clear fight</button>
       </div>
@@ -694,7 +695,7 @@ details.lesson[open] summary::after{content:"−"}
         <h3>By lesson</h3>
         <div class="tablewrap"><table class="ptable" id="p-lessons"></table></div>
         <h3>Needs another look</h3>
-        <p class="help" style="margin:0;color:var(--muted);font-size:.9rem">Question types your DM has missed recently. The app slips these back in until each one is answered right twice.</p>
+        <p class="help" style="margin:0;color:var(--muted);font-size:.9rem">Question types your DM has missed recently. The app brings these back until each one is answered correctly twice without a hint.</p>
         <ul class="plist" id="p-review"></ul>
         <h3>Campaign settings</h3>
     <form class="settings-form" id="settings-form">
@@ -882,7 +883,7 @@ function renderSyncNote(){
 function applyRemote(r){
   settings = Object.assign({}, DEFAULT_SETTINGS, r.settings || {});
   progress = Object.assign({xp:0, modules:{}, bestStreak:0}, r.progress || {});
-  trk = Object.assign({round:1, turn:0, open:null, list:[]}, r.tracker || {});
+  trk = trkNormalize(r.tracker || trkDefaults());
   forge = Object.assign(forgeDefaults(), r.forge || {});
   try{ localStorage.setItem('pda-settings', JSON.stringify(settings)); localStorage.setItem('pda-progress', JSON.stringify(progress)); localStorage.setItem('pda-tracker', JSON.stringify(trk)); localStorage.setItem('pda-forge', JSON.stringify(forge)); }catch(e){}
   stampSet('pda-updatedAt', r.updatedAt || 0); stampSet('pda-syncedAt', r.updatedAt || 0);
@@ -967,17 +968,19 @@ function genDiceStatBlock(){
 function genDiceMaxMin(){
   const [w, d] = pick(HERO_WEAPONS), atk = parseDice(d), h = hero();
   return { flavor: w === 'fire bolt' ? `${h} gets ready to cast fire bolt, which deals ${atk.text} damage.` : `${h} draws a ${w}, which deals ${atk.text} damage.`,
-    steps:[{ q:`What's the MOST damage one hit can do?`, answer:atk.n*atk.d+atk.m,
+    steps:[{ q:`What's the MOST damage one normal hit can do? (no critical hit)`, answer:atk.n*atk.d+atk.m,
       hint:`Every die shows its biggest face.`, solution: atk.m ? `${atk.n} × ${atk.d} = ${atk.n*atk.d}, plus ${atk.m} = ${atk.n*atk.d+atk.m}.` : `${atk.n} × ${atk.d} = ${atk.n*atk.d}.` },
-     { q:`What's the LEAST damage one hit can do?`, answer:atk.n+atk.m,
+     { q:`What's the LEAST damage one normal hit can do?`, answer:atk.n+atk.m,
       hint:`Every die shows a 1.`, solution: atk.m ? `${atk.n} × 1 = ${atk.n}, plus ${atk.m} = ${atk.n+atk.m}.` : `${atk.n} × 1 = ${atk.n}.` }] };
 }
 function genDiceCompare(){
-  const a = {n:rand(1,3), d:pick([4,6,8]), m:0}, b = {n:rand(1,2), d:pick([8,10,12]), m:0};
-  a.text = diceText(a.n,a.d,0); b.text = diceText(b.n,b.d,0);
+  const a = {n:rand(1,3), d:pick([4,6,8]), m:0};
+  a.text = diceText(a.n,a.d,0);
+  const alternatives = [1,2].flatMap(n => [8,10,12,20].map(d => ({n, d, m:0, text:diceText(n,d,0)})));
+  const b = pick(alternatives.filter(roll => roll.text !== a.text));
   const avA = diceAvg(a), avB = diceAvg(b);
   const answer = avA>avB ? a.text : avB>avA ? b.text : 'Same on average';
-  return { flavor:`You're designing a trap for ${place()}. You can't decide between ${a.text} and ${b.text} of damage.`,
+  return { flavor:`You're designing a trap for ${place()}. You can't decide between ${a.text} and ${b.text} damage.`,
     steps:[{ q:`Which hurts more on average?`, choices:[a.text, b.text, 'Same on average'], answer,
       hint:`Average of one die = (sides + 1) ÷ 2. Then multiply by how many dice.`,
       solution:`${a.text} averages ${fmt(avA)}. ${b.text} averages ${fmt(avB)}. Answer: ${answer}.` }] };
@@ -1046,7 +1049,7 @@ function genEncounterFit(){
     return { flavor:`You want a ${DIFF[which]} fight for your ${S} level-${L} heroes. The budget is ${budget} XP, and each ${mon.n} costs ${mon.xp} XP.`,
       steps:[{ q:`How many ${mon.pl} fit in the budget?`, answer:count,
         hint:`Divide the budget by ${mon.xp} and ignore the leftover.`, solution:`${budget} ÷ ${mon.xp} = ${fmt(budget/mon.xp)}. You can't send part of ${article(mon.n)} ${mon.n}, so ${count}.` },
-       { q:`How much of the budget is left over?`, answer:left, hint:`${count} × ${mon.xp} = ${count*mon.xp}. Subtract from ${budget}.`, solution:`${budget} − ${count*mon.xp} = ${left} XP. Spend it on a trap, or save it.` }] };
+       { q:`How much of the budget is left over?`, answer:left, hint:`${count} × ${mon.xp} = ${count*mon.xp}. Subtract from ${budget}.`, solution:`${budget} − ${count*mon.xp} = ${left} XP. You can add another monster if it fits, or leave the budget unspent.` }] };
   }
   return genEncounterBuild();
 }
@@ -1055,7 +1058,7 @@ function genEncounterFit(){
 function genLootSplit(){
   const S = partySize(), G = rand(60,999), each = Math.floor(G/S), left = G%S;
   return { flavor:`The party cracks open a chest in ${place()}: ${G} gold pieces. ${S} heroes want their share.`,
-    steps:[{ q:`How many gold does each hero get?`, answer:each,
+    steps:[{ q:`How many gold pieces does each hero get?`, answer:each,
       hint:`Divide ${G} by ${S}. Whole coins only.`, solution:`${G} ÷ ${S} = ${each} remainder ${left}. Each hero gets ${each}.` },
      { q:`How many coins are left over for the party fund?`, answer:left,
       hint:`${S} × ${each} = ${S*each}. The rest is left over.`, solution:`${G} − ${S*each} = ${left} coins left over.` }] };
@@ -1082,7 +1085,7 @@ function genTithe(){
 }
 function genSellLoot(){
   const [item, price] = pick(SHOP.filter(s=>s[1]>=5)), k = rand(2,4);
-  return { flavor:`The party loots ${k} ${item}s worth ${price} gp each. Shops only pay HALF price for used gear.`,
+  return { flavor:`The party loots ${k} ${item}s worth ${price} gp each. This merchant offers HALF the listed price for each item.`,
     steps:[{ q:`How much gold does the party get for all ${k}? (decimals are fine)`, answer:k*price/2,
       hint:`Half of ${price} is ${fmt(price/2)}. Then multiply by ${k}.`, solution:`${price} ÷ 2 = ${fmt(price/2)}, × ${k} = ${fmt(k*price/2)} gp.` }] };
 }
@@ -1098,23 +1101,23 @@ function genModifier(){
 }
 function genHpTrack(){
   const mon = pickMon(m=>m.hp>=15), d1 = rand(4,12), d2 = rand(3,11), h = hero();
-  const left = Math.max(0, mon.hp - d1 - d2);
+  const remaining = mon.hp - d1 - d2, left = Math.max(0, remaining);
   return { flavor:`The ${mon.n} has ${mon.hp} HP. ${h} hits it for ${d1}, then again for ${d2}.`,
     steps:[{ q:`How many HP does the ${mon.n} have left?`, answer:left,
-      hint:`Subtract both hits from ${mon.hp}.`, solution:`${mon.hp} − ${d1} − ${d2} = ${left}.` }] };
+      hint:`Subtract both hits from ${mon.hp}.`, solution:`${mon.hp} − ${d1} − ${d2} = ${remaining}${remaining<0?', so its HP is 0':', leaving '+left+' HP'}.` }] };
 }
 function genRoundsToDrop(){
   const mon = pickMon(m=>m.hp>=20), D = rand(8,25), rounds = Math.ceil(mon.hp/D);
   return { flavor:`Pacing check. The ${mon.n} has ${mon.hp} HP and your party deals about ${D} damage every round.`,
     steps:[{ q:`How many rounds until it drops?`, answer:rounds,
-      hint:`Divide, then round UP. A monster with 1 HP left still gets a turn.`, solution:`${mon.hp} ÷ ${D} = ${fmt(mon.hp/D)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}.` }] };
+      hint:`Divide, then round UP. A monster with 1 HP left is still in the fight.`, solution:`${mon.hp} ÷ ${D} = ${fmt(mon.hp/D)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}.` }] };
 }
 function genTrollRegen(){
   const D = rand(18,34), net = D-10, rounds = Math.ceil(84/net);
   return { challenge:true, flavor:`A Troll (84 HP) regenerates 10 HP at the start of each of its turns. Your party deals about ${D} damage per round.`,
     steps:[{ q:`How much HP does the Troll really lose each round?`, answer:net, hint:`${D} dealt, 10 healed back.`, solution:`${D} − 10 = ${net} per round.` },
      { q:`About how many rounds until it drops?`, answer:rounds,
-      hint:`84 ÷ ${net}, rounded up.`, solution:`84 ÷ ${net} = ${fmt(84/net)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}. (Fire stops the regeneration. Your players should figure that out.)` }] };
+      hint:`84 ÷ ${net}, rounded up.`, solution:`84 ÷ ${net} = ${fmt(84/net)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}. (Fire or Acid damage stops its regeneration for a turn. Clues can help your players discover this.)` }] };
 }
 function genHitDiceHp(){
   const mon = pickMon(m=>m.hd), hd = parseDice(mon.hd), avg = diceAvg(hd);
@@ -1127,14 +1130,14 @@ function genHitDiceHp(){
 // 6. Maps & Miles
 function genRoom(){
   const a = rand(4,12), b = rand(3,9);
-  return { flavor:`You're drawing a chamber under ${place()} on the battle map: ${a} squares long and ${b} squares wide. Every square is 5 feet.`,
+  return { flavor:`You're drawing a chamber under ${place()} on the battle map: ${a} squares long and ${b} squares wide. Every square is 5 feet on each side.`,
     steps:[{ q:`How many feet long is the chamber?`, answer:a*5, hint:`${a} squares × 5 feet.`, solution:`${a} × 5 = ${a*5} feet.` },
      { q:`How many squares of floor are there?`, answer:a*b, hint:`Length × width.`, solution:`${a} × ${b} = ${a*b} squares.` }] };
 }
 function genBlast(){
   const spells = [['Fireball',20],['Shatter',10],['Spirit Guardians',15],['Ice Storm',20],['Moonbeam',5],['Cloudkill',20]];
   const [sp, r] = pick(spells), h = hero();
-  return { flavor:`${h} casts ${sp}, which fills a circle with a ${r}-foot radius.`,
+  return { flavor:`${h} casts ${sp}, whose area is ${r} feet from center to edge when viewed from above.`,
     steps:[{ q:`How many squares across is the whole blast, edge to edge?`, answer:2*r/5,
       hint:`Radius is center to edge. Edge to edge is twice that. Then divide by 5.`, solution:`${r} × 2 = ${2*r} feet, ÷ 5 = ${2*r/5} squares across.` }] };
 }
@@ -1146,7 +1149,7 @@ function genTravel(){
 }
 function genSpeed(){
   const sp = pick([25,30,35,40]), h = hero();
-  return { flavor:`${h} has a speed of ${sp} feet. The Dash action doubles movement for one turn.`,
+  return { flavor:`${h} has a speed of ${sp} feet. The Dash action adds extra movement equal to their Speed for this turn.`,
     steps:[{ q:`How many squares can ${h} move normally?`, answer:sp/5, hint:`Feet ÷ 5.`, solution:`${sp} ÷ 5 = ${sp/5} squares.` },
      { q:`How many squares with a Dash?`, answer:2*sp/5, hint:`Double it.`, solution:`${sp/5} × 2 = ${2*sp/5} squares.` }] };
 }
@@ -1232,14 +1235,14 @@ const WEAPONS = [ // name, damage, properties, mastery
   ['Shortbow','1d6','Ammunition, Two-Handed','Vex'],['Longbow','1d8','Ammunition, Heavy, Two-Handed','Slow'],['Light crossbow','1d8','Ammunition, Loading, Two-Handed','Slow'],
   ['Heavy crossbow','1d10','Ammunition, Heavy, Loading, Two-Handed','Push'],['Hand crossbow','1d6','Ammunition, Light, Loading','Vex'] ];
 const MASTERY = {
-  Cleave:'After hitting a creature, make one extra attack against a different creature within 5 feet of it (no ability modifier to the damage)',
+  Cleave:'Once per turn after a melee hit, attack a second creature within 5 feet of the first and within your reach; add no ability modifier to the extra damage unless it is negative',
   Graze:'If your attack misses, the target still takes damage equal to your ability modifier',
-  Nick:'The extra Light-weapon attack can be made as part of the Attack action instead of using a Bonus Action',
+  Nick:'Once per turn, make the extra Light-weapon attack as part of the Attack action instead of using a Bonus Action',
   Push:'On a hit, push the target up to 10 feet away (if it is Large or smaller)',
-  Sap:'On a hit, the target has Disadvantage on its next attack roll',
-  Slow:'On a hit, the target\'s Speed drops by 10 feet until your next turn',
+  Sap:'On a hit, the target has Disadvantage on its next attack roll before the start of your next turn',
+  Slow:'On a hit that deals damage, the target\'s Speed drops by 10 feet until the start of your next turn; repeated Slow hits reduce it by no more than 10 feet',
   Topple:'On a hit, the target must pass a Constitution save or fall Prone',
-  Vex:'On a hit, you have Advantage on your next attack against that creature',
+  Vex:'On a hit that deals damage, you have Advantage on your next attack roll against that creature before the end of your next turn',
 };
 const CONDITIONS = [
   ['Blinded', "can't see, automatically fails checks that need sight, and attack rolls against it have Advantage while its own have Disadvantage"],
@@ -1247,18 +1250,18 @@ const CONDITIONS = [
   ['Frightened', "has Disadvantage on checks and attacks while the source of fear is in sight, and can't willingly move closer to it"],
   ['Grappled', "has a Speed of 0 and Disadvantage on attacks against anyone except the grappler"],
   ['Incapacitated', "can't take any Action, Bonus Action or Reaction, loses Concentration, and can't speak"],
-  ['Invisible', "has Advantage on Initiative, attack rolls against it have Disadvantage, and its own attacks have Advantage"],
+  ['Invisible', "has Advantage on Initiative, and against creatures that cannot see it, its attacks have Advantage and attacks against it have Disadvantage"],
   ['Paralyzed', "is Incapacitated, can't move or speak, automatically fails Str and Dex saves, and any hit from within 5 feet is a Critical Hit"],
   ['Poisoned', "has Disadvantage on attack rolls and ability checks"],
-  ['Prone', "must crawl or spend half its Speed to stand, has Disadvantage on attacks, and attacks against it from within 5 feet have Advantage"],
+  ['Prone', "must crawl or spend half its Speed (rounded down) to stand, has Disadvantage on attacks, and attacks against it have Advantage from within 5 feet or Disadvantage from farther away"],
   ['Restrained', "has a Speed of 0, attack rolls against it have Advantage, its own have Disadvantage, and it has Disadvantage on Dex saves"],
   ['Stunned', "is Incapacitated, automatically fails Str and Dex saves, and attack rolls against it have Advantage"],
   ['Unconscious', "is Incapacitated and Prone, drops what it's holding, automatically fails Str and Dex saves, and hits from within 5 feet are Critical Hits"],
 ];
 const ACTIONS = [ ['Attack','make one or more attacks'], ['Dash','move extra distance equal to your Speed'], ['Disengage','move away without provoking Opportunity Attacks'],
-  ['Dodge','attackers have Disadvantage against you until your next turn'], ['Help','give an ally Advantage on an ability check or on their next attack roll'],
-  ['Hide','make a DC 15 Stealth check to become hidden'], ['Influence','persuade, deceive, intimidate or charm a creature'], ['Magic','cast a spell or use a magic item'],
-  ['Ready','prepare to act later in the round when something specific happens'], ['Search','use Perception, Insight, Medicine or Survival to notice or find something'],
+  ['Dodge','attackers have Disadvantage against you until your next turn'], ['Help','help an ally with a skill or tool you are proficient in, or distract an enemy within 5 feet to give an ally Advantage on their next attack against it'],
+  ['Hide','make a DC 15 Stealth check while out of enemy sight and either Heavily Obscured or behind Three-Quarters or Total Cover'], ['Influence','persuade, deceive, intimidate or charm a creature'], ['Magic','cast a spell or use a magic item'],
+  ['Ready','prepare to use your Reaction before your next turn when a specific trigger happens'], ['Search','use Perception, Insight, Medicine or Survival to notice or find something'],
   ['Study','use Arcana, History, Investigation, Nature or Religion to recall or figure something out'], ['Utilize','use a nonmagical object'] ];
 const FULL_CASTER_SLOTS = {1:[2],2:[3],3:[4,2],4:[4,3],5:[4,3,2]};
 
@@ -1342,15 +1345,17 @@ function genDcLadder(){
   return { flavor:`A player asks to try something, and you decide it's "${name.toLowerCase()}".`,
     steps:[{ q:`What DC do you set?`, choices:choicesFrom(String(dc), DC_LADDER.map(d=>String(d[1])), 4), answer:String(dc), hint:`The ladder goes 5, 10, 15, 20, 25, 30 from Very easy to Nearly impossible.`, solution:`${name} = DC ${dc}.` }] };
 }
+// 2024 attacks have automatic hits/misses; ordinary saves use totals.
+// https://www.dndbeyond.com/sources/dnd/br-2024/playing-the-game#Rolling20or1
 function genAdvRules(){
   const h = hero();
   const cases = [
     { f:`${h} has Advantage from an ally's Help and Disadvantage from being Poisoned.`, q:`How do they roll?`, a:'One d20, normally: they cancel out', w:['Two d20s, keep the higher','Two d20s, keep the lower','Three d20s'], s:`If you have both Advantage and Disadvantage you have neither, no matter how many of each.` },
     { f:`${h} has Advantage from TWO different sources.`, q:`How many d20s do they roll?`, a:'Two, keep the higher', w:['Three, keep the highest','One','Two, add them together'], s:`Advantage never stacks. Two dice, keep the better one.` },
-    { f:`${h} rolls a natural 20 on a Dexterity saving throw against a Fireball, even though the total would be too low.`, q:`What happens?`, a:'Automatic success', w:['Fails, the total is too low','Rolls again','Takes double damage'], s:`In the 2024 rules a natural 20 is an automatic success on saving throws and attack rolls, and a natural 1 is an automatic failure.` },
-    { f:`${h} rolls a natural 20 on a Persuasion check against DC 30.`, q:`What happens?`, a:'Add the modifier; it only succeeds if the total reaches 30', w:['Automatic success','The DC drops to 20','Roll again'], s:`Ability checks have no automatic success or failure. Only attack rolls and saving throws do.` },
-    { f:`${h} has Heroic Inspiration and just rolled badly on an attack.`, q:`What can they do?`, a:'Spend it to reroll the d20 and use the new roll', w:['Add +5','Take a second turn','Nothing, it only works on checks'], s:`Heroic Inspiration lets you reroll any D20 Test. You must use the new roll.` },
-    { f:`${h} takes the Hide action behind a crate.`, q:`What's the Stealth DC to become hidden?`, a:'15', w:['10','12','20'], s:`Hiding is a DC 15 Dexterity (Stealth) check. Pass it and you have the Invisible condition until you're found.` },
+    { f:`${h} rolls a natural 20 on a Dexterity saving throw against a Fireball, even though the total would be too low.`, q:`What happens?`, a:'Fails, the total is too low', w:['Automatic success','Rolls again','Takes double damage'], s:`Ordinary saving throws use the total, even on a natural 20 or 1. Attack rolls have automatic hits and misses; Death Saving Throws have their own special rules.` },
+    { f:`${h} rolls a natural 20 on a Persuasion check against DC 30.`, q:`What happens?`, a:'Add the modifier; it only succeeds if the total reaches 30', w:['Automatic success','The DC drops to 20','Roll again'], s:`Ability checks and ordinary saving throws have no automatic success or failure on a 20 or 1. Attack rolls and Death Saving Throws have special rules.` },
+    { f:`${h} has Heroic Inspiration and just rolled badly on an attack.`, q:`What can they do?`, a:'Spend it to reroll the d20 and use the new roll', w:['Add +5','Take a second turn','Nothing, it only works on checks'], s:`Heroic Inspiration lets you reroll any die immediately after rolling it, including a damage die. You must use the new roll.` },
+    { f:`${h} takes the Hide action out of enemy sight behind a crate that gives Total Cover.`, q:`What's the Stealth DC to become hidden?`, a:'15', w:['10','12','20'], s:`Hiding needs a DC 15 Dexterity (Stealth) check while out of enemy sight and either Heavily Obscured or behind Three-Quarters or Total Cover. Success gives Invisible while hidden. Being found, making an attack, making noise louder than a whisper, or casting a spell with a Verbal component ends hiding.` },
   ];
   const c = pick(cases);
   return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Check the Guildmaster's lesson above.`, solution:c.s }] };
@@ -1371,16 +1376,16 @@ function genInitiative(){
   return genDifficultTerrain();
 }
 function genDifficultTerrain(){
-  const sp = pick([25,30,35]), d = pick([5,10,15]), h = hero();
+  const sp = pick([25,30,35]), d = pick([5,10,15].filter(feet => 2*feet <= sp)), h = hero();
   return { flavor:`${h} (Speed ${sp}) has to cross ${d} feet of thick mud near ${place()}. Mud is Difficult Terrain: every foot costs 2 feet of movement.`,
     steps:[{ q:`How many feet of movement does the mud use up?`, answer:2*d, hint:`${d} × 2.`, solution:`${d} × 2 = ${2*d} feet of movement.` },
-     { q:`How many feet of normal movement are left this turn?`, answer:sp-2*d, hint:`${sp} − ${2*d}.`, solution:`${sp} − ${2*d} = ${sp-2*d} feet.` }] };
+     { q:`How many feet of normal movement are left this turn after crossing the mud?`, answer:sp-2*d, hint:`${sp} − ${2*d}.`, solution:`${sp} − ${2*d} = ${sp-2*d} feet.` }] };
 }
 function genJump(){
   const S = rand(8,20), h = hero();
   return { flavor:`A chasm splits the road to ${place()}. ${h} has Strength ${S}.`,
     steps:[{ q:`With a 10-foot run-up, a Long Jump covers feet equal to the Strength SCORE. How far can ${h} jump?`, answer:S, hint:`The score, not the modifier.`, solution:`Strength ${S} = ${aNum(S)} ${S}-foot jump.` },
-     { q:`From a standing start it's half that. How far? (decimals are fine)`, answer:S/2, hint:`${S} ÷ 2.`, solution:`${S} ÷ 2 = ${fmt(S/2)} feet.` },
+     { q:`From a standing start it's half that, rounded down. How far?`, answer:Math.floor(S/2), hint:`${S} ÷ 2, rounded down.`, solution:`${S} ÷ 2 = ${fmt(S/2)}${S%2?', rounded down to '+Math.floor(S/2):''} feet.` },
      { q:`A High Jump is 3 + Strength MODIFIER feet with a run-up. How high?`, answer:3+mod(S), hint:`Strength ${S} gives a modifier of ${signed(mod(S))}.`, solution:`3 ${pm(mod(S))} = ${3+mod(S)} feet.` }] };
 }
 function genFall(){
@@ -1392,7 +1397,7 @@ function genFall(){
 function genCover(){
   const mon = pickMon(), kind = pick([['Half Cover',2,'a low wall'],['Three-Quarters Cover',5,'an arrow slit']]);
   return { flavor:`${an(mon.n)} (AC ${mon.ac}) is fighting from behind ${kind[2]}, which gives it ${kind[0]}.`,
-    steps:[{ q:`${kind[0]} adds +${kind[1]} to AC and Dexterity saves. What AC do the heroes need to hit now?`, answer:mon.ac+kind[1], hint:`${mon.ac} + ${kind[1]}.`, solution:`${mon.ac} + ${kind[1]} = ${mon.ac+kind[1]}. Total Cover means it can't be targeted at all.` }] };
+    steps:[{ q:`${kind[0]} adds +${kind[1]} to AC and Dexterity saves. What AC do the heroes need to hit now?`, answer:mon.ac+kind[1], hint:`${mon.ac} + ${kind[1]}.`, solution:`${mon.ac} + ${kind[1]} = ${mon.ac+kind[1]}. Total Cover means it cannot be targeted directly, though some areas of effect can still reach it.` }] };
 }
 function genActions(){
   const h = hero();
@@ -1400,7 +1405,7 @@ function genActions(){
     { f:`${h} is standing next to an Orc and wants to walk away without getting hit by an Opportunity Attack.`, a:'Disengage' },
     { f:`${h} is surrounded and just wants to survive the round, so attackers should have Disadvantage.`, a:'Dodge' },
     { f:`${h} needs to cross the whole courtyard this turn, twice their normal Speed.`, a:'Dash' },
-    { f:`${h} wants to give the wizard Advantage on their next attack against the Ogre.`, a:'Help' },
+    { f:`${h} is within 5 feet of the Ogre and wants to distract it so the wizard has Advantage on their next attack against it.`, a:'Help' },
     { f:`${h} wants to look around the crypt for a hidden door.`, a:'Search' },
     { f:`${h} wants to remember everything they know about trolls.`, a:'Study' },
     { f:`${h} wants to talk the bandit captain into surrendering.`, a:'Influence' },
@@ -1414,13 +1419,13 @@ function genTurnBudget(){
   const h = hero();
   const cases = [
     { f:`It's ${h}'s turn.`, q:`How many Actions do they get on their turn?`, a:'1', w:['2','3','As many as their Speed allows'], s:`One Action, one Bonus Action (if something gives you one), movement up to your Speed, and one free object interaction.` },
-    { f:`An Orc runs past ${h}, and then a Goblin does too.`, q:`How many Opportunity Attacks can ${h} make this round?`, a:'1', w:['2','0','One per enemy'], s:`An Opportunity Attack uses your Reaction, and you get one Reaction per round. It comes back at the start of your turn.` },
-    { f:`${h} casts Healing Word (a Bonus Action spell) and also wants to drink a Potion of Healing this turn.`, q:`Can they do both?`, a:'No: both are Bonus Actions and you only get one', w:['Yes','Yes, but with Disadvantage','Only if they don\'t move'], s:`In the 2024 rules drinking a potion is a Bonus Action, so it competes with Healing Word. Next turn, or use the Action to hand it to someone else.` },
+    { f:`${h} has their Reaction available. An Orc and then a Goblin leave their reach before ${h}'s next turn. Both are visible and neither Disengages.`, q:`How many Opportunity Attacks can ${h} make before their next turn?`, a:'1', w:['2','0','One per enemy'], s:`An Opportunity Attack uses your Reaction. After using it, you cannot take another Reaction until the start of your next turn.` },
+    { f:`${h} casts Healing Word (a Bonus Action spell) and also wants to drink a Potion of Healing this turn.`, q:`Can they do both?`, a:'No: both are Bonus Actions and you only get one', w:['Yes','Yes, but with Disadvantage','Only if they don\'t move'], s:`In the 2024 rules drinking a potion is a Bonus Action, so it competes with Healing Word. They must save one Bonus Action for a later turn; an unused Action does not give them a second Bonus Action.` },
     { f:`${h} moves 10 feet, attacks, then wants to move 15 more feet (Speed 30).`, q:`Is that allowed?`, a:'Yes: you can split movement around your action', w:['No: move first, then act','No: moving after attacking provokes','Only with Dash'], s:`You can break up your movement however you like on your turn, as long as the total doesn't pass your Speed.` },
-    { f:`The Orc walks out of ${h}'s reach without taking the Disengage action.`, q:`What can ${h} do?`, a:'Make an Opportunity Attack using their Reaction', w:['Nothing until their turn','Take a free Action','Move after it for free'], s:`Leaving a creature's reach without Disengage provokes an Opportunity Attack: one melee attack, using your Reaction.` },
+    { f:`A visible Orc walks out of ${h}'s reach without taking the Disengage action. ${h} has their Reaction available.`, q:`What can ${h} do?`, a:'Make an Opportunity Attack using their Reaction', w:['Nothing until their turn','Take a free Action','Move after it for free'], s:`When a visible creature uses its movement, Action, Bonus Action or Reaction to leave your reach without Disengaging, you can use your Reaction for one melee attack just before it leaves. Teleporting or being pushed does not provoke one.` },
   ];
   const c = pick(cases);
-  return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Each turn: move, one Action, maybe one Bonus Action. One Reaction per round.`, solution:c.s }] };
+  return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Each turn: move, one Action, maybe one Bonus Action. Your Reaction returns at the start of your turn.`, solution:c.s }] };
 }
 function genTwoWeapon(){
   const h = hero(), m = rand(2,4), r1 = rand(1,6), r2 = rand(1,4);
@@ -1531,7 +1536,7 @@ function genSpellRules(){
     { f:`${h} casts Fireball.`, q:`What shape and size is it?`, a:'A 20-foot-radius Sphere', w:['A 15-foot Cone','A 100-foot Line','A 15-foot Cube'], s:`Fireball: 20-foot-radius Sphere, 8d6 Fire damage, Dexterity save for half.` },
     { f:`${h} casts Burning Hands.`, q:`What shape and size is it?`, a:'A 15-foot Cone', w:['A 20-foot-radius Sphere','A 30-foot Line','A 10-foot Cube'], s:`Burning Hands: 15-foot Cone, 3d6 Fire damage, Dexterity save for half.` },
     { f:`${h} casts Lightning Bolt.`, q:`What shape and size is it?`, a:'A 100-foot Line, 5 feet wide', w:['A 20-foot-radius Sphere','A 60-foot Cone','A 30-foot Cube'], s:`Lightning Bolt: 100-foot-long, 5-foot-wide Line, 8d6 Lightning damage.` },
-    { f:`${h} wants to cast a cantrip.`, q:`What does it cost?`, a:'Nothing: cantrips never use spell slots', w:['A level-1 slot','A Bonus Action','1 Hit Point Die'], s:`Cantrips are free and unlimited. That's why Fire Bolt is a wizard's best friend.` },
+    { f:`${h} wants to cast a cantrip.`, q:`Does a cantrip use a spell slot?`, a:'No: cantrips never use spell slots', w:['Yes: a level-1 slot','Yes: the highest slot available','Only during combat'], s:`Cantrips use no spell slots. You still follow their casting time and other requirements.` },
     { f:`${h} casts Shield as a Reaction during the Orc's turn. On ${h}'s own next turn they want to cast Magic Missile.`, q:`Allowed?`, a:'Yes', w:['No: one spell per round','No: Shield used up the turn','Only a cantrip'], s:`Shield used last round's Reaction. A new turn brings a new Action, and the Reaction comes back.` },
     { f:`${h} casts Cure Wounds using a level 3 slot.`, q:`How much does it heal?`, a:'6d8 + spellcasting modifier', w:['2d8 + modifier','3d8 + modifier','4d8 + modifier'], s:`Cure Wounds is 2d8 + modifier, and gains 2d8 per slot level above 1: level 3 is 2 + 2 + 2 = 6d8.` },
   ];
@@ -1552,9 +1557,9 @@ function genArmorClass(){
 }
 function genFinesse(){
   const [name, dice] = pick(WEAPONS.filter(w=>w[2].includes('Finesse'))), S = rand(8,14), D = rand(14,20), h = hero(), dmg = parseDice(dice), r = rand(1,dmg.d);
-  const best = Math.max(mod(S), mod(D)), ab = mod(D)>=mod(S) ? 'Dexterity' : 'Strength';
+  const best = Math.max(mod(S), mod(D)), either = 'Either: the modifiers are equal', ab = mod(D)===mod(S) ? either : mod(D)>mod(S) ? 'Dexterity' : 'Strength';
   return { flavor:`${h} (Strength ${S}, Dexterity ${D}) attacks with a ${name.toLowerCase()} (${dice}, Finesse).`,
-    steps:[{ q:`Finesse lets you choose Strength or Dexterity. Which should ${h} use?`, choices:['Strength','Dexterity'], answer:ab, hint:`Pick whichever modifier is higher.`, solution:`Str ${signed(mod(S))} vs Dex ${signed(mod(D))}: ${ab}.` },
+    steps:[{ q:`Finesse lets you use Strength or Dexterity. Which gives the higher modifier, or are they equal?`, choices:['Strength','Dexterity',either], answer:ab, hint:`Pick the higher modifier, or Either if they are equal.`, solution:`Str ${signed(mod(S))} vs Dex ${signed(mod(D))}: ${ab}.` },
      { q:`The damage die shows ${r}. Total damage?`, answer:r+best, hint:`${r} + ${best}.`, solution:`${r} + ${best} = ${r+best}.` }] };
 }
 function genVersatile(){
@@ -1601,27 +1606,29 @@ function genConditionEffect(){
   const c = pick(cases);
   return { flavor:c.f, steps:[{ q:c.q, choices:shuffle([c.a, ...c.w]), answer:c.a, hint:`Check the Condition Codex above.`, solution:c.s }] };
 }
+// Prone explicitly rounds the standing movement cost down.
+// https://www.dndbeyond.com/sources/dnd/br-2024/rules-glossary#ProneCondition
 function genProneStand(){
-  const h = hero(), sp = pick([25,30,35,40]);
+  const h = hero(), sp = pick([25,30,35,40]), cost = Math.floor(sp/2), left = sp-cost;
   return { flavor:`${h} (Speed ${sp}) was knocked Prone by a Maul's Topple mastery.`,
-    steps:[{ q:`Standing up costs HALF your Speed. How many feet of movement does it cost?`, answer:sp/2, hint:`${sp} ÷ 2.`, solution:`${sp} ÷ 2 = ${fmt(sp/2)} feet.` },
-     { q:`How many feet can ${h} still move after standing?`, answer:sp/2, hint:`What's left of ${sp}.`, solution:`${sp} − ${fmt(sp/2)} = ${fmt(sp/2)} feet.` }] };
+    steps:[{ q:`Standing up costs HALF your Speed, rounded down. How many feet of movement does it cost?`, answer:cost, hint:`${sp} ÷ 2, rounded down.`, solution:`${sp} ÷ 2 = ${fmt(sp/2)}${sp%2?', rounded down to '+cost:''} feet.` },
+     { q:`How many feet can ${h} still move after standing?`, answer:left, hint:`Take ${cost} away from ${sp}.`, solution:`${sp} − ${cost} = ${left} feet.` }] };
 }
 
 // 15. The DM's Chair: judgment calls. Several answers are defensible; the Guildmaster explains the best one.
 const CHAIR = [
-  { f:`A player wants to leap off the balcony onto the Ogre's back and stab it.`, q:`What do you do?`, a:'Ask for a Dexterity (Acrobatics) check, DC 15. Success: Advantage on the attack. Failure: they land Prone next to it.', w:['Say no, that isn\'t in the rules','Let it work automatically because it\'s cool','Make them roll Athletics, Acrobatics and Stealth, all DC 20'], s:`One check, a clear DC, and something interesting on BOTH results. Saying no kills the fun. Automatic success makes the dice pointless. Three checks is a wall of math that mostly produces failure.` },
-  { f:`In the middle of a fight, a player says you're running Opportunity Attacks wrong and wants to look it up now.`, q:`What do you do?`, a:'Make a quick ruling, keep the fight moving, and check the book together after the session', w:['Stop the game and read the rules page aloud','Tell them the DM is always right','Let the player decide'], s:`The 2024 DMG says it outright: rule quickly, look it up later. Keeping the pace matters more than being perfectly right in the moment.` },
+  { f:`A player wants to leap off the balcony onto the Ogre's back and stab it.`, q:`What do you do?`, a:'Ask for a Dexterity (Acrobatics) check, DC 15. Success: Advantage on the attack. Failure: they land Prone next to it.', w:['Say no, that isn\'t in the rules','Let it work automatically because it\'s cool','Make them roll Athletics, Acrobatics and Stealth, all DC 20'], s:`For a risky stunt, one check, a clear DC, and an interesting result either way can work well. Explain the stakes first. If a task is certain or impossible, no roll is needed.` },
+  { f:`In the middle of a fight, a player says you're running Opportunity Attacks wrong and wants to look it up now.`, q:`What do you do?`, a:'Make a quick ruling, keep the fight moving, and check the book together after the session', w:['Stop the game and read the rules page aloud','Tell them the DM is always right','Let the player decide'], s:`The 2024 DMG says it outright: rule quickly, look it up later. Hear the concern, make a fair temporary ruling, and check together later so everyone knows how the rule will work next time.` },
   { f:`One player hasn't said anything for twenty minutes. The other three are doing all the talking.`, q:`What do you do?`, a:'Turn to them and ask what their character does, with something simple to react to', w:['Leave them alone; they\'re probably fine','Give them bonus XP for being quiet','Have a monster attack them to force a reaction'], s:`Spotlight sharing is the DM's job. A direct, low-pressure question ("Pip, you notice the mayor's hands are shaking. What do you do?") pulls them in without putting them on the spot.` },
-  { f:`You spent the week preparing the Sunken Chapel. The party decides to go to the swamp instead.`, q:`What do you do?`, a:'Follow them to the swamp, and quietly reuse the chapel\'s rooms and monsters there', w:['Block the swamp with an impassable wall','Tell them the swamp is boring and they should go to the chapel','Cancel the session'], s:`Players choose; the DM adapts. Prepared material is a toolbox, not a script. Moving your dungeon is a classic DM trick they will never notice.` },
-  { f:`A player rolls a natural 1 on Persuasion trying to get the mayor's help.`, q:`What happens?`, a:'The mayor refuses, but lets slip what might change his mind', w:['Nothing happens; try again next turn','The mayor throws them in jail forever','The mayor helps anyway'], s:`Fail forward. A failed check should change the situation, not stall it. Now the players have a new goal instead of a dead end.` },
+  { f:`You spent the week preparing the Sunken Chapel. The party decides to go to the swamp instead.`, q:`What do you do?`, a:'Follow them to the swamp, and quietly reuse the chapel\'s rooms and monsters there', w:['Block the swamp with an impassable wall','Tell them the swamp is boring and they should go to the chapel','Cancel the session'], s:`Players choose; the DM adapts. Prepared material is a toolbox, not a script. Reuse details that fit the new location while keeping the players' choices meaningful.` },
+  { f:`A player fails a Persuasion check while trying to get the mayor's help.`, q:`What happens?`, a:'The mayor refuses, but lets slip what might change his mind', w:['Nothing happens; try again next turn','The mayor throws them in jail forever','The mayor helps anyway'], s:`Fail forward. A failed check should change the situation, not stall it. Now the players have a new goal instead of a dead end.` },
   { f:`The players have been whispering about a plan for fifteen minutes and nothing is happening.`, q:`What do you do?`, a:'Make something happen: footsteps in the corridor, the torch flickers, a door creaks', w:['Wait silently until they finish','Tell them to hurry up','Skip to the next day'], s:`The world keeps moving. A small event resets the pace and gives them a reason to act now. It's a nudge, not a punishment.` },
   { f:`A player wants their character to fly up to the tower window. They have no wings, no spell, no rope.`, q:`What do you do?`, a:'Ask what they\'re trying to achieve, then offer a way that could work: the ivy, the drainpipe, a distraction', w:['Just let them fly','Flat no, next player','Make them roll a DC 30 check'], s:`"No, but..." is the DM's best phrase. Find the goal behind the ask and turn it into a real choice with real risk.` },
-  { f:`The big fight you planned is going badly for the monsters. Two rounds in, it's nearly over and the heroes barely got scratched.`, q:`What do you do?`, a:'Change the situation: reinforcements arrive, the floor starts to collapse, the boss flees to fight another day', w:['Secretly double the boss\'s HP forever','Let it end and sulk','Have the boss suddenly deal triple damage'], s:`Adjust the story, not the dice. Reinforcements and terrain are things the players can see and react to. Secretly inflating numbers cheats them without them knowing.` },
-  { f:`A player's character dies in the fight. The player looks really upset.`, q:`What do you do?`, a:'Let it be real and honor it, give the player a moment, then help them bring in a new character quickly', w:['Reveal it was all a dream','Say the character was only knocked out, every time','Tell them to stop being upset'], s:`Death only means something if it can happen. But the person matters more than the character: check in, keep them in the game, get them back at the table fast.` },
-  { f:`A player asks "What's the Orc's AC?" before attacking.`, q:`What do you do?`, a:'Don\'t say the number; tell them whether their roll hits, and after a few rolls they\'ll work it out', w:['Tell them exactly: AC 13','Refuse to ever tell them anything about the monster','Change the AC so they can\'t figure it out'], s:`"Does a 15 hit?" keeps a little mystery and makes the players pay attention. Letting them deduce the AC over a few turns is a reward for thinking.` },
-  { f:`The rogue says "I search the hallway for traps" and rolls a 4.`, q:`How do you handle the roll?`, a:'Use their Passive Perception, or roll in secret, so a bad roll doesn\'t tell them a trap is there', w:['Say "You find nothing" with a big grin','Tell them exactly where the trap is','Make them roll again until they pass'], s:`A visible failed roll leaks information: now they know something is there. Passive scores and secret rolls keep the suspense honest.` },
-  { f:`Two players are arguing about who gets the magic sword. It's getting heated.`, q:`What do you do?`, a:'Let the characters talk it out in the game for a minute; if it drags, suggest a fair way to decide and move on', w:['Decide for them: the fighter gets it','Take the sword away','Let them fight to the death'], s:`A little in-character arguing is roleplay. A lot is a stalled game. Step in as the referee only when the fun stops.` },
+  { f:`The heroes' clever plan has nearly won the big fight in two rounds. They barely got scratched.`, q:`What do you do?`, a:'Celebrate their plan and let them win; use clues already in the story if the situation changes', w:['Secretly double the boss\'s HP forever','Add enemies until someone drops','Have the boss suddenly deal triple damage'], s:`An easy victory can be a reward for good planning. Let their choices matter. Reinforcements, escapes and changing terrain can be fun when they fit the situation and give players a fair chance to respond.` },
+  { f:`A player's character dies in the fight. The player looks really upset.`, q:`What do you do?`, a:'Pause and check in, give the player time, then help them take part again when ready', w:['Reveal it was all a dream','Say the character was only knocked out, every time','Tell them to stop being upset'], s:`The person matters more than the character. Follow the table's agreed approach to character death, listen to the player, and help them rejoin the game when ready.` },
+  { f:`A player asks "What's the Orc's AC?" before attacking.`, q:`What do you do?`, a:'Either share the AC or describe the armor and say whether rolls hit; use a consistent table style', w:['Change the AC whenever they guess it','Refuse to explain how attack rolls work','Lower their attack bonus for asking'], s:`Sharing AC can speed up play. Keeping it hidden can add mystery. Both styles work when the table understands the approach and the number stays fair and consistent.` },
+  { f:`The rogue searches the hallway for traps and fails the check.`, q:`How do you handle the result?`, a:'Describe what they notice without confirming whether a trap exists, then let the party choose how to proceed', w:['Grin and announce they definitely missed a trap','Invent a trap to punish the low roll','Make them roll again until they pass'], s:`A failed search does not prove that a trap exists. Give an honest description of what the character learns. If your table uses Passive Perception or secret checks, agree on that approach before the roll.` },
+  { f:`Two players are arguing about who gets the magic sword. It's getting heated.`, q:`What do you do?`, a:'Pause the game, check that everyone is comfortable, and agree on a fair way to share the treasure', w:['Decide for them: the fighter gets it','Take the sword away','Let them fight to the death'], s:`Character disagreements can be fun when everyone is comfortable. When players are upset, pause and listen before returning to the story.` },
   { f:`You realize you ruled a rule wrong last session, and it cost the wizard a spell slot.`, q:`What do you do?`, a:'Tell the table at the start, fix it going forward, and give the wizard the slot back', w:['Say nothing and hope no one noticed','Rewind the whole session','Insist you were right'], s:`DMs make mistakes. Owning it builds trust, and trust is what makes players follow you into the dark.` },
   { f:`It's ten minutes before the end of the session and the party just opened the door to the boss's lair.`, q:`What do you do?`, a:'Describe the lair, let the boss say one line, and end on a cliffhanger', w:['Rush through the whole boss fight in ten minutes','Pretend the door was locked','Keep playing until everyone has to leave'], s:`A cliffhanger makes everyone want next session to come faster. A rushed boss fight is a waste of your best scene.` },
 ];
@@ -1646,7 +1653,7 @@ const MODULES = [
       <li><b>Faces that hit</b> = 21 − roll needed.</li>
       <li><b>Chance</b> = faces × 5%.</li></ul>
       <p>Example: +5 to hit against AC 13. Need 8. Faces 8 through 20 is 13 faces. 13 × 5 = <b>65%</b>.</p>
-      <p>Two house facts: a natural 20 always hits and a natural 1 always misses. <b>Advantage</b> means rolling twice and keeping the better one, which is the Guildmaster challenge in this lesson.</p>`,
+      <p>Two attack-roll rules: a natural 20 always hits and a natural 1 always misses. <b>Advantage</b> means rolling twice and keeping the better one, which is the Guildmaster challenge in this lesson.</p>`,
     gens:[genHitChance, genHitChance, genNeedRoll, genAdvantage] },
   { id:'encounter', section:'numbers', sigil:'XP', title:'Encounter Architect', tag:'Build fair fights (or deadly ones)',
     lesson:`<p>Every fight has an XP price. Compare it to what your party can handle. (This is the 2024 Dungeon Master's Guide method.)</p>
@@ -1660,17 +1667,17 @@ const MODULES = [
     gens:[genEncounterBuild, genEncounterBuild, genEncounterFit] },
   { id:'treasure', section:'numbers', sigil:'gp', title:'The Treasure Split', tag:'Loot, coins and shop math',
     lesson:`<p>Coins climb a ladder of tens: <span class="rule">10 cp = 1 sp</span> <span class="rule">10 sp = 1 gp</span> <span class="rule">10 gp = 1 pp</span>. Converting is just moving the decimal point.</p>
-      <p>When the party splits loot, divide and keep the remainder as a party fund (it pays for rope and healing potions). Shops pay half price for used gear, and a guild that wants "10%" wants a tenth.</p>
-      <p><b>Why a DM cares:</b> players argue about gold more than anything else. The DM who can split 347 gold five ways in their head ends the argument.</p>`,
+      <p>When the party splits loot, divide and keep the remainder as a party fund (it pays for rope and healing potions). In our shop exercises, the merchant offers half the listed price for each item. A guild that wants "10%" wants a tenth.</p>
+      <p><b>Why a DM cares:</b> a clear, fair treasure split helps everyone share the rewards and get back to the adventure.</p>`,
     gens:[genLootSplit, genCoinConvert, genShopping, genTithe, genSellLoot] },
   { id:'monster', section:'numbers', sigil:'HP', title:'Monster Maker', tag:'Modifiers, hit points, pacing',
-    lesson:`<p><b>Ability modifiers.</b> <span class="rule">(score − 10) ÷ 2, rounded down</span>. Strength 16 → +3. Strength 7 → (7 − 10) ÷ 2 = −1.5, rounded down to <b>−2</b>. Rounding down means toward the smaller number, so negatives get bigger.</p>
-      <p><b>Hit points.</b> Monsters list HP as dice, like 7d10+21. Average them like damage dice. Track HP by subtracting as the fight goes.</p>
-      <p><b>Pacing.</b> Divide a monster's HP by the party's damage per round to guess how many rounds a fight lasts. Round UP; a monster on 1 HP still gets a turn. A 3-round fight is snappy. A 10-round fight needs a twist.</p>`,
+    lesson:`<p><b>Ability modifiers.</b> <span class="rule">(score − 10) ÷ 2, rounded down</span>. Strength 16 → +3. Strength 7 → (7 − 10) ÷ 2 = −1.5, rounded down to <b>−2</b>. Rounding down means toward the smaller number: −2 is smaller than −1.5.</p>
+      <p><b>Hit points.</b> Monsters list HP as dice, like 7d10+21. These exercises use simplified monster examples based on legacy 2014 stat blocks. Average their HP like damage dice. Track HP by subtracting as the fight goes.</p>
+      <p><b>Pacing.</b> Divide a monster's HP by the party's damage per round to guess how many rounds a fight lasts. Round UP; a monster on 1 HP is still in the fight. A 3-round fight is snappy. A 10-round fight needs a twist.</p>`,
     gens:[genModifier, genModifier, genHpTrack, genRoundsToDrop, genHitDiceHp, genTrollRegen] },
   { id:'map', section:'numbers', sigil:'5 ft', title:'Maps & Miles', tag:'Squares, areas and travel',
-    lesson:`<p>On a battle map <span class="rule">1 square = 5 feet</span>. Speed 30 means 6 squares. A radius goes from the center to the edge, so a 20-foot-radius fireball is 40 feet (8 squares) across.</p>
-      <p>Room size is length × width (in squares or feet). The distance around a room is the perimeter: add all four walls.</p>
+    lesson:`<p>On a battle map <span class="rule">1 square is 5 feet on each side</span>. Speed 30 means 6 squares. A radius goes from the center to the edge, so a 20-foot-radius fireball is 40 feet (8 squares) across.</p>
+      <p>Floor area is length × width: count grid squares, or multiply feet by feet to get square feet. One 5-foot square covers 25 square feet. The distance around a room is the perimeter: add all four walls.</p>
       <p>Overland, a party at normal pace walks <span class="rule">24 miles a day</span>. Divide the distance by 24 for days; the remainder is the last short day.</p>`,
     gens:[genRoom, genBlast, genTravel, genSpeed, genPerimeter] },
   { id:'damage', section:'numbers', sigil:'½', title:'Damage Doctor', tag:'Resist, crit, save and heal',
@@ -1679,7 +1686,7 @@ const MODULES = [
       <li><b>Critical hit</b>: roll all the damage dice twice. Add the bonus once.</li>
       <li><b>Successful save</b> against many spells: half damage, rounded down.</li>
       <li><b>Healing</b> never raises HP above the maximum. Damage never takes it below 0.</li></ul>
-      <p><b>Why a DM cares:</b> these come up every single session, and players will happily "forget" the ones that hurt them.</p>`,
+      <p><b>Why a DM cares:</b> these rules come up often. Clear explanations help the whole table apply them fairly.</p>`,
     gens:[genResist, genVulnerable, genCrit, genGroupAttack, genHeal, genSaveHalf] },
   { id:'hero', section:'rules', sigil:'PB', title:'Building a Hero', tag:'Proficiency, hit points, attack bonuses',
     lesson:`<p>Three numbers run everything on a character sheet.</p>
@@ -1696,19 +1703,19 @@ const MODULES = [
       <div class="tablewrap"><table><tr><th>Task</th><td>Very easy</td><td>Easy</td><td>Medium</td><td>Hard</td><td>Very hard</td><td>Nearly impossible</td></tr>
       <tr><th>DC</th><td>5</td><td>10</td><td>15</td><td>20</td><td>25</td><td>30</td></tr></table></div>
       <p><b>Advantage</b>: roll two d20s, keep the higher. <b>Disadvantage</b>: keep the lower. They never stack, and if you have both they cancel to a single normal roll.</p>
-      <p><b>Natural 20 and 1.</b> On attack rolls and saving throws, a 20 always succeeds and a 1 always fails. Ability checks get no such luck. <b>Heroic Inspiration</b> lets a player reroll any D20 Test.</p>
-      <p><b>Skills by ability.</b> Str: Athletics. Dex: Acrobatics, Sleight of Hand, Stealth. Int: Arcana, History, Investigation, Nature, Religion. Wis: Animal Handling, Insight, Medicine, Perception, Survival. Cha: Deception, Intimidation, Performance, Persuasion. Hiding is a DC 15 Stealth check.</p>`,
+      <p><b>Natural 20 and 1.</b> On attack rolls, a natural 20 always hits and a natural 1 always misses. Ability checks and ordinary saving throws use the total. Death Saving Throws have special rules for 1 and 20. <b>Heroic Inspiration</b> lets a player reroll any die immediately after rolling it, including a damage die, and use the new roll.</p>
+      <p><b>Skills by ability.</b> Str: Athletics. Dex: Acrobatics, Sleight of Hand, Stealth. Int: Arcana, History, Investigation, Nature, Religion. Wis: Animal Handling, Insight, Medicine, Perception, Survival. Cha: Deception, Intimidation, Performance, Persuasion. Hiding needs a DC 15 Stealth check while out of enemy sight and either Heavily Obscured or behind Three-Quarters or Total Cover. Hiding ends when you are found, attack, make noise louder than a whisper, or cast a spell with a Verbal component.</p>`,
     gens:[genCheckVsDc, genNeedForDc, genWhichSkill, genWhichSkill, genDcLadder, genAdvRules, genAdvRules] },
   { id:'combat', section:'rules', sigil:'⚔', title:'The Combat Round', tag:'Turns, actions, movement, cover',
     lesson:`<p>A round is 6 seconds. Everyone rolls <b>Initiative</b> (d20 + Dex modifier) and acts from highest to lowest.</p>
-      <p>On your turn you get: <b>movement</b> up to your Speed (split it up however you like), <b>one Action</b>, <b>one Bonus Action</b> if something gives you one, and one free object interaction. You get <b>one Reaction</b> per round, which comes back at the start of your turn.</p>
+      <p>On your turn you get: <b>movement</b> up to your Speed (split it up however you like), <b>one Action</b>, <b>one Bonus Action</b> if something gives you one, and one free object interaction. After you use your <b>Reaction</b>, you cannot take another until the start of your next turn.</p>
       <p>The 12 actions: Attack, Dash, Disengage, Dodge, Help, Hide, Influence, Magic, Ready, Search, Study, Utilize.</p>
-      <ul><li><b>Opportunity Attack</b>: when an enemy leaves your reach without Disengaging, use your Reaction for one melee attack.</li>
-      <li><b>Difficult Terrain</b> costs 2 feet per foot. Climbing, swimming and crawling do too.</li>
-      <li><b>Cover</b>: Half Cover +2 AC and Dex saves, Three-Quarters +5, Total Cover can't be targeted.</li>
-      <li><b>Jumping</b>: Long Jump = Strength score in feet (half from standing). High Jump = 3 + Str modifier.</li>
+      <ul><li><b>Opportunity Attack</b>: when a visible enemy uses its movement, Action, Bonus Action or Reaction to leave your reach without Disengaging, use your Reaction for one melee attack just before it leaves. Teleporting or being pushed does not provoke one.</li>
+      <li><b>Difficult Terrain</b> costs 2 feet of movement per foot traveled. Climbing, swimming and crawling also cost an extra foot per foot; difficult terrain adds another. A matching Climb or Swim Speed avoids that extra climbing or swimming cost.</li>
+      <li><b>Cover</b>: Half Cover +2 AC and Dex saves, Three-Quarters +5, Total Cover prevents direct targeting.</li>
+      <li><b>Jumping</b>: with a 10-foot run-up, Long Jump = Strength score in feet and High Jump = 3 + Str modifier (minimum 0). From standing, halve the distance and round down. Each foot jumped uses a foot of movement.</li>
       <li><b>Falling</b>: 1d6 per 10 feet, max 20d6, and you land Prone.</li>
-      <li><b>Two weapons</b>: with a Light weapon in each hand, the extra attack is a Bonus Action and doesn't add your ability modifier to damage.</li>
+      <li><b>Light weapons</b>: after attacking with one during your Attack action, you can make one extra attack with a different Light weapon as a Bonus Action later that turn. Add no ability modifier to its damage unless the modifier is negative. Nick mastery can move that extra attack into the Attack action.</li>
       <li><b>Grapple and Shove</b> are Unarmed Strikes: the target saves against DC 8 + Str modifier + Proficiency Bonus.</li></ul>`,
     gens:[genInitiative, genDifficultTerrain, genJump, genFall, genCover, genActions, genActions, genTurnBudget, genTurnBudget, genTwoWeapon, genGrapple] },
   { id:'survive', section:'rules', sigil:'0 HP', title:'Hit Points & Dying', tag:'Death saves, rests, healing, concentration',
@@ -1716,7 +1723,7 @@ const MODULES = [
       <p><b>Instant death</b>: if the damage that drops you to 0 has leftover equal to or more than your max HP, you die outright. A friend can stabilize you with a DC 10 Wisdom (Medicine) check.</p>
       <p><b>Rests.</b> A <b>Short Rest</b> is 1 hour: spend Hit Point Dice, each healing the roll + Con modifier. A <b>Long Rest</b> is 8 hours: all HP back, and all your spent Hit Point Dice.</p>
       <p><b>Healing.</b> Potion of Healing: 2d4 + 2, drunk as a Bonus Action. Cure Wounds: 2d8 + spellcasting modifier, +2d8 per slot level above 1. Healing never passes max HP. <b>Temporary HP</b> don't stack: keep the higher amount.</p>
-      <p><b>Concentration.</b> When you take damage, make a Con save: DC 10 or half the damage, whichever is higher. <b>Exhaustion</b>: −2 on D20 Tests and −5 feet Speed per level. Level 6 is death.</p>`,
+      <p><b>Concentration.</b> When you take damage, make a Con save: DC 10 or half the damage rounded down, whichever is higher, up to DC 30. <b>Exhaustion</b>: −2 on D20 Tests and −5 feet Speed per level. Level 6 is death.</p>`,
     gens:[genInstantDeath, genDeathSave, genDeathSave, genConcentration, genTempHp, genShortRest, genLongRest, genCureWounds, genExhaustion] },
   { id:'spells', section:'rules', sigil:'✦', title:'Spellbook', tag:'Slots, save DCs, scaling, areas',
     lesson:`<p><b>Spell slots</b> are your ammunition. A level 3 wizard or cleric has 4 level-1 slots and 2 level-2 slots. <b>Cantrips</b> are free and unlimited, and their damage grows at levels 5, 11 and 17.</p>
@@ -1731,18 +1738,18 @@ const MODULES = [
       <p><b>Weapon Mastery</b> (new in 2024): Fighters, Barbarians, Paladins, Rangers and Rogues unlock a bonus effect per weapon. Cleave, Graze, Nick, Push, Sap, Slow, Topple, Vex.</p>`,
     gens:[genArmorClass, genArmorClass, genFinesse, genVersatile, genMastery, genGraze, genRanged] },
   { id:'conditions', section:'rules', sigil:'KO', title:'Condition Codex', tag:'Prone, Poisoned, Paralyzed and friends',
-    lesson:`<p>Conditions are the rules' way of saying "something is wrong with you". The ones that come up most:</p>
-      <ul><li><b>Prone</b>: half your Speed to stand; melee attacks against you have Advantage, ranged ones Disadvantage.</li>
+    lesson:`<p>Conditions describe effects on a creature. Some help you; others limit what you can do. The ones that come up most:</p>
+      <ul><li><b>Prone</b>: half your Speed, rounded down, to stand. Your attacks have Disadvantage. Attacks against you have Advantage from within 5 feet and Disadvantage from farther away.</li>
       <li><b>Poisoned</b>: Disadvantage on attacks and checks.</li>
-      <li><b>Frightened</b>: Disadvantage while the source is in sight; can't move closer.</li>
+      <li><b>Frightened</b>: Disadvantage on checks and attacks while the source is in sight; can't willingly move closer.</li>
       <li><b>Grappled / Restrained</b>: Speed 0. Restrained also gives attackers Advantage.</li>
       <li><b>Incapacitated</b>: no Actions, Bonus Actions or Reactions; Concentration breaks.</li>
       <li><b>Paralyzed / Unconscious</b>: Incapacitated, auto-fail Str and Dex saves, and hits from within 5 feet are Critical Hits.</li>
-      <li><b>Invisible</b>: attacks against you have Disadvantage, yours have Advantage.</li></ul>
-      <p>A DM who knows these cold keeps the fight moving. Players will happily "forget" the ones that hurt them.</p>`,
+      <li><b>Invisible</b>: Advantage on Initiative. Against creatures that cannot see you, your attacks have Advantage and attacks against you have Disadvantage.</li></ul>
+      <p>Knowing these conditions helps you explain what is happening and keep the whole table involved.</p>`,
     gens:[genConditionName, genConditionName, genConditionEffect, genConditionEffect, genProneStand] },
   { id:'chair', section:'rules', sigil:'DM', title:"The DM's Chair", tag:'Judgment calls at the table',
-    lesson:`<p>Rules tell you what the dice do. This lesson is about what <b>you</b> do. There's rarely one right answer, but there's usually a best one.</p>
+    lesson:`<p>Rules tell you what the dice do. This lesson is about what <b>you</b> do. Different tables enjoy different styles. These examples practice clear, fair rulings that respect the players' choices.</p>
       <ul><li><b>Keep it moving.</b> Rule quickly, look it up later. A game that stalls is a game that ends early.</li>
       <li><b>Say "yes, and" or "no, but".</b> Find the goal behind a wild idea and offer a way it could work, with a cost.</li>
       <li><b>Fail forward.</b> A failed roll should change the situation, not stop it.</li>
@@ -1750,7 +1757,7 @@ const MODULES = [
       <li><b>Prepare situations, not scripts.</b> Players will go where you didn't expect. Bring your prep with you.</li>
       <li><b>Be a fair referee.</b> Adjust the story in the open, never the dice in secret.</li></ul>`,
     gens:[genChair] },
-  { id:'boss', section:'mixed', sigil:'!!', title:'Boss Fight', tag:'Answer to attack. Miss twice and it hits back.', special:'boss', gens:[] },
+  { id:'boss', section:'mixed', sigil:'!!', title:'Boss Fight', tag:'Answer to attack. Two incorrect tries let it hit back.', special:'boss', gens:[] },
   { id:'mixed', section:'mixed', sigil:'?', title:'Random Encounter', tag:'Numbers and rules, shuffled together', mixed:true,
     lesson:`<p>Anything from any lesson. This is what a real session feels like: you never know which bit of math is coming next.</p>`,
     gens:[] },
@@ -1785,6 +1792,7 @@ function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add(
 // ---------- Views ----------
 const VIEWS = ['home','module','boss','forge','tracker','dice-tray','parent'];
 function show(view){
+  if(view !== 'boss' && boss.active) bossLeave();
   VIEWS.forEach(v => { $('view-'+v).hidden = v !== view; });
   document.querySelectorAll('nav button').forEach(b => { if(b.dataset.view === view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if(view === 'home'){ renderDaily(); renderHall(); }
@@ -1828,6 +1836,7 @@ function renderHall(){
 // ---------- Question flow ----------
 let current = { module:null, problem:null, step:0, tries:0, choice:null };
 function openModule(m){
+  if(m.special === 'boss'){ history.replaceState(null,'','#boss'); show('boss'); return; }
   restoreQuest();
   current.module = m;
   setArt($('mod-sigil'), m.id, m.sigil); $('mod-title').textContent = m.title;
@@ -1975,11 +1984,11 @@ function renderDaily(){
   const h = document.createElement('h3'); h.textContent = `Today's Quest: ${questName()}`;
   const p = document.createElement('p');
   p.textContent = d.complete ? `Done for today. +${DAILY_BONUS} XP claimed.${d.streak > 1 ? ' Day streak: ' + d.streak + '.' : ''} Come back tomorrow.`
-                             : `${DAILY_GOAL} questions from anywhere in the Academy. ${d.done} of ${DAILY_GOAL} done. Reward: +${DAILY_BONUS} XP${d.streak ? ' · day streak ' + d.streak : ''}.`;
+                             : `${DAILY_GOAL} questions in today's mixed lesson. ${d.done} of ${DAILY_GOAL} done. Reward: +${DAILY_BONUS} XP${d.streak ? ' · day streak ' + d.streak : ''}.`;
   const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn' + (d.complete ? ' done' : ''); btn.id = 'daily-btn';
   btn.textContent = d.complete ? 'Play more anyway' : d.done ? 'Continue the quest' : 'Start the quest';
   btn.addEventListener('click', () => openModule({ id:'daily', mixed:true, sigil:'Q', title:questName(), gens:[],
-    lesson:`<p>Five questions from any lesson, a different quest every day. Finish it for +${DAILY_BONUS} XP, and keep a day streak going.</p>` }));
+    lesson:`<p>Five questions drawn from the Academy's lessons, with a different quest every day. Finish it for +${DAILY_BONUS} XP, and keep a day streak going.</p>` }));
   box.append(sig, h, p, btn);
 }
 document.addEventListener('keydown', e => { if(e.key === 'Enter' && !$('view-module').hidden){ const n = $('next-btn'); if(n && document.activeElement !== n){ e.preventDefault(); n.click(); } } });
@@ -2133,7 +2142,7 @@ const TOOLS = [
   ['$','Chest','◆','10–50 gp'], ['s','Sign','✎','2 gp'], ['select','Change','☝',''], ['measure','Measure','↔',''], ['erase','Rock','✕',''],
 ];
 const TOOL_TIPS = {
-  room:'Drag from one corner to the other to dig out a rectangle room. Walls go up around it.',
+  room:'Drag from one corner to the other to dig out a rectangular room. Walls go up around it.',
   hall:'Drag to dig a hall or a twisty cave passage, one square at a time.',
   wall:'Drag from dot to dot to build a wall on the grid lines. Draw over a wall to change what it is made of.',
   door:'Tap a wall to put a door in it. Tap the same door again to take it out.',
@@ -2203,15 +2212,17 @@ function forgeRooms(M){
   const roomOf = new Array(M.cells.length).fill(-1), rooms = [];
   for(let i = 0; i < M.cells.length; i++){
     if(roomOf[i] >= 0 || M.cells[i] === ' ') continue;
-    const r = { cells:[], walls:0, doors:[], mats:new Set(), minX:M.W, maxX:-1, minY:M.H, maxY:-1 }, stack = [i];
+    const r = { cells:[], walls:0, wallKeys:new Set(), doors:[], mats:new Set(), minX:M.W, maxX:-1, minY:M.H, maxY:-1 }, stack = [i];
     roomOf[i] = rooms.length;
     while(stack.length){
       const j = stack.pop(), x = j % M.W, y = Math.floor(j / M.W);
       r.cells.push(j); r.minX = Math.min(r.minX, x); r.maxX = Math.max(r.maxX, x); r.minY = Math.min(r.minY, y); r.maxY = Math.max(r.maxY, y);
       steps(M, j).forEach(([n, k]) => { if(roomOf[n] < 0 && M.cells[n] !== ' ' && !M.edges.has(k)){ roomOf[n] = rooms.length; stack.push(n); } });
-      cellWalls(x, y).forEach(k => { const e = M.edges.get(k); if(e){ r.walls++; r.mats.add(e.m); if(e.door) r.doors.push(e.door); } });
+      cellWalls(x, y).forEach(k => { const e = M.edges.get(k); if(e && !r.wallKeys.has(k)){ r.wallKeys.add(k); r.walls++; r.mats.add(e.m); if(e.door) r.doors.push(e.door); } });
     }
     r.w = r.maxX - r.minX + 1; r.h = r.maxY - r.minY + 1; r.rect = r.cells.length === r.w * r.h;
+    const floor = new Set(r.cells);
+    r.perimeter = r.cells.reduce((sum, j) => sum + 4 - steps(M, j).filter(([n]) => floor.has(n)).length, 0);
     rooms.push(r);
   }
   return { rooms, roomOf };
@@ -2236,8 +2247,11 @@ function monsterSquares(M){
 }
 // A pit can cover several squares; stepping on any of them opens all of it.
 function pitGroup(M, i){
-  const seen = new Set([i]), stack = [i];
-  while(stack.length){ const j = stack.pop(); steps(M, j).forEach(([n, k]) => { if(!seen.has(n) && M.cells[n] === 't' && isPit(M.things[n]) && !M.edges.has(k)){ seen.add(n); stack.push(n); } }); }
+  const seen = new Set([i]), stack = [i], trap = M.things[i];
+  while(stack.length){ const j = stack.pop(); steps(M, j).forEach(([n, k]) => {
+    const next = M.things[n];
+    if(!seen.has(n) && M.cells[n] === 't' && isPit(next) && next.trap === trap.trap && next.depth === trap.depth && !M.edges.has(k)){ seen.add(n); stack.push(n); }
+  }); }
   return [...seen];
 }
 
@@ -2250,7 +2264,7 @@ function forgeCosts(d){
   const walls = {}, doors = {};
   M.edges.forEach(e => { if(e.door) doors[e.door] = (doors[e.door] || 0) + 1; else walls[e.m] = (walls[e.m] || 0) + 1; });
   Object.keys(WALLS).forEach(k => add(`${WALLS[k].name} wall, ${(walls[k] || 0) * 5} ft`, walls[k] || 0, WALLS[k].cost));
-  Object.keys(DOORS).forEach(k => add(doors[k] === 1 ? DOORS[k].name : DOORS[k].name + 's', doors[k] || 0, DOORS[k].cost));
+  Object.keys(DOORS).forEach(k => add(doors[k] === 1 ? DOORS[k].name : k === 'portcullis' ? 'Portcullises' : DOORS[k].name + 's', doors[k] || 0, DOORS[k].cost));
   add('Keys', count('k'), PIECES.k.cost); add('Signs', count('s'), PIECES.s.cost);
   const traps = {}, mons = {}, chests = {};
   M.cells.forEach((c, i) => {
@@ -2646,7 +2660,7 @@ const COMMISSIONS = {
     text: c => `The king's tax collector lost his gold. Hide chests worth exactly ${c.g} gold pieces in one dungeon (small 20, medium 50, large 100).`,
     find: c => { const d = forge.dungeons.find(d => chestGold(d) === c.g); return d ? { d } : null; },
     miss: c => `None of your dungeons has chests worth exactly ${c.g} gold in all yet.`,
-    ask: c => ({ q:`Your party of ${c.n} finds all ${c.g} gold pieces and splits it equally. How much does each hero get?`, answer: c.g / c.n,
+    ask: c => ({ q:`Your party of ${c.n} finds all ${c.g} gold pieces and shares them equally. How much does each hero get?`, answer: c.g / c.n,
       hint:'Sharing equally means dividing.', solution:`${c.g} ÷ ${c.n} = ${c.g / c.n} gold pieces each.` }),
   },
   budget: {
@@ -2677,7 +2691,7 @@ const COMMISSIONS = {
     text: () => 'The thieves\' guild wants a hidden room: a room whose only way in is a secret door.',
     find: () => findRoom(r => r.doors.length > 0 && r.doors.every(k => k === 'secret')),
     miss: () => 'None of your rooms has a secret door as its only way in yet.',
-    ask: (c, f) => ({ q:`Your hidden room in “${f.d.title}” has ${f.r.walls} sections of wall around it, counting the secret door. Each section is 5 feet long. How many feet of wall is that?`, answer: f.r.walls * 5,
+    ask: (c, f) => ({ q:`Your hidden room in “${f.d.title}” has ${f.r.walls} built wall and door sections, counting each section once. Each section is 5 feet long. How many feet of wall is that?`, answer: f.r.walls * 5,
       hint:'Each section is 5 feet. Multiply.', solution:`${f.r.walls} × 5 = ${f.r.walls * 5} feet.` }),
   },
   pit: {
@@ -2980,7 +2994,8 @@ function measureAt(c){
   const r = R.rooms[k]; ed.measure = r.cells;
   let s = `This room has <b>${r.cells.length}</b> squares of floor. Each square is 5 ft × 5 ft, so that is <b>${r.cells.length * 25}</b> square feet. `;
   if(r.rect) s += `It is a rectangle, <b>${r.w} × ${r.h}</b> squares, which is <b>${r.w * 5} ft × ${r.h * 5} ft</b>. `;
-  s += `The walls around it are <b>${r.walls}</b> sections × 5 ft = <b>${r.walls * 5} ft</b>` + (r.doors.length ? `, with ${r.doors.length} ${r.doors.length === 1 ? 'door' : 'doors'} in them.` : '.');
+  s += `The floor's perimeter is <b>${r.perimeter}</b> grid sides × 5 ft = <b>${r.perimeter * 5} ft</b>. `;
+  s += `Built walls and doors total <b>${r.walls}</b> sections × 5 ft = <b>${r.walls * 5} ft</b>, counting each section once` + (r.doors.length ? `, including ${r.doors.length} ${r.doors.length === 1 ? 'door' : 'doors'}.` : '.');
   feRead(s);
 }
 function renderTools(){
@@ -3033,7 +3048,7 @@ function renderInspect(){
     if(isPit({ trap })){
       box.append(mk('label', '', 'How deep?'));
       const dr = mk('div', 'choices');
-      PIT_DEPTHS.forEach(n => { const b = mk('button', 'sm', `${n} ft: ${n / 10}d6, costs ${TRAPS[trap].cost({ depth:n })} a square`); b.type = 'button'; b.setAttribute('aria-pressed', String(depth === n)); b.addEventListener('click', () => onPick(trap, n)); dr.append(b); });
+      PIT_DEPTHS.forEach(n => { const b = mk('button', 'sm', `${n} ft: ${n / 10}d6${trap === 'spiked' ? ' + 2d10' : ''}, costs ${TRAPS[trap].cost({ depth:n })} a square`); b.type = 'button'; b.setAttribute('aria-pressed', String(depth === n)); b.addEventListener('click', () => onPick(trap, n)); dr.append(b); });
       box.append(dr);
     }
   };
@@ -3415,25 +3430,93 @@ function forgeRefresh(){
 }
 
 // ---------- Initiative tracker ----------
-// Saved in this browser so a fight survives a page refresh. Each combatant: name, init, hp/max, ac, kind, conditions, death saves.
-let trk = load('pda-tracker', {round:1, turn:0, open:null, list:[]});
+// Setup starts at the highest Initiative. Once the fight starts, sorting preserves the current turn.
+// Status is saved separately from HP so Stable and Dead survive a refresh and cloud sync.
+const trkDefaults = () => ({round:1, turn:0, open:null, list:[], started:false});
+function trkNormalize(raw){
+  const t = Object.assign(trkDefaults(), raw || {});
+  t.list = (Array.isArray(t.list) ? t.list : []).map(c => {
+    const next = Object.assign({conds:[], ds:[0,0], kind:'hero'}, c);
+    next.ds = [0,1].map(i => Math.max(0, Math.min(3, Number(next.ds && next.ds[i]) || 0)));
+    if(next.hp === 0){
+      if(next.kind === 'monster' || next.max === 0 || next.status === 'dead' || next.ds[1] >= 3) next.status = 'dead';
+      else if(next.status === 'stable' || next.ds[0] >= 3){ next.status = 'stable'; next.ds = [0,0]; }
+      else next.status = 'down';
+    } else { next.status = 'up'; next.ds = [0,0]; }
+    return next;
+  });
+  // Old saves had no setup flag: preserve their existing round and current combatant.
+  t.started = typeof (raw || {}).started === 'boolean' ? raw.started : t.list.length > 0;
+  t.round = Math.max(1, Number(t.round) || 1);
+  t.turn = t.list.length ? Math.max(0, Math.min(t.list.length - 1, Number(t.turn) || 0)) : 0;
+  if(!t.list.length) t.started = false;
+  return t;
+}
+let trk = trkNormalize(load('pda-tracker', {round:1, turn:0, open:null, list:[]}));
 function trkSave(){ save('pda-tracker', trk); }
 function trkNote(text, bad){ const n = $('trk-note'); n.hidden = !text; n.className = 'trk-note' + (bad ? ' bad' : ''); n.textContent = text || ''; }
 function trkAdd(c){
   let name = c.name, k = 2; while(trk.list.some(x => x.name === name)) name = `${c.name} ${k++}`;
-  trk.list.push({ id: Date.now() + Math.random(), name, init: c.init ?? null, hp: c.hp ?? null, max: c.hp ?? null, ac: c.ac ?? null, kind: c.kind || 'hero', conds: [], ds: [0,0] });
+  const kind = c.kind || 'hero', hp = c.hp ?? null;
+  trk.list.push({ id: Date.now() + Math.random(), name, init: c.init ?? null, hp, max: hp, ac: c.ac ?? null, kind, conds: [], ds: [0,0], status: hp === 0 ? 'dead' : 'up' });
 }
 function trkSort(){
-  const cur = trk.list[trk.turn] && trk.list[trk.turn].id;
+  const cur = trk.started && trk.list[trk.turn] && trk.list[trk.turn].id;
   trk.list.sort((a,b) => (b.init ?? -99) - (a.init ?? -99) || (a.kind === b.kind ? 0 : a.kind === 'hero' ? -1 : 1));
-  trk.turn = Math.max(0, trk.list.findIndex(x => x.id === cur));
+  trk.turn = cur ? Math.max(0, trk.list.findIndex(x => x.id === cur)) : 0;
+}
+function trkStart(){
+  trk.started = false; trk.round = 1; trk.turn = 0; trk.open = null; trkSort();
+  trk.started = trk.list.length > 0;
+}
+function trkRemove(i){
+  const wasCurrent = i === trk.turn, wasLast = i === trk.list.length - 1;
+  trk.list.splice(i, 1);
+  if(!trk.list.length){ trk.started = false; trk.turn = 0; trk.round = 1; }
+  else if(i < trk.turn) trk.turn--;
+  else if(wasCurrent && wasLast){ trk.turn = 0; if(trk.started) trk.round++; }
+  trk.open = null;
+}
+function trkDamage(c, n, critical){
+  const before = c.hp;
+  if(c.status === 'dead') return [`${c.name} is already dead.`, true];
+  c.hp = Math.max(0, before - n);
+  if(c.hp > 0) return [`${c.name} takes ${n}: ${before} − ${n} = ${c.hp}.`];
+  if(c.kind === 'monster' || n - before >= c.max){
+    c.status = 'dead';
+    return [c.kind === 'monster' ? `${c.name} is dead.` : `${c.name} takes ${n} damage with ${n - before} left after reaching 0 HP. That is at least their max HP (${c.max}): instant death.`, true];
+  }
+  if(before === 0){
+    if(c.status === 'stable') c.ds = [0,0];
+    c.status = 'down';
+    return trkDeathSave(c, false, critical ? 2 : 1, `${c.name} takes ${n} damage at 0 HP${critical ? ' from a Critical Hit' : ''}. `);
+  }
+  c.status = 'down'; c.ds = [0,0];
+  return [`${c.name} is down and Unconscious. Start Death Saving Throws on their turn: tap the dots below.`, true];
+}
+function trkHeal(c, n){
+  if(c.status === 'dead') return [`Ordinary healing cannot revive ${c.name}. Undo death only to correct a mistake.`, true];
+  const before = c.hp;
+  c.hp = Math.min(c.max, before + n);
+  if(c.hp > 0){ c.status = 'up'; c.ds = [0,0]; }
+  return [before + n > c.max ? `${c.name} heals ${n}, but HP cannot pass the max: ${c.hp} / ${c.max}.` : `${c.name} heals ${n}: ${before} + ${n} = ${c.hp}.`];
+}
+function trkDeathSave(c, success, count = 1, prefix = ''){
+  if(c.status !== 'down') return [`${c.name} does not need Death Saving Throws right now.`];
+  const idx = success ? 0 : 1;
+  c.ds[idx] = Math.min(3, c.ds[idx] + count);
+  if(c.ds[1] >= 3){ c.status = 'dead'; return [prefix + `${c.name} has three failures and is dead.`, true]; }
+  if(c.ds[0] >= 3){ c.status = 'stable'; c.ds = [0,0]; return [prefix + `${c.name} is Stable and Unconscious. Both save counts reset; no more saves unless they take damage.`]; }
+  return [prefix + `${c.name} has ${c.ds[0]} ${c.ds[0] === 1 ? 'success' : 'successes'} and ${c.ds[1]} ${c.ds[1] === 1 ? 'failure' : 'failures'}.`, !success];
 }
 function renderTracker(){
   $('trk-round').textContent = trk.round;
+  $('trk-start').textContent = trk.started ? 'Restart from round 1' : 'Start fight';
+  $('trk-start').disabled = !trk.list.length; $('trk-next').disabled = !trk.started || !trk.list.length;
   const ol = $('trk-list'); ol.textContent = '';
   if(!trk.list.length){ const li = document.createElement('li'); li.className = 'trk-note'; li.textContent = 'No one in the fight yet. Add the party, then the monsters.'; ol.append(li); }
   trk.list.forEach((c, i) => {
-    const li = document.createElement('li'); li.className = 'trk-row ' + c.kind + (i === trk.turn ? ' current' : '') + (c.hp === 0 ? ' dead' : '');
+    const li = document.createElement('li'); li.className = 'trk-row ' + c.kind + (trk.started && i === trk.turn ? ' current' : '') + (c.status === 'dead' ? ' dead' : '');
     const main = document.createElement('button'); main.type = 'button'; main.className = 'trk-main'; main.id = 'trk-row-' + i;
     const init = document.createElement('div'); init.className = 'trk-init'; init.textContent = c.init ?? '–';
     const name = document.createElement('div'); name.className = 'trk-name'; name.textContent = c.name;
@@ -3443,7 +3526,7 @@ function renderTracker(){
     else { const t = document.createElement('small'); t.textContent = 'no HP set'; hp.append(t); }
     main.append(init, name, hp);
     const conds = document.createElement('div'); conds.className = 'trk-conds';
-    if(c.hp === 0){ const ch = document.createElement('span'); ch.className = 'chip down'; ch.textContent = c.kind === 'hero' ? 'Down' : 'Dead'; conds.append(ch); }
+    if(c.hp === 0){ const ch = document.createElement('span'); ch.className = 'chip down'; ch.textContent = c.status === 'dead' ? 'Dead' : c.status === 'stable' ? 'Stable · Unconscious' : 'Down · Unconscious'; conds.append(ch); }
     c.conds.forEach(cd => { const ch = document.createElement('span'); ch.className = 'chip'; ch.textContent = cd; conds.append(ch); });
     if(conds.children.length) main.append(conds);
     main.addEventListener('click', () => { trk.open = trk.open === c.id ? null : c.id; trkSave(); renderTracker(); });
@@ -3458,37 +3541,39 @@ function trkPanel(c, i){
   const amt = document.createElement('input'); amt.type = 'number'; amt.inputMode = 'numeric'; amt.min = '0'; amt.placeholder = '0'; amt.id = 'trk-amt-' + i; amt.setAttribute('aria-label','Amount');
   const dmg = document.createElement('button'); dmg.type = 'button'; dmg.className = 'btn'; dmg.textContent = 'Damage'; dmg.id = 'trk-dmg-' + i;
   const heal = document.createElement('button'); heal.type = 'button'; heal.className = 'btn ghost'; heal.textContent = 'Heal'; heal.id = 'trk-heal-' + i;
+  const criticalLabel = document.createElement('label'), critical = document.createElement('input'); critical.type = 'checkbox';
+  criticalLabel.append(critical, document.createTextNode('Critical hit at 0 HP'));
   dmg.addEventListener('click', () => {
     const n = parseInt(amt.value, 10); if(!(n > 0) || c.max == null) return;
-    const before = c.hp; c.hp = Math.max(0, c.hp - n);
-    if(c.hp === 0 && before > 0){
-      if(c.kind === 'hero' && n - before >= c.max) trkNote(`${c.name} drops to 0 with ${n - before} damage left over. That's at least their max HP (${c.max}): instant death.`, true);
-      else if(c.kind === 'hero') trkNote(`${c.name} is down. Start Death Saving Throws on their turn: tap the dots below.`, true);
-      else trkNote(`${c.name} is dead.`);
-    } else trkNote(`${c.name} takes ${n}: ${before} − ${n} = ${c.hp}.`);
-    trkSave(); renderTracker();
+    trkNote(...trkDamage(c, n, critical.checked)); trkSave(); renderTracker();
   });
   heal.addEventListener('click', () => {
     const n = parseInt(amt.value, 10); if(!(n > 0) || c.max == null) return;
-    const before = c.hp; c.hp = Math.min(c.max, c.hp + n); if(before === 0) c.ds = [0,0];
-    trkNote(before + n > c.max ? `${c.name} heals ${n}, but HP can't pass the max: ${c.hp} / ${c.max}.` : `${c.name} heals ${n}: ${before} + ${n} = ${c.hp}.`);
-    trkSave(); renderTracker();
+    trkNote(...trkHeal(c, n)); trkSave(); renderTracker();
   });
-  row1.append(amt, dmg, heal); panel.append(row1);
-  if(c.kind === 'hero' && c.hp === 0){
+  row1.append(amt, dmg, heal);
+  const criticalRow = document.createElement('div'); criticalRow.className = 'row'; criticalRow.append(criticalLabel);
+  panel.append(row1, criticalRow);
+  if(c.kind === 'hero' && c.hp === 0 && c.status === 'down'){
     const ds = document.createElement('div'); ds.className = 'ds';
     [['ok','Successes',0],['no','Failures',1]].forEach(([cls, label, idx]) => {
       const wrap = document.createElement('span'); wrap.className = cls; wrap.textContent = label;
       const dots = document.createElement('b'); for(let k=0;k<3;k++){ const d = document.createElement('i'); if(k < c.ds[idx]) d.className = 'on'; dots.append(d); }
       const plus = document.createElement('button'); plus.type = 'button'; plus.textContent = '+1'; plus.setAttribute('aria-label', label + ' +1');
-      plus.addEventListener('click', () => { c.ds[idx] = Math.min(3, c.ds[idx] + 1);
-        if(c.ds[0] >= 3) trkNote(`${c.name} is stable. Still Unconscious, but no more saves needed.`);
-        if(c.ds[1] >= 3) trkNote(`${c.name} has three failures. They're gone.`, true);
-        trkSave(); renderTracker(); });
+      plus.addEventListener('click', () => { trkNote(...trkDeathSave(c, idx === 0)); trkSave(); renderTracker(); });
       wrap.append(dots, plus); ds.append(wrap);
     });
-    const reset = document.createElement('button'); reset.type = 'button'; reset.textContent = 'Reset'; reset.addEventListener('click', () => { c.ds = [0,0]; trkSave(); renderTracker(); });
-    ds.append(reset); panel.append(ds);
+    const natural1 = document.createElement('button'); natural1.type = 'button'; natural1.textContent = 'Natural 1: +2 failures';
+    natural1.addEventListener('click', () => { trkNote(...trkDeathSave(c, false, 2)); trkSave(); renderTracker(); });
+    const reset = document.createElement('button'); reset.type = 'button'; reset.textContent = 'Clear saves'; reset.addEventListener('click', () => { c.ds = [0,0]; trkSave(); renderTracker(); });
+    ds.append(natural1, reset); panel.append(ds);
+    const help = document.createElement('p'); help.className = 'help'; help.textContent = 'A natural 20 on a Death Saving Throw restores 1 HP: enter 1 above, then tap Heal.'; panel.append(help);
+  }
+  if(c.hp === 0 && (c.status === 'stable' || c.status === 'dead')){
+    const help = document.createElement('p'); help.className = 'help'; help.textContent = c.status === 'stable' ? 'Stable: no Death Saving Throws. Damage ends stability; healing restores consciousness.' : 'Dead: ordinary healing cannot revive this combatant.';
+    const undo = document.createElement('button'); undo.type = 'button'; undo.className = 'sm'; undo.textContent = c.status === 'stable' ? 'Undo stabilization' : 'Undo death';
+    undo.addEventListener('click', () => { c.status = c.kind === 'monster' ? 'dead' : 'down'; c.ds = [0,0]; trkNote(`${c.name} is still at 0 HP. Use Heal if the combatant should regain HP.`); trkSave(); renderTracker(); });
+    panel.append(help); if(c.kind === 'hero') panel.append(undo);
   }
   const row2 = document.createElement('div'); row2.className = 'row';
   const lbl = document.createElement('label'); lbl.textContent = 'Initiative'; lbl.htmlFor = 'trk-init-' + i;
@@ -3496,7 +3581,9 @@ function trkPanel(c, i){
   ini.addEventListener('change', () => { c.init = ini.value === '' ? null : +ini.value; trkSort(); trkSave(); renderTracker(); });
   const lbl2 = document.createElement('label'); lbl2.textContent = 'Max HP'; lbl2.htmlFor = 'trk-max-' + i;
   const mx = document.createElement('input'); mx.type = 'number'; mx.inputMode = 'numeric'; mx.id = 'trk-max-' + i; mx.value = c.max ?? ''; mx.className = 'edit';
-  mx.addEventListener('change', () => { const v = mx.value === '' ? null : Math.max(0, +mx.value); c.max = v; c.hp = v == null ? null : (c.hp == null ? v : Math.min(c.hp, v)); trkSave(); renderTracker(); });
+  mx.addEventListener('change', () => { const v = mx.value === '' ? null : Math.max(0, +mx.value); c.max = v; c.hp = v == null ? null : (c.hp == null ? v : Math.min(c.hp, v));
+    if(v === 0){ c.status = 'dead'; c.ds = [0,0]; } else if(c.hp == null || c.hp > 0){ c.status = 'up'; c.ds = [0,0]; }
+    trkSave(); renderTracker(); });
   row2.append(lbl, ini, lbl2, mx); panel.append(row2);
   const row3 = document.createElement('div'); row3.className = 'row';
   CONDITIONS.forEach(([cd]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = cd; b.setAttribute('aria-pressed', String(c.conds.includes(cd)));
@@ -3504,7 +3591,7 @@ function trkPanel(c, i){
   panel.append(row3);
   const row4 = document.createElement('div'); row4.className = 'row';
   const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'sm danger-btn'; rm.textContent = 'Remove from fight';
-  rm.addEventListener('click', () => { trk.list.splice(i, 1); if(trk.turn >= trk.list.length) trk.turn = 0; trk.open = null; trkSave(); renderTracker(); });
+  rm.addEventListener('click', () => { trkRemove(i); trkSave(); renderTracker(); });
   row4.append(rm); panel.append(row4);
   return panel;
 }
@@ -3527,8 +3614,12 @@ $('trk-add-monster').addEventListener('click', () => {
   trkNote(`${mon.n} added with ${mon.hp} HP, AC ${mon.ac}, and a rolled Initiative.`);
   trkSort(); trkSave(); renderTracker();
 });
-$('trk-next').addEventListener('click', () => {
+$('trk-start').addEventListener('click', () => {
   if(!trk.list.length) return;
+  trkStart(); trkNote('Round 1. Highest Initiative goes first.'); trkSave(); renderTracker();
+});
+$('trk-next').addEventListener('click', () => {
+  if(!trk.started || !trk.list.length) return;
   trk.turn = (trk.turn + 1) % trk.list.length; if(trk.turn === 0){ trk.round++; trkNote(`Round ${trk.round}.`); }
   trk.open = null; trkSave(); renderTracker();
 });
@@ -3536,7 +3627,7 @@ $('trk-sort').addEventListener('click', () => { trkSort(); trkSave(); renderTrac
 let clearArmed = false;
 $('trk-clear').addEventListener('click', () => {
   if(!clearArmed){ clearArmed = true; $('trk-clear').textContent = 'Really clear? Tap again'; setTimeout(() => { clearArmed = false; $('trk-clear').textContent = 'Clear fight'; }, 4000); return; }
-  trk = {round:1, turn:0, open:null, list:[]}; clearArmed = false; $('trk-clear').textContent = 'Clear fight'; trkNote(''); trkSave(); renderTracker();
+  trk = trkDefaults(); clearArmed = false; $('trk-clear').textContent = 'Clear fight'; trkNote(''); trkSave(); renderTracker();
 });
 MONSTERS.forEach(m => { const o = document.createElement('option'); o.value = m.n; o.textContent = `${m.n} (${m.hp} HP, AC ${m.ac})`; $('trk-monster').append(o); });
 
