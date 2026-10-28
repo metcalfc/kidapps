@@ -17,8 +17,8 @@ test('encounter ratings are correct, balanced and nonrepeating across every part
   let largeGroups=0;
   for(let level=1;level<=8;level++)for(let party=3;party<=6;party++)for(const [xp,cap]of ranks){
     app.evaluate(`settings.level=${level};settings.party=Array.from({length:${party}},(_,i)=>'Hero '+i);progress.xp=${xp};`);
-    const samples=app.evaluate('Array.from({length:64},()=>genEncounterBuild())'), counts={};
-    let previous;
+    const samples=app.evaluate('Array.from({length:72},()=>genEncounterBuild())'), counts={},budgetCounts={};
+    let previous,previousBudget;
     for(const problem of samples){
       const [,amount,name,shownParty,shownLevel]=problem.flavor.match(/: (\d+) (.+) against (\d+) level-(\d+) heroes/);
       const mon=monsters.find(m=>m.name===name||m.plural===name);
@@ -33,10 +33,57 @@ test('encounter ratings are correct, balanced and nonrepeating across every part
       previous=expected;tally(counts,expected);
       const asked=problem.steps[0].q.match(/A (Low|Moderate|High) difficulty/)[1];
       assert.equal(problem.steps[0].answer,thresholds[['Low','Moderate','High'].indexOf(asked)]);
+      assert.notEqual(asked,previousBudget,'the first budget calculation must not repeat consecutively');
+      previousBudget=asked;tally(budgetCounts,asked);
     }
-    for(const label of labels)assert.equal(counts[label],16,`level ${level}, party ${party}, XP ${xp}: ${label}`);
+    for(const label of labels)assert.equal(counts[label],18,`level ${level}, party ${party}, XP ${xp}: ${label}`);
+    for(const difficulty of ['Low','Moderate','High'])assert.equal(budgetCounts[difficulty],24,`level ${level}, party ${party}, XP ${xp}: ${difficulty} budget`);
   }
   assert.ok(largeGroups>0,'large real-party budgets must remain reachable using low-rank monsters');
+});
+
+test('repeated random draws cannot repeat the same budget calculation four times',()=>{
+  const app=loadDm();
+  app.random(Array(2000).fill(.999999));
+  const samples=app.evaluate('Array.from({length:30},()=>genEncounterBuild())');
+  const expected={Low:600,Moderate:900,High:1600};
+  let previous;
+  for(let i=0;i<samples.length;i++){
+    const step=samples[i].steps[0],difficulty=step.q.match(/A (Low|Moderate|High) difficulty/)[1];
+    assert.equal(step.answer,expected[difficulty]);
+    assert.notEqual(step.q,previous,'a different monster story must also offer a different budget calculation');
+    previous=step.q;
+    if(i%3===2)assert.deepEqual(Array.from(samples.slice(i-2,i+1),p=>p.steps[0].answer).sort((a,b)=>a-b),[600,900,1600]);
+  }
+});
+
+test('the real next-question and review flow varies the first budget step, not just the final rating',()=>{
+  const app=loadDm();
+  app.random(Array(5000).fill(.1));
+  app.evaluate("current.module=MODULES.find(m=>m.id==='encounter'); progress.review={genEncounterBuild:2}; nextProblem();");
+  const questions=[],answers=new Set();
+  let reviewed=false;
+  for(let index=0;index<15;index++){
+    const problem=app.evaluate('current.problem');
+    if(problem.gen==='genEncounterBuild'){
+      const shown=app.element('steps').querySelector('.q').textContent;
+      assert.equal(shown,problem.steps[0].q);
+      assert.notEqual(shown,questions.at(-1));
+      questions.push(shown);answers.add(problem.steps[0].answer);
+      reviewed ||= problem.review;
+    }
+    for(let step=0;step<problem.steps.length;step++){
+      const answer=problem.steps[step].answer;
+      if(problem.steps[step].choices)app.element('steps').querySelectorAll('.choices button').find(b=>b.textContent===answer).click();
+      else app.element('answer-input').value=String(answer);
+      app.element('check-btn').click();
+      assert.ok(app.element('feedback').classList.contains('good'),app.element('feedback').textContent);
+      app.element('next-btn').click();
+    }
+  }
+  assert.ok(reviewed,'the repeated calculation must also be prevented when review selects the exercise');
+  assert.ok(questions.length>=6);
+  assert.deepEqual([...answers].sort((a,b)=>a-b),[600,900,1600]);
 });
 
 test('encounter fit always practices division with all difficulties and both remainder cases',()=>{

@@ -1066,7 +1066,8 @@ function genEncounterBuild(){
   // need a large group; fixed count caps otherwise make whole ratings impossible.
   const groups = MON().map(mon => ({mon, min:Math.max(1,Math.ceil(bottom/mon.xp)), max:Math.floor(top/mon.xp)})).filter(g => g.min <= g.max);
   const group = pick(groups), mon = group.mon, C = rand(group.min, group.max);
-  const total = C*mon.xp, name = C===1 ? mon.n : mon.pl, which = rand(0,2);
+  const total = C*mon.xp, name = C===1 ? mon.n : mon.pl;
+  const which = practicePick('encounter-budget-difficulty', [0,1,2]);
   return { flavor:`You're planning tonight's fight at ${place()}: ${C} ${name} against ${S} level-${L} heroes.`,
     steps:[{ q:`A ${DIFF[which]} difficulty fight is ${per[which]} XP per level-${L} hero. What's the party's ${DIFF[which]} budget?`, answer:t[which],
       hint:`${S} heroes × ${per[which]} XP.`, solution:`${S} × ${per[which]} = ${t[which]} XP.` },
