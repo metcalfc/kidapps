@@ -13,9 +13,13 @@
     }
     async function performRequest(method, body, headers) {
       let response;
+      const serialized = body === undefined ? undefined : JSON.stringify(body);
+      // Fetch keepalive has a small body budget. Larger Forge backups use an
+      // ordinary request; durable pending writes still survive closing the app.
+      const keepalive = method === 'PUT' && new TextEncoder().encode(serialized).byteLength <= 48 * 1024;
       try {
-        response = await fetch(url, { method, cache:'no-store', keepalive:method === 'PUT',
-          headers:headers || {}, body:body === undefined ? undefined : JSON.stringify(body) });
+        response = await fetch(url, { method, cache:'no-store', keepalive,
+          headers:headers || {}, body:serialized });
       } catch (_) { throw error('unavailable', 'Could not reach the server.'); }
       if (response.status === 412) throw error('conflict', 'This save changed on another device.');
       if (response.status === 429) throw error('resource_exhausted', 'Please try again in a moment.');

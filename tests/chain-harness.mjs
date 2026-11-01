@@ -189,7 +189,7 @@ export function loadChain({ hash = '', boot = false, seed = 12345, storageValues
     }
     wall += target - now; now = target;
   };
-  const context = {
+  const context = { TextEncoder,
     document, location, Math: math, Date: FakeDate, console,
     matchMedia: () => ({matches:true}), getComputedStyle: () => ({getPropertyValue:()=>'#fff'}),
     crypto:{randomUUID:()=>`chain-test-${deviceID}-mutation-${++mutationNumber}`},

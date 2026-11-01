@@ -139,6 +139,23 @@ func newServer(web fs.FS, stores map[string]*Store) http.Handler {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "ok\n") })
+	// A new URL lets installed DM workers fetch the conditional-sync upgrade even
+	// when another app has cached an older shared merge.js without DM support.
+	mux.HandleFunc("GET /shared/dm-sync.js", func(w http.ResponseWriter, r *http.Request) {
+		var bundle []byte
+		for _, name := range []string{"sync-store.js", "merge.js", "sync-storage.js", "sync.js"} {
+			data, err := fs.ReadFile(s.web, "shared/"+name)
+			if err != nil {
+				http.Error(w, "sync unavailable", http.StatusInternalServerError)
+				return
+			}
+			bundle = append(bundle, data...)
+			bundle = append(bundle, '\n', ';', '\n')
+		}
+		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Write(bundle)
+	})
 	for _, a := range apps {
 		a := a
 		st := stores[a.ID]
@@ -245,8 +262,10 @@ func (s *server) getSave(w http.ResponseWriter, r *http.Request, a App, st *Stor
 	w.Write(data)
 }
 
-// MaxSave bounds one save document. The largest real save is a few KB.
+// MaxSave bounds ordinary progress documents. Forge saves also contain up to twelve
+// large maps with hundreds of written signs, plus recovered concurrent versions.
 const MaxSave = 256 << 10
+const MaxDMSave = 16 << 20
 
 func (s *server) putSave(w http.ResponseWriter, r *http.Request, a App, st *Store) {
 	if s.tooManyMisses(w, r) {
@@ -258,7 +277,11 @@ func (s *server) putSave(w http.ResponseWriter, r *http.Request, a App, st *Stor
 		http.NotFound(w, r)
 		return
 	}
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, MaxSave))
+	limit := int64(MaxSave)
+	if a.ID == "dm" {
+		limit = MaxDMSave
+	}
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, limit))
 	if err != nil {
 		http.Error(w, "save too large", http.StatusRequestEntityTooLarge)
 		return
@@ -324,8 +347,8 @@ func (s *server) putSave(w http.ResponseWriter, r *http.Request, a App, st *Stor
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// MaxShare bounds one shared item. A full dungeon with every sign written is about 10 KB.
-const MaxShare = 64 << 10
+// MaxShare accommodates a 32x24 dungeon with every sign written, including Unicode.
+const MaxShare = 1 << 20
 
 // shareBody is what a client sends to publish: its own save code, and the item itself.
 type shareBody struct {
@@ -444,6 +467,9 @@ func (s *server) manifest(w http.ResponseWriter, r *http.Request, a App) {
 // whenever any embedded file does, so each deploy installs a fresh worker.
 func (s *server) serviceWorker(w http.ResponseWriter, r *http.Request, a App) {
 	files := []string{"/" + a.ID + "/"}
+	if a.ID == "dm" {
+		files = append(files, "/shared/dm-sync.js")
+	}
 	for _, root := range []string{a.ID, "shared"} {
 		fs.WalkDir(s.web, root, func(p string, d fs.DirEntry, err error) error {
 			if err != nil || d.IsDir() {

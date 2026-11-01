@@ -215,15 +215,184 @@
     return result;
   }
 
+  // A dungeon is an authored document. Never resolve competing map edits by
+  // timestamp: keep the server version and recover the other complete document.
+  const dungeonContent = dungeon => Object.fromEntries(Object.entries(object(dungeon)).filter(([key]) => !['id', 'rev', 'tested', 'share', 'publishedRev'].includes(key)));
+  function contentHash(value) {
+    const text = JSON.stringify(canonical(value)); let hash = 2166136261;
+    for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 16777619);
+    return (hash >>> 0).toString(36);
+  }
+  function recoveredDungeon(dungeon, occupied) {
+    const copy = clone(dungeon), stem = String(copy.id || 'dungeon') + '-recovered-' + contentHash(dungeonContent(copy));
+    const suffixText = ' (recovered copy)';
+    copy.title = String(copy.title || 'A dungeon').replace(/ \(recovered copy\)$/, '').slice(0, 40 - suffixText.length).trimEnd() + suffixText;
+    copy.rev = Math.max(1, number(copy.rev)); copy.tested = 0; copy.share = null; copy.publishedRev = 0;
+    let id = stem, suffix = 1;
+    while (occupied.has(id)) {
+      if (equal(dungeonContent(occupied.get(id)), dungeonContent(copy))) return null;
+      id = stem + '-' + ++suffix;
+    }
+    copy.id = id; occupied.set(id, copy); return copy;
+  }
+  function dungeonMap(value) {
+    const result = new Map();
+    for (const raw of Array.isArray(value) ? value : []) {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
+      const dungeon = clone(raw), id = String(dungeon.id || 'legacy-' + contentHash(dungeonContent(dungeon)));
+      dungeon.id = id;
+      if (!result.has(id)) result.set(id, dungeon);
+      else if (!equal(result.get(id), dungeon)) recoveredDungeon(dungeon, result);
+    }
+    return result;
+  }
+  function dungeonsMerge(base, local, remote, mode) {
+    const b = dungeonMap(base), l = dungeonMap(local), r = dungeonMap(remote), result = new Map(), recover = [];
+    // Reserve all existing IDs before allocating a recovery ID, including copies
+    // from an earlier CAS retry. A repeat merge then reuses that recovery.
+    const occupied = new Map([...r, ...l]);
+    for (const id of union([...r.keys()], [...l.keys()], [...b.keys()])) {
+      const before = b.get(id), left = l.get(id), right = r.get(id);
+      let chosen;
+      if (!left || !right) {
+        const existing = left || right;
+        if (existing && (mode === 'legacy' || !before || !equal(dungeonContent(existing), dungeonContent(before)))) chosen = existing;
+      } else if (equal(left, right)) chosen = left;
+      else if (mode !== 'legacy' && equal(before, left)) chosen = right;
+      else if (mode !== 'legacy' && equal(before, right)) chosen = left;
+      else {
+        const lc = dungeonContent(left), rc = dungeonContent(right), bc = dungeonContent(before);
+        if (equal(lc, rc)) {
+          chosen = mode === 'legacy' ? clone(right) : fields(before, left, right);
+          if (mode === 'legacy' && !chosen.share && left.share) {
+            chosen.share = left.share;
+            if (own(left, 'publishedRev')) chosen.publishedRev = left.publishedRev;
+          }
+          chosen.rev = Math.max(1, number(left.rev), number(right.rev));
+          chosen.tested = [left, right].some(d => number(d.rev) > 0 && d.tested === d.rev) ? chosen.rev : 0;
+        } else if (mode !== 'legacy' && (equal(lc, bc) || equal(rc, bc))) {
+          chosen = clone(equal(lc, bc) ? right : left);
+          // Publishing and editing on separate devices should keep the share
+          // code, while a test of older content cannot test the new revision.
+          const metadata = ['share', 'publishedRev'].some(key => own(object(before), key) !== own(left, key) || !equal(object(before)[key], left[key])) ? left : right;
+          for (const key of ['share', 'publishedRev']) {
+            if (own(metadata, key)) chosen[key] = clone(metadata[key]); else delete chosen[key];
+          }
+          if (chosen.share && !equal(dungeonContent(metadata), dungeonContent(chosen))) chosen.publishedRev = null;
+        }
+        else { chosen = right; recover.push(left); }
+      }
+      if (chosen) result.set(id, clone(chosen));
+    }
+    for (const dungeon of recover) {
+      const copy = recoveredDungeon(dungeon, occupied);
+      if (copy) result.set(copy.id, copy);
+    }
+    return [...result.values()];
+  }
+  function numericMap(base, local, remote, mode) {
+    return Object.fromEntries(keys(base, local, remote).map(key => [key, counter(base && base[key], local && local[key], remote && remote[key], mode)]));
+  }
+  function dmProgress(base, local, remote, mode) {
+    base = object(base); local = object(local); remote = object(remote);
+    if (!sameGeneration(local.reset, remote.reset)) return clone(compareGeneration(local.reset, remote.reset) > 0 ? local : remote);
+    if (!sameGeneration(base.reset, local.reset)) base = {};
+    const result = fields(base, local, remote);
+    result.xp = counter(base.xp, local.xp, remote.xp, mode);
+    result.bestStreak = Math.max(number(local.bestStreak), number(remote.bestStreak));
+    result.modules = {};
+    for (const key of keys(base.modules, local.modules, remote.modules)) {
+      const b = object(object(base.modules)[key]), l = object(object(local.modules)[key]), r = object(object(remote.modules)[key]);
+      result.modules[key] = fields(b, l, r);
+      for (const field of ['correct', 'tries']) result.modules[key][field] = counter(b[field], l[field], r[field], mode);
+    }
+    result.bosses = numericMap(base.bosses, local.bosses, remote.bosses, mode);
+    const days = numericMap(base.days, local.days, remote.days, mode);
+    result.days = Object.fromEntries(Object.keys(days).sort().slice(-30).map(day => [day, days[day]]));
+    result.review = {};
+    for (const key of keys(base.review, local.review, remote.review)) {
+      const b = object(base.review)[key], l = object(local.review)[key], r = object(remote.review)[key];
+      const pending = mode === 'legacy' ? Math.max(number(l), number(r)) : equal(l, b) ? number(r) : equal(r, b) ? number(l) : Math.max(number(l), number(r));
+      if (pending > 0) result.review[key] = pending;
+    }
+    const prompts = fields(base.reviewPrompts, local.reviewPrompts, remote.reviewPrompts);
+    for (const key of Object.keys(result.review)) {
+      if (!number(object(local.review)[key]) && number(object(remote.review)[key]) && own(object(remote.reviewPrompts), key)) prompts[key] = clone(remote.reviewPrompts[key]);
+      else if (!number(object(remote.review)[key]) && number(object(local.review)[key]) && own(object(local.reviewPrompts), key)) prompts[key] = clone(local.reviewPrompts[key]);
+    }
+    result.reviewPrompts = Object.fromEntries(Object.keys(result.review).filter(key => own(prompts, key)).map(key => [key, prompts[key]]));
+    const ld = object(local.daily), rd = object(remote.daily), bd = object(base.daily);
+    if (ld.date || rd.date) {
+      if (ld.date !== rd.date) result.daily = clone(String(ld.date || '') > String(rd.date || '') ? ld : rd);
+      else {
+        result.daily = fields(bd.date === ld.date ? bd : {}, ld, rd);
+        result.daily.done = counter(bd.date === ld.date ? bd.done : 0, ld.done, rd.done, mode);
+        result.daily.complete = !!(ld.complete || rd.complete);
+        result.daily.streak = Math.max(number(ld.streak), number(rd.streak));
+      }
+    }
+    return result;
+  }
+  function dmBoard(base, local, remote, mode) {
+    const b = new Map((Array.isArray(base) ? base : []).map(c => [String(c.id), c]));
+    const l = new Map((Array.isArray(local) ? local : []).map(c => [String(c.id), c]));
+    const r = new Map((Array.isArray(remote) ? remote : []).map(c => [String(c.id), c]));
+    return union([...r.keys()], [...l.keys()]).filter(id => mode === 'legacy' || !b.has(id) || (l.has(id) && r.has(id)))
+      .map(id => clone(l.has(id) && (!r.has(id) || !equal(l.get(id), b.get(id))) ? l.get(id) : r.get(id)));
+  }
+  function dmForge(base, local, remote, mode) {
+    base = object(base); local = object(local); remote = object(remote);
+    const result = fields(base, local, remote);
+    result.dungeons = dungeonsMerge(base.dungeons, local.dungeons, remote.dungeons, mode);
+    result.board = dmBoard(base.board, local.board, remote.board, mode);
+    result.played = {};
+    for (const key of keys(base.played, local.played, remote.played)) {
+      const b = object(object(base.played)[key]), l = object(object(local.played)[key]), r = object(object(remote.played)[key]);
+      result.played[key] = fields(b, l, r); result.played[key].cleared = !!(l.cleared || r.cleared);
+    }
+    result.stats = fields(base.stats, local.stats, remote.stats);
+    for (const name of ['right', 'tries', 'commissions']) result.stats[name] = counter(object(base.stats)[name], object(local.stats)[name], object(remote.stats)[name], mode);
+    result.completed = union(local.completed, remote.completed);
+    if (result.completed.length) result.board = result.board.filter(c => !result.completed.includes(c.id));
+    return result;
+  }
+  function dmMerge(base, local, remote, mode = 'three-way') {
+    base = object(base); local = object(local); remote = object(remote);
+    if (mode !== 'legacy' && equal(base, local)) return clone(remote);
+    if (mode === 'legacy' && !Object.keys(remote).length) return clone(local);
+    const result = fields(base, local, remote);
+    result.updatedAt = Math.max(number(local.updatedAt), number(remote.updatedAt));
+    const hasDmData = state => number(object(state.progress).xp) > 0 || Object.keys(object(object(state.progress).modules)).length > 0 ||
+      (Array.isArray(object(state.forge).dungeons) && state.forge.dungeons.length > 0) ||
+      (Array.isArray(object(state.tracker).list) && state.tracker.list.length > 0) || !!object(state.settings).dm || number(object(state.settings).level, 3) !== 3;
+    const preferred = hasDmData(local) !== hasDmData(remote) ? hasDmData(local) ? local : remote : newer(local, remote);
+    result.settings = mode === 'legacy' ? clone(object(preferred.settings)) : fields(base.settings, local.settings, remote.settings);
+    result.progress = dmProgress(base.progress, local.progress, remote.progress, mode);
+    result.tracker = clone(mode === 'legacy' ? preferred.tracker : equal(base.tracker, local.tracker) ? remote.tracker : local.tracker);
+    result.forge = dmForge(base.forge, local.forge, remote.forge, mode);
+    return result;
+  }
+  function legacyMerge(app, local, remote) {
+    if (app === 'chain') return chainMerge({}, local, remote, 'legacy');
+    if (app === 'signal') return signalMerge({}, local, remote, 'legacy');
+    if (app === 'dm') return dmMerge({}, local, remote, 'legacy');
+    throw new Error('Unknown app: ' + app);
+  }
+
   root.KidMerge = Object.freeze({
     equal,
     chain: (base, local, remote) => chainMerge(base, local, remote),
     signal: (base, local, remote) => signalMerge(base, local, remote),
-    legacy: (app, local, remote) => {
-      if (app === 'chain') return chainMerge({}, local, remote, 'legacy');
-      if (app === 'signal') return signalMerge({}, local, remote, 'legacy');
+    dm: (base, local, remote) => dmMerge(base, local, remote),
+    mergeDm: (base, local, remote) => dmMerge(base, local, remote),
+    merge: (app, base, local, remote) => {
+      if (app === 'chain') return chainMerge(base, local, remote);
+      if (app === 'signal') return signalMerge(base, local, remote);
+      if (app === 'dm') return dmMerge(base, local, remote);
       throw new Error('Unknown app: ' + app);
     },
+    legacy: legacyMerge,
+    seedLegacy: legacyMerge,
     stampReset,
   });
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -10,29 +10,45 @@
   const mutationId = () => root.crypto && typeof root.crypto.randomUUID === 'function' ? root.crypto.randomUUID()
     : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2) + '-' + Math.random().toString(36).slice(2);
 
-  function create({key, initial, merge, legacy = (_local, remote) => remote}) {
+  function create({key, initial, merge, legacy = (_local, remote) => remote, storage = root.localStorage, preserveAdoption = false}) {
     const metaKey = key + ':sync', pendingKey = key + ':pending';
-    const read = name => { try { const value = root.localStorage.getItem(name); return value ? JSON.parse(value) : null; } catch (_) { return null; } };
+    const read = name => { try { const value = storage.getItem(name); return value ? JSON.parse(value) : null; } catch (_) { return null; } };
     const write = (name, value) => {
-      try { root.localStorage.setItem(name, JSON.stringify(value)); }
+      try { storage.setItem(name, JSON.stringify(value)); }
       catch (_) { throw fail('Could not preserve the pending save on this device.'); }
     };
     let meta = read(metaKey) || {base:clone(initial), migrated:false};
     let pending = read(pendingKey);
+    let durableMeta = clone(meta), durablePending = clone(pending);
     // Establish the common base before the app can record any new practice.
     // If storage is temporarily unavailable, writes still require durable storage below.
     try { write(metaKey, meta); } catch (_) {}
     const storeMeta = () => write(metaKey, meta);
     const storePending = value => { write(pendingKey, value); pending = value; };
     const clearPending = () => {
-      try { root.localStorage.removeItem(pendingKey); }
+      try { storage.removeItem(pendingKey); }
       catch (_) { throw fail('Could not finish saving on this device.'); }
       pending = null;
     };
-    const confirmed = remote => {
+    const confirmed = (remote, ui, adopted = remote) => {
       const next = {base:clone(remote), migrated:true};
+      if (preserveAdoption) next.adoption = {id:mutationId(), ui:clone(ui), remote:clone(adopted)};
       write(metaKey, next); meta = next;
     };
+    async function flush() {
+      const checkpointMeta = clone(meta), checkpointPending = clone(pending);
+      try {
+        if (storage && typeof storage.flush === 'function') await storage.flush();
+        durableMeta = checkpointMeta; durablePending = checkpointPending;
+      } catch (error) {
+        // The transaction did not commit. Keep the old baseline and replayable
+        // mutation in memory too, so retrying cannot treat unseen state as adopted.
+        meta = clone(durableMeta); pending = clone(durablePending);
+        write(metaKey, meta);
+        if (pending) write(pendingKey, pending); else storage.removeItem(pendingKey);
+        throw error;
+      }
+    }
     const unpack = snapshot => snapshot && snapshot.exists ? clone(snapshot.data()) : undefined;
     const tag = snapshot => snapshot && snapshot.exists ? snapshot.metadata && snapshot.metadata.etag : '*';
 
@@ -40,7 +56,7 @@
       if (pending || remote === undefined) return clone(local);
       const seed = meta.migrated ? remote : legacy(clone(meta.base), clone(remote));
       const desired = merge(clone(meta.base), clone(local), clone(seed));
-      confirmed(remote);
+      confirmed(remote, local, desired);
       return desired;
     }
 
@@ -51,18 +67,19 @@
       // the caller still displays the old local snapshot and must be able to retry it.
       const seed = remote === undefined ? undefined : meta.migrated ? remote : legacy(clone(meta.base), clone(remote));
       const candidate = remote === undefined ? clone(local) : merge(clone(meta.base), clone(local), clone(seed));
-      if (remote !== undefined && equal(candidate, remote)) { confirmed(remote); return remote; }
+      if (remote !== undefined && equal(candidate, remote)) { confirmed(remote, ui); return remote; }
       // For a missing document the first write contains all existing local progress.
       // Keep the original baseline for a race with another device creating the document.
       const record = {mutation:mutationId(), base:remote === undefined ? previousBase : remote,
         local:clone(candidate), ui:clone(ui), kind:'save', candidate:clone(candidate), etag:tag(snapshot)};
       storeMeta(); storePending(record);
-      if (remote !== undefined) confirmed(remote);
+      if (remote !== undefined) confirmed(remote, ui);
       return undefined;
     }
 
     async function commitPending(ref) {
       for (let attempt = 0; attempt < 8; attempt++) {
+        await flush();
         const record = pending;
         let snapshot;
         try {
@@ -78,7 +95,7 @@
             // A known rejected CAS proves this mutation was not applied. A business
             // conflict can now be discarded; ambiguous network errors never take this path.
             if (mergeError && mergeError.code === 'conflict') {
-              confirmed(remote); clearPending(); mergeError.remote = clone(remote);
+              confirmed(remote, record.ui); clearPending(); await flush(); mergeError.remote = clone(remote);
             }
             throw mergeError;
           }
@@ -88,7 +105,7 @@
         const saved = unpack(snapshot);
         if (saved === undefined) throw fail('The server did not return the saved document.');
         // Persist the confirmed base before deleting the replayable pending record.
-        confirmed(saved); clearPending();
+        confirmed(saved, record.ui); clearPending(); await flush();
         return {saved, record};
       }
       throw fail('The save changed repeatedly. Please try again.');
@@ -103,7 +120,7 @@
           const alreadySaved = await prepare(ref, intent, ui);
           if (!pending) {
             const desired = merge(ui, clone(local), alreadySaved);
-            if (equal(desired, alreadySaved)) return clone(alreadySaved);
+            if (equal(desired, alreadySaved)) { await flush(); return clone(alreadySaved); }
             intent = desired; ui = clone(local); continue;
           }
         }
@@ -111,7 +128,7 @@
         // ui is what the app displayed, including for an unacknowledged transaction.
         // Using record.local here would incorrectly credit an unshown spend back.
         const desired = merge(clone(record.ui), clone(local), clone(saved));
-        if (equal(desired, saved)) return clone(saved);
+        if (equal(desired, saved)) { await flush(); return clone(saved); }
         intent = desired; ui = clone(local);
       }
       throw fail('More local changes are waiting to save. Please try again.');
@@ -128,7 +145,7 @@
       await save(ref, local);
       const snapshot = await ref.get(), remote = unpack(snapshot);
       if (remote === undefined) throw fail('The saved document disappeared. Please try again.');
-      confirmed(remote);
+      confirmed(remote, local);
       const ui = clone(local), draft = clone(remote);
       let candidate;
       try { const changed = change(draft); candidate = merge(clone(remote), changed === undefined ? draft : changed, clone(remote)); }
@@ -138,7 +155,7 @@
       return {state:await save(ref, local), result:clone(result)};
     }
 
-    return Object.freeze({reconcile, save, transact, get hasPending() { return !!pending; }});
+    return Object.freeze({reconcile, save, transact, flush, get adoption() { return clone(meta.adoption || null); }, get hasPending() { return !!pending; }});
   }
 
   root.KidSync = Object.freeze({create});

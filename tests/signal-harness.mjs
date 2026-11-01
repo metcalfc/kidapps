@@ -171,7 +171,7 @@ export function loadSignal({ hash = '', boot = false, seed = 12345 } = {}) {
     return state / 0x100000000;
   };
   const location = { hash };
-  const context = {
+  const context = { TextEncoder,
     document, location, Math: math, console,
     localStorage: storage(), sessionStorage: storage(),
     history: { replaceState: (_state, _title, url) => { location.hash = url; } },

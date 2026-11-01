@@ -71,8 +71,9 @@ test('a higher-level hero can miss a Zombie on natural 1 and then score a natura
   const fight=app.evaluate("fpFight($('fp-enc'),'Zombie')");
   assert.match(prompt(app),/d20 roll is 1 /);
   assert.match(grade(app,'Miss'),/natural 1 always misses/);
-  app.random([0,.999999]);await proceed(app); // Enemy misses, then the hero rolls 20.
-  assert.equal(app.evaluate('fp.hp'),100);assert.match(prompt(app),/d20 roll is 20 /);
+  app.random([0,.999999]);await proceed(app); // Enemy misses; its turn waits for Continue.
+  assert.equal(app.evaluate('fp.hp'),100);assert.match(box(app).textContent,/Monster's turn.*natural 1 always misses/);
+  await proceed(app);assert.match(prompt(app),/d20 roll is 20 /);
   assert.match(grade(app,'Hit'),/Critical Hit/);
   app.random([0,.999999]);await proceed(app); // 1 + 8, with the +3 modifier once.
   assert.match(prompt(app),/1d8\+3 becomes 2d8\+3/);
@@ -97,8 +98,10 @@ test('a monster natural 20 doubles its damage dice and adds its modifier once',a
   const app=loadDm({seed:4217});ready(app);
   app.random([weaponFraction(app,'longsword'),0]);
   const fight=app.evaluate("fpFight($('fp-enc'),'Zombie')");grade(app,'Miss');
-  app.random([.999999,0,.999999,.999999]);await proceed(app); // Enemy 20, damage 1 + 6 + 1, hero 20.
+  app.random([.999999,0,.999999,.999999]);await proceed(app); // Enemy 20, damage 1 + 6 + 1.
   assert.equal(app.evaluate('fp.hp'),92);assert.match(app.element('fp-log').textContent,/Critical Hit! The Zombie's slam hits you for 8/);
+  assert.match(box(app).textContent,/1d6\+1 becomes 2d6\+1/);
+  await proceed(app); // Acknowledge the monster's turn, then the hero rolls 20.
   grade(app,'Hit');app.random([.999999,.999999]);await proceed(app);grade(app,19);await proceed(app);await fight;
   assert.equal(app.evaluate('fp.kills'),1);assert.equal(app.evaluate('fp.hp'),92);
 });

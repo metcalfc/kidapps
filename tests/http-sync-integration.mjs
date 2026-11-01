@@ -12,7 +12,7 @@ const scripts = ['merge.js','sync-store.js','sync.js'].map(name => readFileSync(
 function device(app, code, initial) {
   const values = new Map();
   const context = vm.createContext({
-    crypto:{randomUUID}, console,
+    crypto:{randomUUID}, console, TextEncoder,
     localStorage:{getItem:key => values.get(key) || null, setItem:(key,value) => values.set(key,String(value)), removeItem:key => values.delete(key)},
     fetch:(url, options) => fetch(new URL(url, baseUrl), options),
     document:{visibilityState:'visible', addEventListener(){}, removeEventListener(){}},
@@ -20,7 +20,7 @@ function device(app, code, initial) {
   });
   context.window = context;
   scripts.forEach(script => vm.runInContext(script, context));
-  const ref = context.KidSyncStore.doc(app, code, app === 'chain' ? 'game-v2' : 'signal-save');
+  const ref = context.KidSyncStore.doc(app, code, app === 'chain' ? 'game-v2' : app === 'dm' ? 'pda-save' : 'signal-save');
   const sync = context.KidSync.create({key:app, initial:copy(initial), merge:context.KidMerge[app], legacy:(local,remote) => context.KidMerge.legacy(app,local,remote)});
   return {ref,sync};
 }
@@ -71,3 +71,24 @@ assert.equal(combined.chapters.c1.puzzles.p1.solved,true);
 assert.equal(combined.chapters.c1.puzzles.p2.solved,true);
 assert.equal(combined.byLang.fr.c1.puzzles.p1.solved,true);
 console.log('Signal: concurrent HTTP saves preserve separate puzzles and languages.');
+
+const dm={updatedAt:1,settings:{dm:'Test builder'},progress:{xp:0,modules:{},bestStreak:0},tracker:{round:1,list:[]},forge:{dungeons:[],board:[],played:{},stats:{right:0,tries:0,commissions:0}}};
+const dmCode=await newCode('dm'),g=device('dm',dmCode,dm),h=device('dm',dmCode,dm);
+await g.ref.commit(dm,{mutation:randomUUID(),etag:'*'});g.sync.reconcile(dm,dm);h.sync.reconcile(dm,dm);
+const dungeon=id=>({id,v:2,size:'small',title:id,intro:'',rev:1,tested:0,cells:'SE'+'.'.repeat(106),ground:'s'.repeat(108),walls:'.'.repeat(237),things:{}});
+const laptop=copy(dm),tablet=copy(dm);laptop.forge.dungeons.push(dungeon('laptop'));tablet.forge.dungeons.push(dungeon('tablet'));
+laptop.progress.xp=5;tablet.progress.xp=10;laptop.updatedAt=tablet.updatedAt=2;
+await Promise.all([g.sync.save(g.ref,laptop),h.sync.save(h.ref,tablet)]);
+const dmCurrent=(await g.ref.get()).data();
+assert.deepEqual(copy(dmCurrent.forge.dungeons.map(d=>d.id)).sort(),['laptop','tablet']);assert.equal(dmCurrent.progress.xp,15);
+const i=device('dm',dmCode,dmCurrent),j=device('dm',dmCode,dmCurrent);i.sync.reconcile(dmCurrent,dmCurrent);j.sync.reconcile(dmCurrent,dmCurrent);
+const one=copy(dmCurrent),two=copy(dmCurrent);one.forge.dungeons[0].title='First builder version';two.forge.dungeons[0].title='Second builder version';
+one.forge.dungeons[0].rev++;two.forge.dungeons[0].rev++;
+await Promise.all([i.sync.save(i.ref,one),j.sync.save(j.ref,two)]);
+const dmSaved=(await i.ref.get()).data();
+assert.equal(dmSaved.forge.dungeons.length,3);
+assert.ok(dmSaved.forge.dungeons.some(d=>d.title.startsWith('First builder version')));
+assert.ok(dmSaved.forge.dungeons.some(d=>d.title.startsWith('Second builder version')));
+const oldWrite=await fetch(new URL('/dm/api/saves/'+dmCode+'/pda-save',baseUrl),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(dm)});
+assert.equal(oldWrite.status,409,'an older open app cannot replace conditional Forge saves');
+console.log('DM Forge: concurrent HTTP maps and practice preserved; competing edits recover both versions; old unconditional writes rejected.');

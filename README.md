@@ -8,13 +8,15 @@ Practice games for kids, built as installable web apps for iPad and Mac:
 
 Live at https://kidapps.exe.xyz/.
 
+Forge creatures take a 5-foot step after each hero move, wait or search, respecting their footprint, walls and closed doors. Combat shows each monster's action, attack roll, damage dice and HP change before Continue. Editing and undo use the same stored choices as testing and sharing.
+
 ## How saves work
 
 There are no accounts. The first time a device opens an app, the server gives it a **save code** such as `OTTER-4821`. A parent finds it on the app's Parent / Grown-ups screen. Entering the same code on another device puts both devices on one save.
 
 - Each app keeps its own codes in its own SQLite file (`dm.db`, `chain.db`, `signal.db`).
 - Each device keeps a working copy in `localStorage` and syncs it to the server. The apps keep working offline and catch up when they reconnect. Another device's progress shows up within about 20 seconds, or as soon as the app comes back to the front.
-- Chain Reaction and Signal merge independent changes from their last confirmed common save, using conditional writes and durable request IDs. Retrying a lost response cannot apply the same credit or debit twice. Practice works offline; Chain cash-in tickets require server confirmation so devices share one bank and daily limit. Old snapshots are imported once. If old copies disagree during the first upgrade, the existing server bank stays authoritative so a stale device cannot restore minutes already cashed in; known practice after the upgrade is merged. Progress already overwritten by an older app cannot be reconstructed from those snapshots.
+- All three games merge independent changes from their last confirmed common save, using conditional writes and durable request IDs. Retrying a lost response cannot apply the same progress, credit or debit twice. Forge keeps both versions of competing map edits as recovered copies and tracks tested and published revisions separately. Its larger sync records use IndexedDB, scoped to the save code, while working maps stay in localStorage. Practice works offline; Chain cash-in tickets require server confirmation so devices share one bank and daily limit. Old snapshots are imported once. If old copies disagree during the first upgrade, the existing server bank stays authoritative so a stale device cannot restore minutes already cashed in; known practice after the upgrade is merged. Progress already overwritten by an older app cannot be reconstructed from those snapshots.
 - Each family chooses its own 4-digit parent PIN the first time they open the parent screen. The PIN is stored in their save. It keeps kids out of the settings; it is not real security.
 - On iOS a home-screen app does not share storage with Safari. To carry the save across, the manifest's `start_url` includes the device's code, so the installed app opens on the same save.
 
@@ -24,7 +26,7 @@ Apps with `Shares: true` (DM Academy's Forge) can publish an item under its own 
 
 ### Under the hood
 
-The apps were first written as claude.ai artifacts, which save through `window.claude.use('db')`. `web/shared/save.js` provides identity and the compatible document API against this server. Chain Reaction and Signal use `sync-store.js` for ETags and conditional writes, `merge.js` for three-way progress merges, and `sync.js` to persist retryable operations before sending them. SQLite records applied mutation IDs atomically with each save. After a document has used this protocol, unconditional writes are rejected so an older open app cannot replace merged progress; reloading loads the updated app.
+The apps were first written as claude.ai artifacts, which save through `window.claude.use('db')`. `web/shared/save.js` provides identity and the compatible document API against this server. The games use `sync-store.js` for ETags and conditional writes, `merge.js` for three-way progress merges, and `sync.js` to persist retryable operations before sending them. DM loads these through a fresh `/shared/dm-sync.js` bundle so installed service workers can upgrade safely. SQLite records applied mutation IDs atomically with each save. After a document has used this protocol, unconditional writes are rejected so an older open app cannot replace merged progress; reloading loads the updated app.
 
 ## Layout
 

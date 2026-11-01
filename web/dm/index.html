@@ -46,6 +46,7 @@
 <!-- splash:end -->
 <link rel="stylesheet" href="/shared/fonts/fonts.css">
 <script src="/shared/save.js"></script>
+<script src="/shared/dm-sync.js"></script>
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <style>
 /* Home-screen app polish for iPad and Mac: no long-press callouts or double-tap zoom on controls. */
@@ -426,6 +427,9 @@ details.lesson[open] summary::after{content:"−"}
 .enc .foe{display:flex; align-items:center; gap:10px; font-variant-numeric:tabular-nums}
 .enc .foe .sigil{width:44px; height:44px; border-radius:50%; background:var(--ink); color:var(--brass); border:2px solid var(--brass); display:grid; place-items:center; font-family:var(--display); font-weight:700}
 .enc .foe .bar{flex:1; height:9px} .enc .foe .bar i{background:var(--ember)}
+.fp-monster-turn{display:grid; gap:10px; border-left:4px solid var(--ember); padding-left:12px}
+.fp-monster-turn h3, .fp-monster-turn p{margin:0}
+.fp-monster-turn .roll{font-variant-numeric:tabular-nums}
 
 .toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(20px); opacity:0;
   background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-weight:700; font-family:var(--display); font-size:.9rem; letter-spacing:.03em;
@@ -596,7 +600,8 @@ details.lesson[open] summary::after{content:"−"}
             <button class="down" type="button" data-d="down" aria-label="Down">▼</button>
             <button class="right" type="button" data-d="right" aria-label="Right">▶</button>
           </div>
-          <div class="actions" style="justify-content:center"><button class="btn ghost" id="fp-search" type="button">Search for secret doors</button></div>
+          <div class="actions" style="justify-content:center"><button class="btn ghost" id="fp-wait" type="button">Wait a turn</button><button class="btn ghost" id="fp-search" type="button">Search for secret doors</button></div>
+          <p class="help">After you move, wait or search, monsters in your room move up to 5 feet toward you. A monster next to you starts a fight. Walls, closed doors, traps and open pits block their movement.</p>
         </div>
         <div style="display:grid; gap:12px">
           <div class="reading" id="fp-read"></div>
@@ -865,7 +870,7 @@ function diceAvg(x){ return x.n*DICE_AVG[x.d] + x.m; }
 function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? Object.assign({}, fallback, JSON.parse(v)) : Object.assign({}, fallback); }catch(e){ return Object.assign({}, fallback); } }
 function save(key, val){
   try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
-  if(SYNC_KEYS.includes(key)){ stampSet('pda-updatedAt', Date.now()); cloudSchedule(); }
+  if(SYNC_KEYS.includes(key)){ stampSet('pda-updatedAt', Math.max(Date.now(), stampGet('pda-updatedAt') + 1)); cloudSchedule(); }
 }
 
 // ---------- Account backup ----------
@@ -874,25 +879,48 @@ function save(key, val){
 // device whose browser was cleared and keeps two devices in step. Never rename CLOUD_DOC.
 const SYNC_KEYS = ['pda-settings','pda-progress','pda-tracker','pda-forge'];
 const CLOUD_DOC = 'pda-save';
-const cloud = { ref:null, timer:0, writing:false, dirty:false, state:'connecting', unsub:null };
+const cloud = { ref:null, timer:0, writing:false, dirty:false, state:'connecting', unsub:null, deferred:null };
+let dmSync = null;
+let dmBootState = null, dmStorage = null, dmHadLocalData = false;
+const createDmSync = storage => KidSync.create({key:'pda-save', initial:dmBootState, storage, preserveAdoption:true, merge:KidMerge.dm, legacy:(local, remote) => KidMerge.legacy('dm', local, remote)});
+async function ensureDmSync(id){
+  if(dmSync) return;
+  dmStorage = await KidSyncStorage.open({key:'pda-save', namespace:'dm:'+id});
+  dmSync = createDmSync(dmStorage);
+}
 function stampGet(k){ try{ return +localStorage.getItem(k) || 0; }catch(e){ return 0; } }
 function stampSet(k, v){ try{ localStorage.setItem(k, String(v)); }catch(e){} }
 function hasLocalData(){ try{ return SYNC_KEYS.some(k => localStorage.getItem(k) !== null); }catch(e){ return false; } }
 function activity(p){ p = p || {}; return (p.xp || 0) + Object.values(p.modules || {}).reduce((a,m)=>a+(m.tries||0),0); }
 function snapshotLocal(){ return { settings, progress, tracker: trk, forge, updatedAt: stampGet('pda-updatedAt') || Date.now() }; }
 function cloudSchedule(){ cloud.dirty = true; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 1500); }
+function cloudAdopt(base, remote, adoptionId = dmSync && dmSync.adoption && dmSync.adoption.id){
+  // A pointer stroke has not stored its cells yet. Merge after it completes or is canceled.
+  if(ed.stroke){ cloud.deferred = {base, remote, adoptionId}; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFinish, 100); return; }
+  const desired = KidMerge.dm(base, snapshotLocal(), remote);
+  applyRemote(desired, adoptionId); cloud.dirty = cloud.dirty || !KidMerge.equal(desired, remote);
+}
+function cloudFinish(){
+  if(ed.stroke){ cloud.timer = setTimeout(cloudFinish, 100); return; }
+  const pending = cloud.deferred; cloud.deferred = null;
+  if(pending) cloudAdopt(pending.base, pending.remote, pending.adoptionId);
+  if(!cloud.ref) cloudConnect(); else if(cloud.dirty) cloudFlush();
+}
 async function cloudFlush(){
   if(!cloud.ref || !cloud.dirty) return;
+  if(cloud.deferred){ cloudFinish(); return; }
+  if(ed.stroke){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 100); return; }
   if(cloud.writing){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 800); return; }
   cloud.writing = true; cloud.dirty = false;
   const body = JSON.parse(JSON.stringify(snapshotLocal()));
-  try{ await cloud.ref.set(body); stampSet('pda-syncedAt', body.updatedAt); cloud.state = 'ok'; }
+  try{ const saved = await dmSync.save(cloud.ref, body); cloudAdopt(body, saved); stampSet('pda-syncedAt', saved.updatedAt); cloud.state = 'ok'; }
   catch(e){
     cloud.dirty = true; const code = e && e.code;
     if(['revoked','not_granted','capability_disabled','capability_removed'].includes(code)){ cloud.ref = null; cloud.state = 'local'; }
     else { cloud.state = 'retry'; cloud.timer = setTimeout(cloudFlush, (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random()*3000); }
   }
   cloud.writing = false; renderSyncNote();
+  if(cloud.dirty && cloud.ref && !cloud.deferred){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, cloud.state === 'ok' ? 100 : 10000); }
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden'){ clearTimeout(cloud.timer); cloudFlush(); } });
 addEventListener('pagehide', () => { clearTimeout(cloud.timer); cloudFlush(); });
@@ -904,19 +932,24 @@ function renderSyncNote(){
     local:'Saved on this device only for now. It backs up to the server once this device is online.' }[cloud.state];
 }
 // Put an account copy into memory and this browser, then redraw whatever is on screen.
-function applyRemote(r){
+function applyRemote(r, adoptionId){
+  const nextForge = Object.assign(forgeDefaults(), r.forge || {}), forgeChanged = !KidMerge.equal(forge, nextForge);
   settings = Object.assign({}, DEFAULT_SETTINGS, r.settings || {});
   progress = Object.assign({xp:0, modules:{}, bestStreak:0}, r.progress || {});
   trk = trkNormalize(r.tracker || trkDefaults());
-  forge = Object.assign(forgeDefaults(), r.forge || {});
-  try{ localStorage.setItem('pda-settings', JSON.stringify(settings)); localStorage.setItem('pda-progress', JSON.stringify(progress)); localStorage.setItem('pda-tracker', JSON.stringify(trk)); localStorage.setItem('pda-forge', JSON.stringify(forge)); }catch(e){}
+  if(forgeChanged) forge = nextForge;
+  try{
+    localStorage.setItem('pda-forge', JSON.stringify(forge)); localStorage.setItem('pda-settings', JSON.stringify(settings));
+    localStorage.setItem('pda-progress', JSON.stringify(progress)); localStorage.setItem('pda-tracker', JSON.stringify(trk));
+    if(adoptionId) localStorage.setItem('pda-save:adopted', adoptionId);
+  }catch(e){}
   stampSet('pda-updatedAt', r.updatedAt || 0); stampSet('pda-syncedAt', r.updatedAt || 0);
   renderRank(); fillSettings();
   if(!$('view-home').hidden){ renderDaily(); renderHall(); }
   else if(!$('view-tracker').hidden) renderTracker();
   else if(!$('view-parent').hidden) renderParent();
   else if(!$('view-boss').hidden && !boss.active) renderBossPick();
-  else forgeRefresh();
+  else if(forgeChanged) forgeRefresh();
 }
 // Started offline: try again when the network or the app comes back.
 function cloudRetry(){ if(!cloud.ref && cloud.state !== 'connecting' && document.visibilityState === 'visible'){ cloud.state = 'connecting'; cloudConnect(); } }
@@ -928,27 +961,37 @@ async function cloudConnect(){
     const user = db ? await window.claude.use('user') : null;
     const id = user ? await user.id() : null;
     if(!db || !id){ cloud.state = 'local'; return; }
-    const ref = db.doc('data/users/' + id + '/' + CLOUD_DOC);
+    await ensureDmSync(id);
+    if(ed.stroke){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudConnect, 100); return; }
+    const adoption = dmSync.adoption;
+    if(!dmSync.hasPending && adoption && localStorage.getItem('pda-save:adopted') !== adoption.id){
+      cloudAdopt(dmHadLocalData ? adoption.ui : dmBootState, adoption.remote, adoption.id);
+      if(cloud.deferred) return;
+    }
+    const ref = KidSyncStore.doc('dm', id, CLOUD_DOC), before = JSON.parse(JSON.stringify(snapshotLocal()));
     const snap = await ref.get();
     cloud.ref = ref;
-    const synced = stampGet('pda-syncedAt'), localAt = stampGet('pda-updatedAt');
-    const localChanged = localAt > synced || (synced === 0 && hasLocalData());
-    if(!snap.exists){ if(hasLocalData()) cloudSchedule(); }
-    else {
-      const r = snap.data() || {}, remoteChanged = (r.updatedAt || 0) > synced;
-      if(remoteChanged && !localChanged) applyRemote(r);
-      else if(remoteChanged && localChanged){
-        // Both sides moved on since the last sync: keep whichever has more practice in it.
-        if(activity(r.progress) >= activity(progress)) applyRemote(r); else cloudSchedule();
-      } else if(localChanged) cloudSchedule();
-    }
+    const remote = snap.exists ? snap.data() : undefined;
+    const desired = dmSync.reconcile(before, remote);
+    await dmSync.flush();
+    cloudAdopt(before, desired);
+    cloud.dirty = cloud.dirty || dmSync.hasPending || !KidMerge.equal(desired, remote);
     cloud.state = 'ok';
     cloud.unsub = ref.onSnapshot(s => {
-      if(!s.exists || s.metadata.hasPendingWrites || cloud.writing || cloud.dirty) return;
-      const r = s.data() || {};
-      if((r.updatedAt || 0) > stampGet('pda-syncedAt')) applyRemote(r);
+      if(s.metadata.hasPendingWrites || cloud.writing || cloud.dirty || cloud.deferred || ed.stroke) return false;
+      const current = snapshotLocal(), r = s.exists ? s.data() : undefined;
+      if(!dmSync.hasPending && KidMerge.equal(current, r)) return true;
+      cloud.writing = true;
+      (async () => {
+        try{
+          const merged = dmSync.reconcile(current, r); await dmSync.flush(); cloudAdopt(current, merged);
+          cloud.dirty = cloud.dirty || dmSync.hasPending || !KidMerge.equal(merged, r); cloud.state = 'ok';
+        }catch(e){ cloud.dirty = true; cloud.state = 'retry'; }
+        finally{ cloud.writing = false; if(cloud.dirty && !cloud.deferred) cloudSchedule(); renderSyncNote(); }
+      })();
+      return false;
     }, () => { cloud.unsub = null; });
-    if(cloud.dirty) cloudFlush();
+    if(cloud.dirty && !cloud.deferred) await cloudFlush();
   }catch(e){ cloud.state = cloud.ref ? 'retry' : 'local'; if(cloud.ref) cloudSchedule(); }
   finally{ renderSyncNote(); }
 }
@@ -1850,6 +1893,7 @@ function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add(
 // ---------- Views ----------
 const VIEWS = ['home','module','boss','forge','tracker','dice-tray','parent'];
 function show(view){
+  if(!$('forge-play').hidden) fpCancel();
   if(view !== 'boss' && boss.active) bossLeave();
   VIEWS.forEach(v => { $('view-'+v).hidden = v !== view; });
   document.querySelectorAll('nav button').forEach(b => { if(b.dataset.view === view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
@@ -2203,14 +2247,23 @@ const DOORS = {
   secret:{ name:'Secret door', cost:10, does:'Looks like a wall until a hero searches and passes an Investigation check. On D&D maps the DM marks it with an S.' },
 };
 const TRAPS = {
-  spike:{ name:'Spike trap', glyph:'✶', cost:() => 10, does:'A Dexterity saving throw, or 2d6 damage. Half damage if they make it.' },
-  pit:{ name:'Pit', cost:t => t.depth / 2, does:'A hidden pit. A Dexterity saving throw, or fall in: 1d6 damage for every 10 feet.' },
-  spiked:{ name:'Spiked pit', cost:t => t.depth / 2 + 10, does:'A hidden pit with spikes at the bottom: the fall, plus 2d10 more.' },
-  net:{ name:'Net', glyph:'#', cost:() => 10, does:'Drops on a hero, who needs a Strength check to tear free.' },
-  dart:{ name:'Poison darts', glyph:'➹', cost:() => 10, does:'A Constitution saving throw against the poison, or 2d6 more damage.' },
+  spike:{ name:'Spike trap', glyph:'✶', cost:() => 10, dc:[10,15], damage:'2d6' },
+  pit:{ name:'Pit', cost:t => t.depth / 2, dc:[10,15] },
+  spiked:{ name:'Spiked pit', cost:t => t.depth / 2 + 10, dc:[10,15], damage:'2d10' },
+  net:{ name:'Net', glyph:'#', cost:() => 10, dc:[10,13], checks:3 },
+  dart:{ name:'Poison darts', glyph:'➹', cost:() => 10, dc:[10,15], damage:'1d4', poison:'2d6' },
 };
 const PIT_DEPTHS = [10, 20, 30];
 const isPit = t => !!t && (t.trap === 'pit' || t.trap === 'spiked');
+const pitDice = t => ({ n:t.depth / 10, d:6, m:0 });
+// The inspector and encounters read the same dice, DC ranges and escape rules.
+function trapSummary(t){
+  const T = TRAPS[t.trap], dc = `DC ${T.dc[0]}–${T.dc[1]}`;
+  if(isPit(t)) return `A hidden ${t.depth}-foot pit. A Dexterity saving throw (${dc}) avoids the fall. Otherwise, take ${diceText(pitDice(t).n, 6, 0)} falling damage${T.damage ? ` plus ${T.damage} from spikes` : ''}, then climb out. Stepping on any square opens the whole pit.`;
+  if(t.trap === 'net') return `Drops on a hero. A Strength check (${dc}) tears it open. After ${T.checks} failed checks, the hero wriggles free. The net deals no damage.`;
+  if(t.trap === 'dart') return `The dart deals ${T.damage} damage. A Constitution saving throw (${dc}) avoids an extra ${T.poison} poison damage.`;
+  return `A Dexterity saving throw (${dc}), or ${T.damage} damage. Half damage, rounded down, on a successful save.`;
+}
 const CHESTS = { s:{ name:'Small chest', cost:10, gold:20 }, m:{ name:'Medium chest', cost:25, gold:50 }, l:{ name:'Large chest', cost:50, gold:100 } };
 // Large monsters stand on 2 × 2 squares (10 ft), Huge ones on 3 × 3 (15 ft). The rest take one square.
 const MON_SPAN = { 'Giant Spider':2, 'Dire Wolf':2, Ogre:2, Owlbear:2, Troll:2, Minotaur:2, Wyvern:2, 'Young Green Dragon':2, 'Hill Giant':3 };
@@ -2232,6 +2285,10 @@ const TOOL_TIPS = {
 const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
 const forgeBudget = d => (200 + 100 * rankFor(progress.xp).idx) * (SIZES[d && d.size] || SIZES.small).mult;
 const monCost = n => { const m = MONSTERS.find(x => x.n === n); return m ? Math.max(5, m.xp / 5) : 10; };
+function forgeMonster(name){
+  const mon = MONSTERS.find(m => m.n === name) || MONSTERS.find(m => m.n === 'Goblin');
+  return { ...mon, hp:Math.max(4, Math.round(mon.hp / 3)), bonus:4, span:monSpan(mon.n) };
+}
 const forgeDefaults = () => ({ dungeons:[], board:[], played:{}, stats:{ right:0, tries:0, commissions:0 } });
 
 // ----- The map: squares, and walls on the lines between them -----
@@ -2308,12 +2365,12 @@ function forgeRooms(M){
 }
 // The squares a monster covers when it stands with its top-left corner on square i, or null unless
 // they are all floor with no walls running between them.
-function footprint(M, i, n){
+function footprint(M, i, n, opened){
   const x0 = i % M.W, y0 = Math.floor(i / M.W), out = [];
   for(let y = y0; y < y0 + n; y++) for(let x = x0; x < x0 + n; x++){
     if(!isFloor(M, x, y)) return null;
-    if(x > x0 && M.edges.has('v' + x + ',' + y)) return null;
-    if(y > y0 && M.edges.has('h' + x + ',' + y)) return null;
+    if(x > x0 && M.edges.has('v' + x + ',' + y) && !(opened && opened.has('v' + x + ',' + y))) return null;
+    if(y > y0 && M.edges.has('h' + x + ',' + y) && !(opened && opened.has('h' + x + ',' + y))) return null;
     out.push(y * M.W + x);
   }
   return out;
@@ -2323,6 +2380,11 @@ function monsterSquares(M){
   const occ = new Map();
   M.cells.forEach((c, i) => { if(c === 'm') (footprint(M, i, monSpan((M.things[i] || {}).mon)) || [i]).forEach(j => occ.set(j, i)); });
   return occ;
+}
+// Replacement may reuse its own footprint, but cannot cover another piece or monster.
+function monsterFits(M, i, name, replacing = -1){
+  const f = footprint(M, i, monSpan(name)), occ = monsterSquares(M);
+  return !!f && f.every(j => (M.cells[j] === '.' || j === replacing) && (!occ.has(j) || occ.get(j) === replacing));
 }
 // A pit can cover several squares; stepping on any of them opens all of it.
 function pitGroup(M, i){
@@ -2357,15 +2419,19 @@ function forgeCosts(d){
   ['s','m','l'].forEach(s => add(CHESTS[s].name + 's', chests[s] || 0, CHESTS[s].cost));
   return { lines, total: lines.reduce((a, l) => a + l[3], 0) };
 }
-function forgeProblems(d){
+function forgeLayoutProblems(d){
   const M = mapOf(d), out = [], n = ch => M.cells.filter(c => c === ch).length;
   if(n('S') !== 1) out.push('Put a Start square on the map.');
   if(n('E') !== 1) out.push('Put an Exit square on the map.');
   M.cells.forEach((c, i) => {
     if(c !== 'm') return;
     const name = (M.things[i] || {}).mon || 'Goblin', s = monSpan(name);
-    if(s > 1 && !footprint(M, i, s)) out.push(`${an(name)} needs ${s} × ${s} squares (${s * 5} ft × ${s * 5} ft) of floor with no walls through it. Move it or make more room.`);
+    if(!monsterFits(M, i, name, i)) out.push(`${an(name)} needs ${s} × ${s} squares (${s * 5} ft × ${s * 5} ft) of empty floor with no walls or other pieces through it. Move it or make more room.`);
   });
+  return out;
+}
+function forgeProblems(d){
+  const out = forgeLayoutProblems(d);
   const cost = forgeCosts(d).total, budget = forgeBudget(d);
   if(cost > budget) out.push(`It costs ${cost} gold and your budget is ${budget}. Take something out.`);
   return out;
@@ -2555,6 +2621,11 @@ function drawForgeMap(c, M, s, o){
     if(ch === '$'){ const z = CHESTS[t.size] ? t.size : 's'; drawGlyph(c, x, y, s, { s:'◆', m:'◆◆', l:'◆◆◆' }[z], '#8F6610', { s:.55, m:.4, l:.3 }[z]); return; }
     drawGlyph(c, x, y, s, PIECES[ch].glyph, { S:'#2E6B4E', E:'#AE2F1C', k:'#8F6610', s:'#5A4630' }[ch]);
   });
+  if(play && o.monsters) o.monsters.forEach(mon => {
+    const n = monSpan(mon.name), f = footprint(M, mon.pos, n, o.opened);
+    if(!(f || [mon.pos]).some(seen)) return;
+    drawToken(c, (mon.pos % W + n / 2) * s, (Math.floor(mon.pos / W) + n / 2) * s, n * s * .42, monSlug(mon.name), mon.name.charAt(0), '#E2B452');
+  });
   if(play) drawToken(c, (o.hero % W + .5) * s, (Math.floor(o.hero / W) + .5) * s, s * .42, 'hero', 'H', '#5EAF88');
   if(o.sel >= 0){
     const t = M.things[o.sel] || {}, n = M.cells[o.sel] === 'm' && footprint(M, o.sel, monSpan(t.mon)) ? monSpan(t.mon) : 1;
@@ -2644,7 +2715,11 @@ function mapView(cv, wrap, o){
     if(e.pointerType === 'mouse' && !ptrs.size && o.hover) o.hover(v.at(e));
   });
   const up = e => { ptrs.delete(e.pointerId); if(ptrs.size < 2) gest = null; if(!ptrs.size) lock = false; if(active){ active = false; if(o.up) o.up(); } };
-  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('pointerup', up);
+  cv.addEventListener('pointercancel', e => {
+    ptrs.delete(e.pointerId); if(ptrs.size < 2) gest = null; if(!ptrs.size) lock = false;
+    if(active){ active = false; if(o.cancel) o.cancel(); }
+  });
   cv.addEventListener('pointerleave', e => { if(e.pointerType === 'mouse' && !active && o.hover) o.hover(null); });
   wrap.addEventListener('wheel', e => { if(!e.ctrlKey) return; e.preventDefault(); v.zoomAround(v.zoom * Math.exp(-e.deltaY * .01), e.clientX, e.clientY); }, { passive:false });
   new ResizeObserver(() => v.size()).observe(wrap);
@@ -2752,7 +2827,7 @@ const COMMISSIONS = {
   },
   story: {
     make: () => ({}),
-    text: () => 'The bard wants a tale. Give one dungeon a story of at least three sentences, and put up at least two signs with something written on them.',
+    text: () => 'The bard wants a tale. Give one dungeon a story of at least three sentences, and put up at least two signs with at least three words each.',
     find: () => { const d = forge.dungeons.find(d => sentences(d.intro) >= 3 && [...d.cells].filter((c, i) => c === 's' && String((d.things[i] || {}).text || '').trim().split(/\s+/).length >= 3).length >= 2); return d ? { d } : null; },
     miss: () => 'Not yet: one dungeon needs a story of three sentences or more and two signs that say something (at least three words each).',
     ask: null,
@@ -2768,7 +2843,15 @@ const COMMISSIONS = {
   secret: {
     make: () => ({}),
     text: () => 'The thieves\' guild wants a hidden room: a room whose only way in is a secret door.',
-    find: () => findRoom(r => r.doors.length > 0 && r.doors.every(k => k === 'secret')),
+    find: () => findRoom((r, M) => {
+      if(!r.doors.length || !r.doors.every(k => k === 'secret')) return false;
+      const room = new Set(r.cells);
+      return ![...r.wallKeys].some(k => {
+        if(M.edges.get(k).m !== 'wood') return false;
+        const [t, x, y] = parseKey(k), [[ax, ay], [bx, by]] = wallSides(t, x, y);
+        return isFloor(M, ax, ay) && isFloor(M, bx, by) && room.has(ay * M.W + ax) !== room.has(by * M.W + bx);
+      });
+    }),
     miss: () => 'None of your rooms has a secret door as its only way in yet.',
     ask: (c, f) => ({ q:`Your hidden room in “${f.d.title}” has ${f.r.walls} built wall and door sections, counting each section once. Each section is 5 feet long. How many feet of wall is that?`, answer: f.r.walls * 5,
       hint:'Each section is 5 feet. Multiply.', solution:`${f.r.walls} × 5 = ${f.r.walls * 5} feet.` }),
@@ -2782,17 +2865,33 @@ const COMMISSIONS = {
       hint:'How many tens are in the number of feet?', solution:`${f.t.depth} ÷ 10 = ${f.t.depth / 10}, so ${f.t.depth / 10}d6.` }),
   },
 };
-// Tops the board up to three jobs; true when it had to add one (so there is something to save).
+const forgeCommissionIds = new Set();
+let forgeCommissionSeq = 0;
+function forgeCommissionId(){
+  const seed = globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function'
+    ? globalThis.crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  let id;
+  do { id = seed + '-' + (++forgeCommissionSeq).toString(36); } while(forgeCommissionIds.has(id));
+  forgeCommissionIds.add(id); return id;
+}
+// Tops the board up to three jobs, repairing old duplicate IDs before a reward can remove them.
+// True when the board changed, so the repaired IDs are saved as well.
 function forgeBoard(){
   forge.board = (forge.board || []).filter(c => COMMISSIONS[c.kind]);
-  let added = false;
+  let changed = false;
+  const used = new Set();
+  forge.board.forEach(c => { if(c.id) forgeCommissionIds.add(c.id); });
+  forge.board.forEach(c => {
+    if(!c.id || used.has(c.id)){ c.id = forgeCommissionId(); changed = true; }
+    used.add(c.id); forgeCommissionIds.add(c.id);
+  });
   while(forge.board.length < 3){
-    added = true;
+    changed = true;
     const taken = forge.board.map(c => c.kind), kinds = Object.keys(COMMISSIONS).filter(k => !taken.includes(k));
     const kind = pick(kinds);
-    forge.board.push(Object.assign({ kind, id: Date.now().toString(36) + rand(0, 999) }, COMMISSIONS[kind].make()));
+    forge.board.push(Object.assign({ kind, id:forgeCommissionId() }, COMMISSIONS[kind].make()));
   }
-  return added;
+  return changed;
 }
 function renderBoard(){
   const box = $('forge-board'); box.textContent = '';
@@ -2818,7 +2917,7 @@ function renderBoard(){
 // ----- Forge home -----
 function forgeStatus(d){
   const cost = forgeCosts(d).total, S = SIZES[d.size] || SIZES.small;
-  return `${S.name} · ${cost} gold · ` + (d.share ? (d.tested === d.rev ? 'Shared' : 'Shared, changed since') : d.tested === d.rev ? 'Tested, ready to share' : 'Not tested yet');
+  return `${S.name} · ${cost} gold · ` + (d.share ? (d.publishedRev === d.rev ? 'Shared' : d.publishedRev == null ? 'Shared, share again to confirm the latest version' : 'Shared, changed since') : d.tested === d.rev ? 'Tested, ready to share' : 'Not tested yet');
 }
 function renderForge(){
   forgeUpgradeAll();
@@ -2861,7 +2960,7 @@ async function forgeJoin(raw){
   if(res.status === 429){ msg.textContent = 'Too many wrong codes. Wait a few minutes and try again.'; return; }
   if(!res.ok){ msg.textContent = 'Something went wrong. Try again.'; return; }
   const d = forgeClean(await res.json());
-  if(!d.cells.includes('S') || !d.cells.includes('E')){ msg.textContent = 'That dungeon is not finished yet.'; return; }
+  if(forgeLayoutProblems(d).length){ msg.textContent = 'That dungeon needs a repair. Ask its builder to check the map, test it and share it again.'; return; }
   msg.textContent = '';
   forge.played = forge.played || {};
   forge.played[code] = Object.assign({ cleared:false }, forge.played[code], { title: d.title, by: d.author });
@@ -2899,7 +2998,9 @@ function forgeEdit(id){
 function edChanged(){ ed.d.rev = (ed.d.rev || 0) + 1; forgeSave(); forgeNote(''); }
 const edSnapshot = () => ({ cells:ed.d.cells, ground:ed.d.ground, walls:ed.d.walls, things:JSON.stringify(ed.d.things) });
 function edRestore(s){ Object.assign(ed.d, { cells:s.cells, ground:s.ground, walls:s.walls, things:JSON.parse(s.things) }); ed.M = mapOf(ed.d); }
+function edRemember(s){ ed.undo.push(s); if(ed.undo.length > 60) ed.undo.shift(); }
 function edUndo(){
+  if(ed.stroke) return feCancel();
   const s = ed.undo.pop(); if(!s) return feRead('Nothing to undo.');
   edRestore(s); ed.sel = -1; ed.measure = null; edChanged(); renderInspect(); renderBudget(); feView.draw(); feRead('Undone.');
 }
@@ -2937,7 +3038,7 @@ function setPiece(M, i, ch){
 }
 function feDown(p){
   const M = ed.M, tool = ed.tool, c = clampCell(M, p);
-  ed.stroke = { tool, snap: edSnapshot(), changed:false, last:p, n:0, keys:new Set() };
+  ed.stroke = { tool, snap: edSnapshot(), sel:ed.sel, changed:false, last:p, n:0, keys:new Set() };
   ed.measure = null; ed.hover = null;
   if(tool === 'room'){ ed.stroke.start = c; ed.preview = { x0:c.x, y0:c.y, x1:c.x, y1:c.y }; roomText(); }
   else if(tool === 'wall') ed.stroke.v = clampVertex(M, p);
@@ -2964,7 +3065,7 @@ function feMove(p){
     }
     st.v = v; ed.hover = { vertex:true, x:v.x, y:v.y };
     if(st.n){ const W = WALLS[ed.wall]; feRead(`New wall: <b>${st.n}</b> ${st.n === 1 ? 'section' : 'sections'} × 5 ft = <b>${st.n * 5} ft</b> of ${W.name.toLowerCase()}. That costs ${st.n} × ${W.cost} = <b>${st.n * W.cost}</b> gold.`); }
-  } else if(st.tool === 'hall' || st.tool === 'erase' || st.tool === 't') dragPaint(st.last, p, false);
+  } else if(st.tool === 'hall' || st.tool === 'erase' || (st.tool === 't' && isPit({ trap:ed.trap }))) dragPaint(st.last, p, false);
   st.last = p; feView.draw();
 }
 function feUp(){
@@ -2979,10 +3080,16 @@ function feUp(){
     ed.preview = null;
   }
   ed.stroke = null;
-  if(st.changed){ normalize(ed.M); ed.undo.push(st.snap); if(ed.undo.length > 60) ed.undo.shift(); mapStore(ed.d, ed.M); edChanged(); renderBudget(); renderInspect(); }
+  if(st.changed){ normalize(ed.M); edRemember(st.snap); mapStore(ed.d, ed.M); edChanged(); renderBudget(); renderInspect(); }
   feView.draw();
 }
-function feCancel(){ const st = ed.stroke; if(!st) return; ed.stroke = null; ed.preview = null; edRestore(st.snap); feView.draw(); }
+function feCancel(){
+  const st = ed.stroke; if(!st) return;
+  ed.stroke = null; ed.preview = null; ed.measure = null; ed.hover = null;
+  edRestore(st.snap); ed.sel = st.sel ?? -1;
+  // Restoring replaces the map and its things; rebuild controls so their handlers use that copy.
+  renderInspect(); renderBudget(); feRead('Gesture canceled.'); feView.draw();
+}
 function feHover(p){
   const M = ed.M; ed.hover = null;
   if(p && ed.tool === 'wall'){ const v = clampVertex(M, p); ed.hover = { vertex:true, x:v.x, y:v.y }; }
@@ -3009,7 +3116,9 @@ function dragPaint(a, b, first){
     const f = n ? i / n : 0, fx = a.fx + (b.fx - a.fx) * f, fy = a.fy + (b.fy - a.fy) * f, c = clampCell(M, { fx, fy }), j = c.y * M.W + c.x;
     if(st.tool === 'erase'){
       // Each wall is changed once per stroke: a tap on a door takes out the door, not the wall too.
-      const ne = nearestEdge(M, fx, fy), e = ne && ne.d < .2 && !st.keys.has(ne.key) ? M.edges.get(ne.key) : null;
+      const ne = nearestEdge(M, fx, fy);
+      if(ne && ne.d < .2 && st.keys.has(ne.key)) continue;
+      const e = ne && ne.d < .2 ? M.edges.get(ne.key) : null;
       if(e){
         st.keys.add(ne.key);
         const [t, x, y] = parseKey(ne.key), [[ax, ay], [bx, by]] = wallSides(t, x, y);
@@ -3019,13 +3128,17 @@ function dragPaint(a, b, first){
       if(fillRock(M, c.x, c.y)){ st.changed = true; normalize(M); }
     } else if(st.tool === 'hall'){
       if(digFloor(M, c.x, c.y, ed.ground)){ st.changed = true; st.n++; normalize(M); }
-    } else if(M.cells[j] === '.' && !monsterSquares(M).has(j)){ setPiece(M, j, 't'); st.changed = true; st.n++; }
+    } else if(M.cells[j] === '.' && !monsterSquares(M).has(j)){ setPiece(M, j, 't'); ed.sel = j; st.changed = true; st.n++; }
   }
   if(st.tool === 'hall' && st.n) feRead(`Dug <b>${st.n}</b> ${st.n === 1 ? 'square' : 'squares'} of ${GROUNDS[ed.ground].name.toLowerCase()} floor. In a straight line that's <b>${st.n * 5} ft</b> of hall.`);
-  if(st.tool === 't' && st.n) feRead(`A pit <b>${st.n}</b> ${st.n === 1 ? 'square' : 'squares'} big and ${ed.depth} ft deep. Pits only go on empty floor.`);
+  if(st.tool === 't' && st.n) feRead(isPit({ trap:ed.trap }) ? `A pit <b>${st.n}</b> ${st.n === 1 ? 'square' : 'squares'} big and ${ed.depth} ft deep. Pits only go on empty floor.` : `${TRAPS[ed.trap].name}: ${trapSummary({ trap:ed.trap })}`);
 }
 function placeDoor(p){
   const M = ed.M, ne = nearestEdge(M, p.fx, p.fy), D = DOORS[ed.door];
+  if(ne){
+    const [t, x, y] = parseKey(ne.key), sides = wallSides(t, x, y);
+    if(!sides.every(([sx, sy]) => isFloor(M, sx, sy))){ feRead('Dig out floor on both sides of a door first.', true); return; }
+  }
   let e = ne && M.edges.get(ne.key);
   // A door in the open gap between a hall and a room puts the wall up around it too.
   if(!e && ne && ne.d < .35){
@@ -3043,12 +3156,12 @@ function placePiece(c){
   const occ = monsterSquares(M), here = occ.get(i);
   if(t === 'm'){
     // Big monsters stand with their top-left corner on the tapped square, or as near it as fits.
-    const n = monSpan(ed.mon), free = j => M.cells[j] === '.' || (here !== undefined && occ.get(j) === here);
+    const n = monSpan(ed.mon);
     let at = -1;
     for(let dy = 0; dy < n && at < 0; dy++) for(let dx = 0; dx < n && at < 0; dx++){
       if(!inMap(M, c.x - dx, c.y - dy)) continue;
-      const a = (c.y - dy) * M.W + c.x - dx, f = footprint(M, a, n);
-      if(f && f.every(j => free(j) && (!occ.has(j) || occ.get(j) === here))) at = a;
+      const a = (c.y - dy) * M.W + c.x - dx;
+      if(monsterFits(M, a, ed.mon, here ?? -1)) at = a;
     }
     if(at < 0){ feRead(`${an(ed.mon)} is ${n === 3 ? 'Huge' : 'Large'}: it needs ${n} × ${n} squares (${n * 5} ft × ${n * 5} ft) of empty floor with no walls through it.`, true); return; }
     if(here !== undefined){ M.cells[here] = '.'; delete M.things[here]; }
@@ -3058,7 +3171,7 @@ function placePiece(c){
     if(M.cells[i] === t && 'SEk'.includes(t)) return;
     if(here !== undefined){ M.cells[here] = '.'; delete M.things[here]; }
     setPiece(M, i, t); ed.sel = 'm$st'.includes(t) ? i : -1;
-    if(t === 't') feRead(`${TRAPS[ed.trap].name}: ${TRAPS[ed.trap].does}`);
+    if(t === 't') feRead(`${TRAPS[ed.trap].name}: ${trapSummary(M.things[i])}`);
   }
   st.changed = true;
 }
@@ -3103,7 +3216,11 @@ function kindPicker(box, title, list, which, cur, onPick, cost){
 function renderInspect(){
   const box = $('fe-inspect'), M = ed.M; box.textContent = '';
   const ch = ed.sel >= 0 ? M.cells[ed.sel] : null, t = ed.sel >= 0 ? M.things[ed.sel] : null;
-  const changed = () => { mapStore(ed.d, M); edChanged(); renderBudget(); feView.draw(); };
+  const changed = edit => {
+    const before = edSnapshot(); edit();
+    if(before.things === JSON.stringify(M.things)) return;
+    edRemember(before); mapStore(ed.d, M); edChanged(); renderBudget(); feView.draw();
+  };
   const monPicker = (value, onPick) => {
     const lab = mk('label', '', 'Which monster?'), sel = mk('select'); lab.htmlFor = sel.id = 'fe-mon';
     MON().slice().sort((a, b) => a.xp - b.xp).forEach(m => {
@@ -3112,6 +3229,8 @@ function renderInspect(){
     });
     if(!MON().some(m => m.n === value)){ const o = mk('option', '', value); o.value = value; sel.append(o); }
     sel.value = value; sel.addEventListener('change', () => onPick(sel.value)); box.append(lab, sel);
+    const mon = forgeMonster(value);
+    box.append(mk('p', 'help', `Forge stats: ${mon.hp} HP · AC ${mon.ac} · ${mon.weapon} +${mon.bonus} to hit · ${mon.atk} damage. Moves up to 5 feet toward the hero each map turn, then starts a fight when next to them. Forge uses reduced monster HP for shorter fights.`));
   };
   const sizePicker = (value, onPick) => {
     box.append(mk('label', '', 'How big a chest?'));
@@ -3123,26 +3242,30 @@ function renderInspect(){
     box.append(mk('label', '', 'What kind of trap?'));
     const row = mk('div', 'choices');
     Object.entries(TRAPS).forEach(([k, T]) => { const b = mk('button', 'sm', T.name); b.type = 'button'; b.setAttribute('aria-pressed', String(trap === k)); b.addEventListener('click', () => onPick(k, depth)); row.append(b); });
-    box.append(row, mk('p', 'help', TRAPS[trap].does));
+    box.append(row, mk('p', 'help', trapSummary({ trap, depth })));
     if(isPit({ trap })){
       box.append(mk('label', '', 'How deep?'));
       const dr = mk('div', 'choices');
-      PIT_DEPTHS.forEach(n => { const b = mk('button', 'sm', `${n} ft: ${n / 10}d6${trap === 'spiked' ? ' + 2d10' : ''}, costs ${TRAPS[trap].cost({ depth:n })} a square`); b.type = 'button'; b.setAttribute('aria-pressed', String(depth === n)); b.addEventListener('click', () => onPick(trap, n)); dr.append(b); });
+      PIT_DEPTHS.forEach(n => { const b = mk('button', 'sm', `${n} ft: ${diceText(pitDice({ depth:n }).n, 6, 0)}${TRAPS[trap].damage ? ' + ' + TRAPS[trap].damage : ''}, costs ${TRAPS[trap].cost({ depth:n })} a square`); b.type = 'button'; b.setAttribute('aria-pressed', String(depth === n)); b.addEventListener('click', () => onPick(trap, n)); dr.append(b); });
       box.append(dr);
     }
   };
-  if(ed.tool === 'select' && t){
+  if(t && 'm$st'.includes(ch)){
+    box.append(mk('p', 'help', 'Editing the highlighted piece on the map. Choose its tool again to set up the next piece.'));
     if(ch === 'm'){ box.append(mk('h3', '', 'Monster')); monPicker(t.mon, v => {
-      const n = monSpan(v), old = t.mon; t.mon = v;
-      if(n > 1 && !footprint(M, ed.sel, n)){ t.mon = old; feRead(`${an(v)} needs ${n} × ${n} squares of floor here, with no walls through them. Put it somewhere bigger with the Monster tool.`, true); renderInspect(); return; }
-      ed.mon = v; changed(); renderInspect(); }); return; }
-    if(ch === '$'){ box.append(mk('h3', '', 'Chest')); sizePicker(t.size, v => { t.size = v; ed.size = v; changed(); renderInspect(); }); return; }
+      const n = monSpan(v);
+      if(!monsterFits(M, ed.sel, v, ed.sel)){ feRead(`${an(v)} needs ${n} × ${n} squares of empty floor here, with no walls or other pieces through them. Put it somewhere bigger with the Monster tool.`, true); renderInspect(); return; }
+      changed(() => { t.mon = v; });
+      ed.mon = v; renderInspect(); }); return; }
+    if(ch === '$'){ box.append(mk('h3', '', 'Chest')); sizePicker(t.size, v => { changed(() => { t.size = v; }); ed.size = v; renderInspect(); }); return; }
     if(ch === 't'){
       box.append(mk('h3', '', 'Trap'));
       // Changing one square of a pit changes the whole pit.
       trapPicker(t.trap, t.depth || 10, (k, n) => {
-        (isPit(t) ? pitGroup(M, ed.sel) : [ed.sel]).forEach(j => { M.things[j] = isPit({ trap:k }) ? { trap:k, depth:n } : { trap:k }; });
-        ed.trap = k; ed.depth = n; changed(); renderInspect();
+        changed(() => {
+          (isPit(t) ? pitGroup(M, ed.sel) : [ed.sel]).forEach(j => { M.things[j] = isPit({ trap:k }) ? { trap:k, depth:n } : { trap:k }; });
+        });
+        ed.trap = k; ed.depth = n; renderInspect();
       });
       return;
     }
@@ -3150,7 +3273,13 @@ function renderInspect(){
       box.append(mk('h3', '', 'Sign'));
       const lab = mk('label', '', 'What does it say?'), ta = mk('textarea'); lab.htmlFor = ta.id = 'fe-sign'; ta.maxLength = 160; ta.value = t.text || '';
       ta.placeholder = 'Beware: the third step is a trap…';
-      ta.addEventListener('input', () => { t.text = ta.value; mapStore(ed.d, M); edChanged(); });
+      let typing = false;
+      ta.addEventListener('input', () => {
+        if(t.text === ta.value) return;
+        if(!typing){ edRemember(edSnapshot()); typing = true; }
+        t.text = ta.value; mapStore(ed.d, M); edChanged();
+      });
+      ta.addEventListener('blur', () => { typing = false; });
       box.append(lab, ta); return;
     }
   }
@@ -3160,7 +3289,7 @@ function renderInspect(){
   if(ed.tool === 'wall') kindPicker(box, 'Made of', WALLS, 'wall', ed.wall, k => { ed.wall = k; renderInspect(); feRead(`${WALLS[k].name}: ${WALLS[k].does}`); }, (k, d) => `${d.cost} gp / 5 ft`);
   if(ed.tool === 'door') kindPicker(box, 'Kind of door', DOORS, 'door', ed.door, k => { ed.door = k; renderInspect(); feRead(`${DOORS[k].name}: ${DOORS[k].does}`); }, (k, d) => `${d.cost} gp`);
   if(ed.tool === 'm') monPicker(ed.mon, v => { ed.mon = v; renderInspect(); });
-  if(ed.tool === 't') trapPicker(ed.trap, ed.depth, (k, n) => { ed.trap = k; ed.depth = n; renderInspect(); feRead(isPit({ trap:k }) ? 'Drag across empty floor to dig the pit. It can cover several squares.' : TRAPS[k].does); });
+  if(ed.tool === 't') trapPicker(ed.trap, ed.depth, (k, n) => { ed.trap = k; ed.depth = n; renderInspect(); feRead(isPit({ trap:k }) ? 'Drag across empty floor to dig the pit. It can cover several squares.' : trapSummary({ trap:k })); });
   if(ed.tool === '$') sizePicker(ed.size, v => { ed.size = v; renderInspect(); });
 }
 function renderBudget(){
@@ -3187,23 +3316,40 @@ document.addEventListener('keydown', e => {
   if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); edUndo(); }
 });
 $('fe-test').addEventListener('click', () => { const p = forgeProblems(ed.d); if(p.length) return forgeNote(p.join(' '), 'bad'); forgePlay(ed.d, 'test'); });
+const forgePublishing = new Set();
+const forgeShareData = d => ({ v:2, size:d.size, title:d.title, intro:d.intro || '', author:settings.dm || '', cells:d.cells, ground:d.ground, walls:d.walls, things:d.things });
 $('fe-share').addEventListener('click', async () => {
   const d = ed.d, p = forgeProblems(d);
   if(p.length) return forgeNote(p.join(' '), 'bad');
   if(d.tested !== d.rev) return forgeNote('Beat your own dungeon first (Test it), so you know your friends can finish it. Any change means testing it again.', 'bad');
   const owner = KidSave.code();
   if(!owner) return forgeNote('This device is not connected to the Academy yet. Try again in a moment.', 'bad');
-  const body = JSON.stringify({ owner, data: { v:2, size:d.size, title:d.title, intro:d.intro || '', author: settings.dm || '', cells:d.cells, ground:d.ground, walls:d.walls, things:d.things } });
+  if(forgePublishing.has(d.id)) return forgeNote('Sharing is still in progress. Wait until it finishes, then share your changes.', 'bad');
+  const rev = d.rev, payload = forgeShareData(d), data = JSON.stringify(payload), body = JSON.stringify({ owner, data:payload });
+  const note = (text, kind) => {
+    const current = forge.dungeons.find(x => x.id === d.id);
+    if(current && ed.d === current && !$('view-forge').hidden && !$('forge-edit').hidden) forgeNote(text, kind);
+  };
+  let share = d.share;
+  forgePublishing.add(d.id);
   forgeNote('Sharing…');
   try{
-    let res = d.share ? await fetch('api/shares/' + encodeURIComponent(d.share), { method:'PUT', headers:{ 'Content-Type':'application/json' }, body }) : null;
+    let res = share ? await fetch('api/shares/' + encodeURIComponent(share), { method:'PUT', headers:{ 'Content-Type':'application/json' }, body }) : null;
     if(!res || res.status === 404 || res.status === 403) res = await fetch('api/shares', { method:'POST', headers:{ 'Content-Type':'application/json' }, body });
-    if(res.status === 429) return forgeNote('You have shared a lot today. Try again later.', 'bad');
-    if(!res.ok) return forgeNote('Could not share it right now. Try again.', 'bad');
-    if(res.status === 201) d.share = (await res.json()).code;
+    if(res.status === 429) return note('You have shared a lot today. Try again later.', 'bad');
+    if(!res.ok) return note('Could not share it right now. Try again.', 'bad');
+    if(res.status === 201) share = (await res.json()).code;
+    const current = forge.dungeons.find(x => x.id === d.id);
+    if(!current) return;
+    current.share = share;
+    // The acknowledgement covers the submitted map, even when editing or sync moved on meanwhile.
+    current.publishedRev = current.rev === rev && JSON.stringify(forgeShareData(current)) !== data ? null : rev;
     forgeSave();
-    forgeNote(`Shared! Give your friends this code: ${d.share}. If you change the dungeon, test it and share again; the code stays the same.`, 'good');
-  }catch(e){ forgeNote('Could not reach the Academy. Try again when online.', 'bad'); }
+    note(current.publishedRev === current.rev
+      ? `Shared! Give your friends this code: ${share}. If you change the dungeon, test it and share again; the code stays the same.`
+      : `The earlier version was shared as ${share}. Test your latest changes and share again.`, current.publishedRev === current.rev ? 'good' : 'bad');
+  }catch(e){ note('Could not reach the Academy. Try again when online.', 'bad'); }
+  finally{ forgePublishing.delete(d.id); }
 });
 let deleteArmed = false;
 $('fe-delete').addEventListener('click', () => {
@@ -3216,18 +3362,43 @@ $('fe-delete').addEventListener('click', () => {
 // A hero sees the room they are in, and through iron bars and portcullises. Traps stay hidden until
 // stepped on, and secret doors look like wall until a search finds them. Keys open locked doors;
 // traps, chests, monsters, portcullises and smashing wood are questions. Monsters have a third of
-// their usual hit points so a fight is a few rounds.
-const fp = { d:null, M:null, mode:'test', code:null, pos:0, hp:0, max:0, keys:0, gold:0, kills:0, seen:null, opened:null, found:null, pits:null, occ:null, busy:false, over:false };
+// their usual hit points so a fight is a few rounds. Between fights, each hero action gives
+// monsters one 5-foot step. Actors have their own positions; the built map stays intact.
+const fp = { d:null, M:null, mode:'test', code:null, pos:0, hp:0, max:0, keys:0, gold:0, kills:0, seen:null, opened:null, found:null, pits:null, monsters:new Map(), occ:null, turn:0, session:0, busy:false, over:false };
 const HERO_AC = 14;
 const CHECK_HINT = 'Add your bonus to the roll. You succeed if the total is the DC or higher.';
+const FP_CANCELED = Symbol('Forge play canceled');
+const fpPending = new Set();
+const forgeRunData = d => ({v:d.v,size:d.size,title:d.title,intro:d.intro || '',cells:d.cells,ground:d.ground,walls:d.walls,things:d.things});
+function fpCancel(){ fp.session++; for(const cancel of fpPending) cancel(); fpPending.clear(); fp.busy = false; $('fp-enc').hidden = true; }
+function fpCheck(session){ if(session !== fp.session) throw FP_CANCELED; }
+async function fpDuring(promise){
+  const session = fp.session; let cancel;
+  const canceled = new Promise((_, reject) => { cancel = () => reject(FP_CANCELED); fpPending.add(cancel); });
+  try { const value = await Promise.race([promise, canceled]); fpCheck(session); return value; }
+  finally { fpPending.delete(cancel); }
+}
+const fpAsk = (box, st) => fpDuring(forgeAsk(box, st));
+let fpTap = null;
 const fpView = mapView($('fp-map'), $('fp-wrap'), {
   map: () => fp.M,
-  draw: (c, M, s) => drawForgeMap(c, M, s, { play:true, seen:fp.seen, opened:fp.opened, found:fp.found, pits:fp.pits, hero:fp.pos }),
-  down: p => { const M = fp.M, x = Math.floor(p.fx), y = Math.floor(p.fy); if(!inMap(M, x, y)) return; const i = y * M.W + x; if(steps(M, fp.pos).some(([j]) => j === i)) fpMove(i); },
+  draw: (c, M, s) => drawForgeMap(c, M, s, { play:true, seen:fp.seen, opened:fp.opened, found:fp.found, pits:fp.pits, monsters:fp.monsters, hero:fp.pos }),
+  down: p => { fpTap = { ...p, session:fp.session }; },
+  move: p => { if(fpTap && Math.hypot(p.fx - fpTap.fx, p.fy - fpTap.fy) > .3) fpTap = null; },
+  cancel: () => { fpTap = null; },
+  up: () => {
+    const p = fpTap; fpTap = null; if(!p || p.session !== fp.session) return;
+    const M = fp.M, x = Math.floor(p.fx), y = Math.floor(p.fy);
+    if(inMap(M, x, y)) fpMove(y * M.W + x);
+  },
 });
 function forgePlay(d, mode, code){
-  const M = mapOf(d);
-  Object.assign(fp, { d, M, mode, code: code || null, keys:0, gold:0, kills:0, seen:new Set(), opened:new Set(), found:new Set(), pits:new Set(), occ:monsterSquares(M), busy:false, over:false });
+  fpCancel();
+  const M = mapOf(d), monsters = new Map();
+  M.things = JSON.parse(JSON.stringify(M.things));
+  M.cells.forEach((ch, i) => { if(ch === 'm'){ monsters.set(i, { id:i, name:(M.things[i] || {}).mon || 'Goblin', pos:i }); M.cells[i] = '.'; } });
+  Object.assign(fp, { d, M, rev:d.rev, built:JSON.parse(JSON.stringify(forgeRunData(d))), mode, code: code || null, keys:0, gold:0, kills:0, seen:new Set(), opened:new Set(), found:new Set(), pits:new Set(), monsters, turn:0, busy:false, over:false });
+  fpTap = null; fpOccupancy();
   fp.pos = M.cells.indexOf('S'); fp.max = fp.hp = 20 + 6 * rankFor(progress.xp).idx;
   ['forge-home','forge-edit','forge-play'].forEach(x => $(x).hidden = x !== 'forge-play');
   $('fp-title').textContent = d.title; $('fp-log').textContent = ''; $('fp-enc').hidden = true;
@@ -3240,7 +3411,7 @@ function forgePlay(d, mode, code){
   fpView.zoom = 1; fpView.size();
   if(fpView.s < 26){ fpView.zoom = 26 / fpView.base(); fpView.size(); }
   fpView.follow(fp.pos); fpRender();
-  fpLog(mode === 'test' ? 'Testing your dungeon. Beat it to unlock sharing.' : 'Find the exit. Tap a square next to you, or use the arrows.');
+  fpLog(mode === 'test' ? 'Testing your dungeon. Beat it to unlock sharing. Monsters take a turn after you move, wait or search.' : 'Find the exit. Tap a square next to you, or use the arrows. Monsters take a turn after you move, wait or search.');
   window.scrollTo(0, 0);
 }
 function fpLog(line){ const log = $('fp-log'); const d = mk('div', '', line); log.prepend(d); while(log.children.length > 8) log.lastChild.remove(); }
@@ -3268,12 +3439,76 @@ function fpRoom(){
   while(stack.length){ const i = stack.pop(); steps(M, i).forEach(([n, k]) => { if(!room.has(n) && M.cells[n] !== ' ' && (!M.edges.has(k) || fp.opened.has(k))){ room.add(n); stack.push(n); } }); }
   return room;
 }
+function fpMonsterFootprint(mon, at = mon.pos){ return footprint(fp.M, at, monSpan(mon.name), fp.opened); }
+function fpOccupancy(){
+  fp.occ = new Map();
+  fp.monsters.forEach(mon => (fpMonsterFootprint(mon) || [mon.pos]).forEach(i => fp.occ.set(i, mon.id)));
+}
+const fpEdgeOpen = key => !fp.M.edges.has(key) || fp.opened.has(key);
+function fpMonsterAdjacent(mon, at = mon.pos){
+  return (fpMonsterFootprint(mon, at) || []).some(i => steps(fp.M, i).some(([j, key]) => j === fp.pos && fpEdgeOpen(key)));
+}
+function fpMonsterCanStep(mon, from, to, planning = false){
+  const key = edgeBetween(fp.M, from, to), f = fpMonsterFootprint(mon, to), old = fpMonsterFootprint(mon, from);
+  if(!key || !f || !old) return false;
+  if(f.some(i => i === fp.pos || fp.M.cells[i] === 't' || fp.pits.has(i) || (!planning && fp.occ.has(i) && fp.occ.get(i) !== mon.id))) return false;
+  // Every crossed grid line matters, including the leading edge of a big token.
+  return old.every(i => { const crossed = edgeBetween(fp.M, i, i + to - from); return crossed && fpEdgeOpen(crossed); });
+}
+// Breadth-first search finds a route around corners, not just the nearest-looking square.
+function fpMonsterStep(mon){
+  if(fpMonsterAdjacent(mon)) return mon.pos;
+  const queue = [mon.pos], first = new Map([[mon.pos, mon.pos]]);
+  for(let q = 0; q < queue.length; q++){
+    const at = queue[q];
+    for(const [next] of steps(fp.M, at)){
+      // Creatures can queue behind each other. Only the step taken this turn must be empty.
+      if(first.has(next) || !fpMonsterCanStep(mon, at, next, at !== mon.pos)) continue;
+      const step = at === mon.pos ? next : first.get(at);
+      if(fpMonsterAdjacent(mon, next)) return step;
+      first.set(next, step); queue.push(next);
+    }
+  }
+  return null;
+}
+async function fpBattle(id, session){
+  const mon = fp.monsters.get(id); if(!mon) return;
+  const box = $('fp-enc');
+  await fpDuring(fpFight(box, mon.name)); fpCheck(session); box.hidden = true;
+  if(fp.hp <= 0){ fpEnd(false); return; }
+  fp.monsters.delete(id); fpOccupancy(); fpRender();
+}
+async function fpMonsterTurn(session = fp.session){
+  fpCheck(session); if(fp.over || fp.hp <= 0) return;
+  fp.turn++;
+  const room = fpRoom();
+  for(const mon of fp.monsters.values()){
+    if(!(fpMonsterFootprint(mon) || []).some(i => room.has(i))) continue;
+    const to = fpMonsterStep(mon);
+    if(to === null || to === mon.pos) continue;
+    (fpMonsterFootprint(mon) || []).forEach(i => fp.occ.delete(i));
+    mon.pos = to; fpMonsterFootprint(mon).forEach(i => fp.occ.set(i, mon.id));
+    fpLog(`The ${mon.name} moves 5 feet toward you.`);
+  }
+  fpRender();
+  // Resolve one encounter at a time; the other creatures keep their new positions.
+  const contact = [...fp.monsters.values()].find(mon => fpMonsterAdjacent(mon));
+  if(contact) await fpBattle(contact.id, session);
+}
+async function fpWait(){
+  if(fp.busy || fp.over) return;
+  const session = fp.session; fp.busy = true; fpRender();
+  try { fpLog('You wait and watch.'); await fpMonsterTurn(session); }
+  catch(e){ if(e !== FP_CANCELED) throw e; }
+  finally { if(session === fp.session){ fp.busy = false; fpRender(); } }
+}
 function fpRender(){
   fpView.draw();
   const st = $('fp-stats'); st.textContent = '';
-  [['HP', `${Math.max(0, fp.hp)} / ${fp.max}`], ['Keys', fp.keys], ['Gold', fp.gold]].forEach(([k, v]) => { const s = mk('span', '', k + ' '); s.append(mk('b', '', v)); st.append(s); });
+  [['Turn', fp.turn + 1], ['HP', `${Math.max(0, fp.hp)} / ${fp.max}`], ['Keys', fp.keys], ['Gold', fp.gold]].forEach(([k, v]) => { const s = mk('span', '', k + ' '); s.append(mk('b', '', v)); st.append(s); });
+  $('fp-wait').disabled = $('fp-search').disabled = fp.busy || fp.over;
 }
-function fpHurt(n){ fp.hp -= n; fpRender(); }
+function fpHurt(n){ fp.hp = Math.max(0, fp.hp - n); fpRender(); }
 function fpOffer(box, text, yes, no){
   return new Promise(resolve => {
     box.textContent = ''; box.hidden = false; box.append(mk('p', 'q', text));
@@ -3284,22 +3519,22 @@ function fpOffer(box, text, yes, no){
 }
 // Trying to cross the wall line `key`: true when the hero gets through.
 async function fpThrough(key){
-  const e = fp.M.edges.get(key), door = e.door === 'secret' && !fp.found.has(key) ? null : e.door, box = $('fp-enc');
+  const session = fp.session, e = fp.M.edges.get(key), door = e.door === 'secret' && !fp.found.has(key) ? null : e.door, box = $('fp-enc');
   if(door === 'door' || door === 'secret'){ fp.opened.add(key); fpLog(door === 'secret' ? 'You push the secret door open.' : 'You open the door.'); return true; }
   if(door === 'locked'){
     if(!fp.keys){ fpLog('A locked door. You need a key.'); return false; }
     fp.keys--; fp.opened.add(key); fpLog('You unlock the door.'); return true;
   }
   if(door === 'portcullis'){
-    fp.busy = true; const ok = await fpLift(box); box.hidden = true; fp.busy = false;
+    const ok = await fpLift(box); box.hidden = true;
     if(!ok){ fpLog('The portcullis is too heavy this time. Try again.'); return false; }
     fp.opened.add(key); fpLog('You heave the portcullis up and duck under it.'); return true;
   }
   if(e.m === 'wood'){
-    fp.busy = true;
-    const go = await fpOffer(box, 'A wooden wall. The planks look old. Smash through it?', 'Smash it', 'Leave it');
+    const go = await fpDuring(fpOffer(box, 'A wooden wall. The planks look old. Smash through it?', 'Smash it', 'Leave it'));
+    fpCheck(session);
     if(go) await fpSmash(box);
-    box.hidden = true; fp.busy = false;
+    box.hidden = true;
     if(go){ fp.opened.add(key); fpLog('You smash a hole through the wooden wall.'); }
     return go;
   }
@@ -3308,109 +3543,119 @@ async function fpThrough(key){
 }
 async function fpMove(to){
   if(fp.busy || fp.over || to < 0) return;
-  const M = fp.M, key = edgeBetween(M, fp.pos, to);
-  if(key && M.edges.has(key) && !fp.opened.has(key) && !(await fpThrough(key))) return;
+  const session = fp.session, M = fp.M, key = edgeBetween(M, fp.pos, to);
+  if(!key) return;
   if(M.cells[to] === ' '){ fpLog('Solid rock.'); return; }
-  fp.pos = to; fpReveal(); fpRender(); fpView.follow(to);
-  const ch = M.cells[to], thing = M.things[to] || {}, enc = $('fp-enc'), mon = fp.occ.get(to);
-  if(mon !== undefined){
-    fp.busy = true; await fpFight(enc, (M.things[mon] || {}).mon); enc.hidden = true; fp.busy = false;
-    if(fp.hp <= 0) return fpEnd(false);
-    M.cells[mon] = '.'; [...fp.occ].forEach(([j, a]) => { if(a === mon) fp.occ.delete(j); }); fpRender();
-  }
-  else if(fp.pits.has(to)) fpLog('You climb down into the open pit and out the other side.');
-  else if(ch === 'k'){ fp.keys++; M.cells[to] = '.'; fpLog('You pick up a key.'); fpRender(); }
-  else if(ch === 's'){ fpLog('You found a sign.'); const read = $('fp-read'); read.textContent = ''; read.append(mk('h3', '', 'A sign reads:'), mk('p', '', thing.text || '(It is blank.)')); }
-  else if(ch === 't' || ch === '$'){
-    fp.busy = true;
-    if(ch === '$') await fpChest(enc, thing);
-    else if(isPit(thing)) await fpPit(enc, thing);
-    else if(thing.trap === 'net') await fpNet(enc);
-    else if(thing.trap === 'dart') await fpDarts(enc);
-    else await fpTrap(enc);
-    enc.hidden = true; fp.busy = false;
-    if(isPit(thing)) pitGroup(M, to).forEach(j => { M.cells[j] = '.'; fp.pits.add(j); });
-    else M.cells[to] = '.';
-    if(fp.hp <= 0) return fpEnd(false);
-    fpRender();
-  }
-  else if(ch === 'E') fpEnd(true);
+  // Hold the movement lock across opening a door as well as the encounter beyond it.
+  fp.busy = true; fpRender();
+  try {
+    if(M.edges.has(key) && !fp.opened.has(key) && !(await fpThrough(key))) return;
+    fpCheck(session);
+    fp.pos = to; fpReveal(); fpRender(); fpView.follow(to);
+    const ch = M.cells[to], thing = M.things[to] || {}, enc = $('fp-enc'), mon = fp.occ.get(to);
+    if(mon !== undefined){
+      await fpBattle(mon, session); fpCheck(session); if(fp.over) return;
+    }
+    if(fp.pits.has(to)) fpLog('You climb down into the open pit and out the other side.');
+    else if(ch === 'k'){ fp.keys++; M.cells[to] = '.'; fpLog('You pick up a key.'); fpRender(); }
+    else if(ch === 's'){ fpLog('You found a sign.'); const read = $('fp-read'); read.textContent = ''; read.append(mk('h3', '', 'A sign reads:'), mk('p', '', thing.text || '(It is blank.)')); }
+    else if(ch === 't' || ch === '$'){
+      if(ch === '$') await fpChest(enc, thing);
+      else if(isPit(thing)) await fpPit(enc, thing);
+      else if(thing.trap === 'net') await fpNet(enc);
+      else if(thing.trap === 'dart') await fpDarts(enc);
+      else await fpTrap(enc);
+      enc.hidden = true;
+      if(isPit(thing)) pitGroup(M, to).forEach(j => { M.cells[j] = '.'; fp.pits.add(j); });
+      else M.cells[to] = '.';
+      if(fp.hp <= 0) return fpEnd(false);
+      fpRender();
+    }
+    else if(ch === 'E'){ fpEnd(true); return; }
+    await fpMonsterTurn(session);
+  } catch(e){ if(e !== FP_CANCELED) throw e; }
+  finally { if(session === fp.session){ fp.busy = false; fpRender(); } }
 }
 async function fpSearch(){
   if(fp.busy || fp.over) return;
-  fp.busy = true;
-  const box = $('fp-enc'), dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 5), tot = roll + bonus, made = tot >= dc;
-  await forgeAsk(box, { q:`You search the walls for anything hidden. Make an Intelligence (Investigation) check, DC ${dc}. You rolled ${roll}, and your Investigation bonus is +${bonus}. Do you succeed?`,
-    choices:['Success', 'Fail'], answer: made ? 'Success' : 'Fail', next:'Next', hint:CHECK_HINT,
-    solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
-  box.hidden = true; fp.busy = false;
-  if(!made){ fpLog('You search, but you do not find anything.'); return; }
-  const M = fp.M, room = fpRoom(); let n = 0;
-  room.forEach(i => steps(M, i).forEach(([j, k]) => { const e = M.edges.get(k); if(e && e.door === 'secret' && !fp.found.has(k)){ fp.found.add(k); n++; } }));
-  fpLog(n ? (n === 1 ? 'You find a secret door!' : `You find ${n} secret doors!`) : 'You search carefully. Nothing is hidden in this room.');
-  fpRender();
+  const session = fp.session; fp.busy = true; fpRender();
+  try {
+    const box = $('fp-enc'), dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 5), tot = roll + bonus, made = tot >= dc;
+    await fpAsk(box, { q:`You search the walls for anything hidden. Make an Intelligence (Investigation) check, DC ${dc}. You rolled ${roll}, and your Investigation bonus is +${bonus}. Do you succeed?`,
+      choices:['Success', 'Fail'], answer: made ? 'Success' : 'Fail', next:'Next', hint:CHECK_HINT,
+      solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
+    box.hidden = true;
+    if(!made) fpLog('You search, but you do not find anything.');
+    else {
+      const M = fp.M, room = fpRoom(); let n = 0;
+      room.forEach(i => steps(M, i).forEach(([j, k]) => { const e = M.edges.get(k); if(e && e.door === 'secret' && !fp.found.has(k)){ fp.found.add(k); n++; } }));
+      fpLog(n ? (n === 1 ? 'You find a secret door!' : `You find ${n} secret doors!`) : 'You search carefully. Nothing is hidden in this room.');
+    }
+    fpRender();
+    await fpMonsterTurn(session);
+  } catch(e){ if(e !== FP_CANCELED) throw e; }
+  finally { if(session === fp.session){ fp.busy = false; fpRender(); } }
 }
 async function fpTrap(box){
-  const dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
+  const T = TRAPS.spike, dc = rand(...T.dc), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
   fpLog('Click! A spike trap.');
-  await forgeAsk(box, { q:`Click! A spike trap. Make a Dexterity saving throw, DC ${dc}. You rolled ${roll} on the d20, and your Dexterity bonus is +${bonus}. Do you make the save?`,
+  await fpAsk(box, { q:`Click! A spike trap. Make a Dexterity saving throw, DC ${dc}. You rolled ${roll} on the d20, and your Dexterity bonus is +${bonus}. Do you make the save?`,
     choices:['Made it', 'Failed'], answer: made ? 'Made it' : 'Failed', next:'Next',
     hint:'Add your bonus to the roll. You make the save if the total is the DC or higher.',
     solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}. You ${made ? 'make' : 'fail'} the save.` });
-  const a = rand(1, 6), b = rand(1, 6), full = a + b, dmg = made ? Math.floor(full / 2) : full;
-  await forgeAsk(box, made
-    ? { q:`You twist away, so you take half damage. The spikes rolled 2d6: ${a} and ${b}. How much damage is half of that, rounded down?`, answer: dmg, hint:'Add the two dice, then cut it in half. If there is a half left over, drop it.', solution:`${a} + ${b} = ${full}, and half of ${full} rounded down is ${dmg}.` }
-    : { q:`The spikes get you. They rolled 2d6: ${a} and ${b}. How much damage do you take?`, answer: dmg, hint:'Add the two dice.', solution:`${a} + ${b} = ${dmg}.` });
+  const damage = rollDice(parseDice(T.damage)), [a, b] = damage.rolls, full = damage.total, dmg = made ? Math.floor(full / 2) : full;
+  await fpAsk(box, made
+    ? { q:`You twist away, so you take half damage. The spikes rolled ${T.damage}: ${a} and ${b}. How much damage is half of that, rounded down?`, answer: dmg, hint:'Add the two dice, then cut it in half. If there is a half left over, drop it.', solution:`${a} + ${b} = ${full}, and half of ${full} rounded down is ${dmg}.` }
+    : { q:`The spikes get you. They rolled ${T.damage}: ${a} and ${b}. How much damage do you take?`, answer: dmg, hint:'Add the two dice.', solution:`${a} + ${b} = ${dmg}.` });
   fpHurt(dmg); fpLog(`The trap deals ${dmg} damage.`);
 }
 // A pit: a Dexterity save to grab the edge, or fall 1d6 for every 10 feet (and 2d10 more onto spikes).
 async function fpPit(box, t){
-  const dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
+  const T = TRAPS[t.trap], dc = rand(...T.dc), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
   fpLog('The floor gives way!');
-  await forgeAsk(box, { q:`The floor gives way under you! Make a Dexterity saving throw, DC ${dc}, to grab the edge. You rolled ${roll}, and your Dexterity bonus is +${bonus}. Do you make the save?`,
+  await fpAsk(box, { q:`The floor gives way under you! Make a Dexterity saving throw, DC ${dc}, to grab the edge. You rolled ${roll}, and your Dexterity bonus is +${bonus}. Do you make the save?`,
     choices:['Made it', 'Failed'], answer: made ? 'Made it' : 'Failed', next:'Next', hint:CHECK_HINT,
     solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}. You ${made ? 'make' : 'fail'} the save.` });
   if(made){ fpLog('You grab the edge and pull yourself up.'); return; }
-  const n = t.depth / 10;
-  await forgeAsk(box, { q:`You fall ${t.depth} feet! Falling does 1d6 damage for every 10 feet you fall. How many d6 do you roll?`, answer: n,
+  const falling = pitDice(t), n = falling.n;
+  await fpAsk(box, { q:`You fall ${t.depth} feet! Falling does 1d6 damage for every 10 feet you fall. How many d6 do you roll?`, answer: n,
     hint:'How many tens are in the number of feet?', solution:`${t.depth} ÷ 10 = ${n}, so you roll ${n}d6.`, next:'Roll them' });
-  const fall = Array.from({ length:n }, () => rand(1, 6)), spikes = t.trap === 'spiked' ? [rand(1, 10), rand(1, 10)] : [], all = fall.concat(spikes), dmg = all.reduce((a, b) => a + b, 0);
-  await forgeAsk(box, { q: spikes.length
-      ? `Your fall ${n === 1 ? 'die shows' : 'dice show'} ${saidList(fall)}. Then you land on spikes, which roll 2d10: ${saidList(spikes)}. How much damage do you take in all?`
+  const fall = rollDice(falling).rolls, spikes = T.damage ? rollDice(parseDice(T.damage)).rolls : [], all = fall.concat(spikes), dmg = all.reduce((a, b) => a + b, 0);
+  await fpAsk(box, { q: spikes.length
+      ? `Your fall ${n === 1 ? 'die shows' : 'dice show'} ${saidList(fall)}. Then you land on spikes, which roll ${T.damage}: ${saidList(spikes)}. How much damage do you take in all?`
       : `Your ${n === 1 ? 'die shows' : 'dice show'} ${saidList(fall)}. How much damage do you take?`,
     answer: dmg, hint:'Add up all the dice.', solution:`${all.join(' + ')} = ${dmg}.` });
   fpHurt(dmg); fpLog(`The fall deals ${dmg} damage. You climb out.`);
 }
-// A net: Strength checks to tear free. Rats nibble while the hero is stuck.
+// A net restrains the hero; it does not add an unbuilt damaging creature.
 async function fpNet(box){
+  const T = TRAPS.net;
   fpLog('A net drops on you!');
-  for(let tries = 0; tries < 3; tries++){
-    const dc = rand(10, 13), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
-    await forgeAsk(box, { q:`${tries ? 'You are still stuck. Try again: make a' : 'A heavy net drops on you! Make a'} Strength check, DC ${dc}, to tear free. You rolled ${roll}, and your Strength bonus is +${bonus}. Do you break free?`,
+  for(let tries = 0; tries < T.checks; tries++){
+    const dc = rand(...T.dc), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
+    await fpAsk(box, { q:`${tries ? 'You are still stuck. Try again: make a' : 'A heavy net drops on you! Make a'} Strength check, DC ${dc}, to tear free. You rolled ${roll}, and your Strength bonus is +${bonus}. Do you break free?`,
       choices:['Free!', 'Still stuck'], answer: made ? 'Free!' : 'Still stuck', next:'Next', hint:CHECK_HINT,
       solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
     if(made){ fpLog('You tear free of the net.'); return; }
-    const bite = rand(1, 3); fpHurt(bite); fpLog(`Rats nibble at you while you are stuck: ${bite} damage.`);
-    if(fp.hp <= 0) return;
   }
   fpLog('You finally wriggle free of the net.');
 }
 // Poison darts: a Constitution save, or the poison adds 2d6 to the dart's 1d4.
 async function fpDarts(box){
-  const dc = rand(10, 15), roll = rand(2, 19), bonus = rand(1, 3), tot = roll + bonus, made = tot >= dc;
+  const T = TRAPS.dart, dc = rand(...T.dc), roll = rand(2, 19), bonus = rand(1, 3), tot = roll + bonus, made = tot >= dc;
   fpLog('Darts shoot out of the wall!');
-  await forgeAsk(box, { q:`Darts shoot out of the wall, and they are poisoned! Make a Constitution saving throw, DC ${dc}. You rolled ${roll}, and your Constitution bonus is +${bonus}. Do you resist the poison?`,
+  await fpAsk(box, { q:`Darts shoot out of the wall, and they are poisoned! Make a Constitution saving throw, DC ${dc}. You rolled ${roll}, and your Constitution bonus is +${bonus}. Do you resist the poison?`,
     choices:['Resisted', 'Poisoned'], answer: made ? 'Resisted' : 'Poisoned', next:'Next', hint:CHECK_HINT,
     solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
-  const dart = rand(1, 4), p1 = rand(1, 6), p2 = rand(1, 6), dmg = made ? dart : dart + p1 + p2;
-  await forgeAsk(box, made
-    ? { q:`You shrug off the poison, but the dart still stings. Its 1d4 rolls ${dart}. How much damage do you take?`, answer: dmg, hint:'It is just the one die.', solution:`${dart} damage.` }
-    : { q:`The dart does 1d4 and the poison does 2d6. The dart die shows ${dart}, and the poison dice show ${p1} and ${p2}. How much damage do you take in all?`, answer: dmg, hint:'Add all three dice.', solution:`${dart} + ${p1} + ${p2} = ${dmg}.` });
+  const dart = rollDice(parseDice(T.damage)).total, poison = rollDice(parseDice(T.poison)), [p1, p2] = poison.rolls, dmg = made ? dart : dart + poison.total;
+  await fpAsk(box, made
+    ? { q:`You shrug off the poison, but the dart still stings. Its ${T.damage} rolls ${dart}. How much damage do you take?`, answer: dmg, hint:'It is just the one die.', solution:`${dart} damage.` }
+    : { q:`The dart does ${T.damage} and the poison does ${T.poison}. The dart die shows ${dart}, and the poison dice show ${p1} and ${p2}. How much damage do you take in all?`, answer: dmg, hint:'Add all three dice.', solution:`${dart} + ${p1} + ${p2} = ${dmg}.` });
   fpHurt(dmg); fpLog(`The darts deal ${dmg} damage.`);
 }
 async function fpLift(box){
   const dc = rand(10, 14), roll = rand(2, 19), bonus = rand(1, 4), tot = roll + bonus, made = tot >= dc;
-  await forgeAsk(box, { q:`An iron portcullis blocks the way. Make a Strength check, DC ${dc}, to lift it. You rolled ${roll}, and your Strength bonus is +${bonus}. Can you lift it?`,
+  await fpAsk(box, { q:`An iron portcullis blocks the way. Make a Strength check, DC ${dc}, to lift it. You rolled ${roll}, and your Strength bonus is +${bonus}. Can you lift it?`,
     choices:['Lifted it', 'Too heavy'], answer: made ? 'Lifted it' : 'Too heavy', next:'Next', hint:CHECK_HINT,
     solution:`${roll} + ${bonus} = ${tot}, which is ${made ? 'at least' : 'less than'} ${dc}.` });
   return made;
@@ -3439,11 +3684,11 @@ async function fpSmash(box){
   let hp = 10;
   while(hp > 0){
     const roll = rand(1, 20), attack = fpAttack(roll, bonus, 15);
-    await forgeAsk(box, { q:`${heroAttack(wname)} at the planks. Your d20 roll is ${roll} and your attack bonus is +${bonus}. Wood has Armor Class 15. Hit or miss?`,
+    await fpAsk(box, { q:`${heroAttack(wname)} at the planks. Your d20 roll is ${roll} and your attack bonus is +${bonus}. Wood has Armor Class 15. Hit or miss?`,
       choices:['Hit', 'Miss'], answer: attack.hit ? 'Hit' : 'Miss', next:'Next', hint:FP_ATTACK_HINT, solution:attack.solution });
     if(!attack.hit){ fpLog('You miss the wall.'); continue; }
     const r = rollDice({ ...wd, n:wd.n * (attack.critical ? 2 : 1) });
-    await forgeAsk(box, fpDamageQuestion(wname, wd, attack.critical, r, 'the wall'));
+    await fpAsk(box, fpDamageQuestion(wname, wd, attack.critical, r, 'the wall'));
     hp -= r.total; fpLog(hp > 0 ? `The planks crack. The wall has ${hp} hit points left.` : 'The planks give way!');
   }
 }
@@ -3463,31 +3708,56 @@ async function fpChest(box, thing){
     each:{ q:`The chest has ${n} gems worth ${gems} gold pieces altogether. Each gem has the same value. How many gold pieces is each gem worth?`, answer:v,
       hint:'Divide the gems’ total value by the number of gems.', solution:`${gems} ÷ ${n} = ${v} gold pieces per gem.` },
   };
-  await forgeAsk(box, questions[kind]);
+  await fpAsk(box, questions[kind]);
   fp.gold += gold; fpRender(); fpLog(`You take ${gold} gold.`);
 }
+// Enemy rolls get a readable turn of their own before the next hero question.
+async function fpMonsterAttack(box, mon){
+  const roll = rand(1, 20), attack = fpAttack(roll, mon.bonus, HERO_AC), before = fp.hp;
+  const bonus = mon.bonus < 0 ? `− ${-mon.bonus}` : `+ ${mon.bonus}`;
+  const attackLine = `Attack roll: d20 ${roll} ${bonus} = ${roll + mon.bonus}, against your Armor Class ${HERO_AC}. ${attack.critical ? 'Critical Hit!' : attack.hit ? 'Hit!' : 'Miss.'}`;
+  let damageLine = 'No damage is rolled.', hpLine = `Your HP stays ${before} of ${fp.max}.`, summary = `The ${mon.n} attacks and misses.`;
+  if(attack.hit){
+    const atk = parseDice(mon.atk), expression = diceText(atk.n * (attack.critical ? 2 : 1), atk.d, atk.m);
+    const damage = rollDice({ ...atk, n:atk.n * (attack.critical ? 2 : 1) });
+    const modifier = atk.m < 0 ? ` − ${-atk.m}` : atk.m > 0 ? ` + ${atk.m}` : '';
+    damageLine = `${attack.critical ? `Critical damage: ${atk.text} becomes ${expression}. Double the dice, and add the modifier once. ` : `Damage: ${expression}. `}The ${damage.rolls.length === 1 ? 'die shows' : 'dice show'} ${saidList(damage.rolls)}. ${damage.rolls.join(' + ')}${modifier} = ${damage.total} damage.`;
+    fpHurt(damage.total);
+    hpLine = damage.total > before ? `You take ${damage.total} damage. Your HP drops from ${before} to 0 of ${fp.max}; HP stops at 0.` : `Your HP: ${before} − ${damage.total} = ${fp.hp} of ${fp.max}.`;
+    summary = `${attack.critical ? 'Critical Hit! ' : ''}The ${mon.n}'s ${mon.weapon} ${monHits(mon)} you for ${damage.total}.`;
+  }
+  fpLog(`${summary} ${attackLine} ${damageLine} ${hpLine}`);
+  await fpDuring(new Promise(resolve => {
+    box.textContent = ''; box.hidden = false;
+    const turn = mk('section', 'fp-monster-turn'); turn.setAttribute('aria-label', `${mon.n}'s turn`);
+    turn.append(mk('h3', '', "Monster's turn"), mk('p', 'q', `The ${mon.n} ${monAttack(mon)} you.`), mk('p', 'roll', attackLine));
+    if(roll === 1) turn.append(mk('p', '', 'A natural 1 always misses, even if the total would reach your Armor Class.'));
+    else if(attack.critical) turn.append(mk('p', '', 'A natural 20 always hits and is a Critical Hit.'));
+    turn.append(mk('p', 'roll', damageLine), mk('p', 'roll', hpLine));
+    const next = mk('button', 'btn', 'Continue'); next.type = 'button';
+    next.addEventListener('click', () => resolve()); turn.append(next); box.append(turn); next.focus();
+  }));
+}
 async function fpFight(box, name){
-  const mon = MONSTERS.find(m => m.n === name) || MONSTERS.find(m => m.n === 'Goblin');
-  const max = Math.max(4, Math.round(mon.hp / 3)), lvl = level(), bonus = 3 + 2 + Math.floor((lvl - 1) / 4);
+  const mon = forgeMonster(name);
+  const max = mon.hp, lvl = level(), bonus = 3 + 2 + Math.floor((lvl - 1) / 4);
   const [wname, wtext] = pick(HERO_WEAPONS), wd = parseDice(wtext);
   let hp = max;
   fpLog(`${an(mon.n)} attacks!`);
   const foe = () => { const f = mk('div', 'foe'), s = mk('div', 'sigil'), bar = mk('div', 'bar'), fill = mk('i'); setArt(s, monSlug(mon.n), mon.n.charAt(0)); fill.style.width = Math.max(0, hp / max * 100) + '%'; bar.append(fill); f.append(s, mk('b', '', mon.n), bar, mk('span', '', `${Math.max(0, hp)} / ${max} HP · AC ${mon.ac}`)); return f; };
   while(hp > 0 && fp.hp > 0){
     const roll = rand(1, 20), attack = fpAttack(roll, bonus, mon.ac);
-    const p1 = forgeAsk(box, { q:`${heroAttack(wname)}. Your d20 roll is ${roll} and your attack bonus is +${bonus}. The ${mon.n}'s Armor Class is ${mon.ac}. Hit or miss?`,
+    const p1 = fpAsk(box, { q:`${heroAttack(wname)}. Your d20 roll is ${roll} and your attack bonus is +${bonus}. The ${mon.n}'s Armor Class is ${mon.ac}. Hit or miss?`,
       choices:['Hit', 'Miss'], answer: attack.hit ? 'Hit' : 'Miss', next:'Next', hint:FP_ATTACK_HINT, solution:attack.solution });
     box.prepend(foe()); await p1;
     if(attack.hit){
       const r = rollDice({ ...wd, n:wd.n * (attack.critical ? 2 : 1) });
-      const p2 = forgeAsk(box, fpDamageQuestion(wname, wd, attack.critical, r));
+      const p2 = fpAsk(box, fpDamageQuestion(wname, wd, attack.critical, r));
       box.prepend(foe()); await p2;
       hp -= r.total; fpLog(`You hit the ${mon.n} for ${r.total}.`);
     } else fpLog(`You miss the ${mon.n}.`);
     if(hp <= 0) break;
-    const mroll = rand(1, 20), retaliation = fpAttack(mroll, 4, HERO_AC);
-    if(retaliation.hit){ const atk = parseDice(mon.atk), ad = rollDice({ ...atk, n:atk.n * (retaliation.critical ? 2 : 1) }); fpHurt(ad.total); fpLog(`${retaliation.critical ? 'Critical Hit! ' : ''}The ${mon.n}'s ${mon.weapon} ${monHits(mon)} you for ${ad.total}.`); }
-    else fpLog(`The ${mon.n} attacks and misses.`);
+    const response = fpMonsterAttack(box, mon); box.prepend(foe()); await response;
   }
   if(fp.hp > 0){ fp.kills++; fpLog(`The ${mon.n} is defeated!`); }
 }
@@ -3496,7 +3766,13 @@ function fpEnd(won){
   const box = $('fp-enc'); box.hidden = false; box.textContent = '';
   if(won){
     box.append(mk('h3', '', 'You made it out!'), mk('p', '', `Gold found: ${fp.gold}. Monsters beaten: ${fp.kills}. HP left: ${fp.hp} of ${fp.max}.`));
-    if(fp.mode === 'test'){ fp.d.tested = fp.d.rev; box.append(mk('p', '', 'Your dungeon can be beaten. You can share it now.')); }
+    if(fp.mode === 'test'){
+      const current = forge.dungeons.find(d => d.id === fp.d.id);
+      if(current && current.rev === fp.rev && KidMerge.equal(forgeRunData(current), fp.built)){
+        current.tested = current.rev; fp.d.tested = fp.rev;
+        box.append(mk('p', '', 'Your dungeon can be beaten. You can share it now.'));
+      } else box.append(mk('p', '', 'You beat this version. The saved map changed during play; test its latest version before sharing.'));
+    }
     else {
       const p = forge.played[fp.code] || {};
       if(!p.cleared){ p.cleared = true; forge.played[fp.code] = p; addXp(30); box.append(mk('p', 'xpgain', 'First time beating it: +30 XP.')); }
@@ -3516,19 +3792,26 @@ function fpStep(dir){
 }
 $('fp-dpad').addEventListener('click', e => { const b = e.target.closest('button'); if(b) fpStep(b.dataset.d); });
 $('fp-search').addEventListener('click', fpSearch);
+$('fp-wait').addEventListener('click', fpWait);
 document.addEventListener('keydown', e => {
   if($('view-forge').hidden || $('forge-play').hidden || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
   const dir = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' }[e.key];
   if(dir){ e.preventDefault(); fpStep(dir); }
 });
-$('fp-leave').addEventListener('click', () => { if(fp.busy && !fp.over) $('fp-enc').hidden = true; fp.busy = false; fp.mode === 'test' ? forgeEdit(fp.d.id) : renderForge(); });
+$('fp-leave').addEventListener('click', () => { fpCancel(); fp.mode === 'test' ? forgeEdit(fp.d.id) : renderForge(); });
 // Another device's progress arrived: point the editor at the fresh copy, and redraw unless mid-game.
 function forgeRefresh(){
   forgeUpgradeAll();
   if($('view-forge').hidden || !$('forge-play').hidden) return;
   if(!$('forge-edit').hidden && ed.d){
     const d = forge.dungeons.find(x => x.id === ed.d.id);
-    if(d){ ed.d = d; ed.M = mapOf(d); ed.sel = -1; ed.measure = null; renderInspect(); renderBudget(); feView.draw(); return; }
+    if(d){
+      // Old snapshots cannot safely undo a newly adopted map from another device.
+      if(!KidMerge.equal(forgeRunData(ed.d), forgeRunData(d))) ed.undo = [];
+      ed.d = d; ed.M = mapOf(d); ed.sel = -1; ed.measure = null;
+      $('fe-title').value = d.title; $('fe-intro').value = d.intro || '';
+      renderInspect(); renderBudget(); feView.draw(); return;
+    }
   }
   renderForge();
 }
@@ -3891,9 +4174,14 @@ $('settings-form').addEventListener('submit', e => {
 let resetArmed = false;
 $('reset-btn').addEventListener('click', () => {
   if(!resetArmed){ resetArmed = true; $('reset-btn').textContent = 'Really reset? Tap again to confirm'; setTimeout(() => { resetArmed = false; $('reset-btn').textContent = 'Reset all XP and progress'; }, 4000); return; }
-  progress = {xp:0, modules:{}, bestStreak:0}; streak = 0; save('pda-progress', progress); renderRank();
+  const previousReset = progress.reset;
+  progress = {xp:0, modules:{}, bestStreak:0, reset:previousReset}; KidMerge.stampReset(progress);
+  streak = 0; save('pda-progress', progress); renderRank();
   resetArmed = false; $('reset-btn').textContent = 'Reset all XP and progress'; toast('Progress reset. Fresh adventurer.');
 });
+
+dmHadLocalData = hasLocalData(); dmBootState = JSON.parse(JSON.stringify(snapshotLocal()));
+if(!window.indexedDB){ dmStorage = localStorage; dmSync = createDmSync(dmStorage); }
 
 // ---------- Boot ----------
 setArt($('crest'), 'crest', 'PDA'); renderRank(); fillSettings(); renderLab();

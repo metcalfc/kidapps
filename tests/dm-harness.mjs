@@ -4,6 +4,8 @@ import vm from 'node:vm';
 
 const appUrl = process.env.DM_APP_HTML ? pathToFileURL(process.env.DM_APP_HTML) : new URL('../web/dm/index.html', import.meta.url);
 const html = readFileSync(appUrl, 'utf8');
+const sharedScripts = ['sync-store.js','merge.js','sync.js'].map(name => ({name,source:readFileSync(new URL('../web/shared/'+name,import.meta.url),'utf8')}));
+let deviceNumber = 0;
 
 // A small DOM for the app's event-driven tests, not a rendering substitute.
 // Production handlers, navigation, question grading and initialization all run.
@@ -151,7 +153,7 @@ function storage() {
   return { getItem: k => values.get(k) ?? null, setItem: (k, v) => values.set(k, String(v)), removeItem: k => values.delete(k) };
 }
 
-export function loadDm({ hash = '', boot = false, seed = 12345 } = {}) {
+export function loadDm({ hash = '', boot = false, seed = 12345, localStorage:existingStorage } = {}) {
   const document = makeDocument();
   let queued = [], state = seed >>> 0;
   const math = Object.create(Math);
@@ -162,8 +164,8 @@ export function loadDm({ hash = '', boot = false, seed = 12345 } = {}) {
   };
   const location = { hash };
   const context = {
-    document, location, Math: math, console,
-    localStorage: storage(), sessionStorage: storage(),
+    document, location, Math: math, console, TextEncoder,
+    localStorage: existingStorage || storage(), sessionStorage: storage(),
     history: { replaceState: (_state, _title, url) => { location.hash = url; } },
     setTimeout: () => 1, clearTimeout: () => {},
     addEventListener: () => {}, scrollTo: () => {},
@@ -171,9 +173,11 @@ export function loadDm({ hash = '', boot = false, seed = 12345 } = {}) {
     ResizeObserver: class { observe() {} },
     Image: class {},
     KidSave: { code: () => null, normalize: value => value },
+    crypto: {randomUUID: (() => { const device = ++deviceNumber; let id = 0; return () => `dm-device-${device}-mutation-${++id}`; })()},
   };
   context.window = context;
   vm.createContext(context);
+  for(const {name,source} of sharedScripts) vm.runInContext(source,context,{filename:name,timeout:1000});
   let script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m => m[1]).find(s => s.includes('const MODULES'));
   if (!script) throw new Error('DM production script was not found');
   if (!boot) script = script.slice(0, script.indexOf('// ---------- Boot ----------')) + '\n})();';
@@ -181,6 +185,10 @@ export function loadDm({ hash = '', boot = false, seed = 12345 } = {}) {
   vm.runInContext(script, context, { filename: appUrl.pathname, timeout: 1000 });
   return {
     document, location,
+    setRemote: (ref, code = 'OTTER-4821') => {
+      context.claude = {use:async name => name === 'user' ? {id:async () => code} : {}};
+      context.KidSyncStore.doc = () => ref;
+    },
     // Direct eval is injected only into the VM copy, inside the production IIFE.
     evaluate: source => context.__dmEval(source),
     random: values => { queued = [...values]; },

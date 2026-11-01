@@ -16,7 +16,7 @@ function loadTransport() {
   const listen = (name, callback) => { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(callback); };
   const unlisten = (name, callback) => listeners.get(name)?.delete(callback);
   const document = { visibilityState: 'visible', addEventListener: listen, removeEventListener: unlisten };
-  const context = { document, addEventListener: listen, removeEventListener: unlisten,
+  const context = { document, TextEncoder, addEventListener: listen, removeEventListener: unlisten,
     setTimeout(callback, delay) { const id = ++nextTimer; timers.set(id, { callback, delay }); return id; },
     clearTimeout(id) { timers.delete(id); },
     async fetch(url, options) {
@@ -69,6 +69,16 @@ test('a replay returns the authoritative latest response instead of the submitte
   assert.equal(replay.metadata.etag, '"v3"');
   assert.equal(transport.requests[0].options.headers['X-Kidapps-Mutation'], transport.requests[1].options.headers['X-Kidapps-Mutation']);
   assert.equal(transport.requests[0].options.body, transport.requests[1].options.body);
+});
+
+test('large Unicode Forge backups use a normal PUT instead of the small keepalive body budget', async () => {
+  const transport=loadTransport(),ref=transport.doc('dm','OTTER-4821','pda-save');
+  const data={forge:{notes:'界'.repeat(24000)}}; // 24,000 characters, over 64 KiB in UTF-8.
+  transport.replies.push(response(data,'"large-map"'));
+  await ref.commit(data,{mutation:'large-map-backup',etag:'"before"'});
+  assert.equal(transport.requests[0].options.keepalive,false);
+  assert.deepEqual(JSON.parse(transport.requests[0].options.body),data);
+  assert.equal(transport.requests[0].options.headers['X-Kidapps-Mutation'],'large-map-backup');
 });
 
 test('a missing GET supplies the create-only wildcard for a conditional first write', async () => {

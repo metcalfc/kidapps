@@ -20,9 +20,10 @@
 
 	encode zstd gzip
 
-	# Saves are a few KB; the app itself refuses anything over 256 KB.
+	# Forge backups include large maps and written signs. The app applies the
+	# tighter per-document limits (16 MiB DM backups, 1 MiB shares, 256 KiB otherwise).
 	request_body {
-		max_size 300KB
+		max_size 20MB
 	}
 
 	header {
