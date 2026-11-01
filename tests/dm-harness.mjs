@@ -4,7 +4,9 @@ import vm from 'node:vm';
 
 const appUrl = process.env.DM_APP_HTML ? pathToFileURL(process.env.DM_APP_HTML) : new URL('../web/dm/index.html', import.meta.url);
 const html = readFileSync(appUrl, 'utf8');
-const sharedScripts = ['sync-store.js','merge.js','sync.js'].map(name => ({name,source:readFileSync(new URL('../web/shared/'+name,import.meta.url),'utf8')}));
+const syncScripts = JSON.parse(readFileSync(new URL('../web/dm/sync-scripts.json',import.meta.url),'utf8'));
+const appScripts = [...html.matchAll(/<script\b[^>]*\bsrc="(\/dm\/[^"?#]+\.js)"/g)].map(match=>match[1].slice(1));
+const sharedScripts = [...syncScripts,...appScripts].map(name => ({name,source:readFileSync(new URL('../web/'+name,import.meta.url),'utf8')}));
 let deviceNumber = 0;
 
 // A small DOM for the app's event-driven tests, not a rendering substitute.
@@ -153,7 +155,7 @@ function storage() {
   return { getItem: k => values.get(k) ?? null, setItem: (k, v) => values.set(k, String(v)), removeItem: k => values.delete(k) };
 }
 
-export function loadDm({ hash = '', boot = false, seed = 12345, localStorage:existingStorage } = {}) {
+export function loadDm({ hash = '', boot = false, seed = 12345, localStorage:existingStorage, sessionStorage:existingSession, indexedDB, timers, saveCode = null } = {}) {
   const document = makeDocument();
   let queued = [], state = seed >>> 0;
   const math = Object.create(Math);
@@ -165,14 +167,14 @@ export function loadDm({ hash = '', boot = false, seed = 12345, localStorage:exi
   const location = { hash };
   const context = {
     document, location, Math: math, console, TextEncoder,
-    localStorage: existingStorage || storage(), sessionStorage: storage(),
+    localStorage: existingStorage || storage(), sessionStorage: existingSession || storage(), indexedDB,
     history: { replaceState: (_state, _title, url) => { location.hash = url; } },
-    setTimeout: () => 1, clearTimeout: () => {},
+    setTimeout: timers?.setTimeout || (() => 1), clearTimeout: timers?.clearTimeout || (() => {}),
     addEventListener: () => {}, scrollTo: () => {},
     innerHeight: 900, devicePixelRatio: 1,
     ResizeObserver: class { observe() {} },
     Image: class {},
-    KidSave: { code: () => null, normalize: value => value },
+    KidSave: { code: () => saveCode, normalize: value => value },
     crypto: {randomUUID: (() => { const device = ++deviceNumber; let id = 0; return () => `dm-device-${device}-mutation-${++id}`; })()},
   };
   context.window = context;

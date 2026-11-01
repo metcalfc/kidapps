@@ -23,6 +23,7 @@ class Element {
     this.className = '';
     this.id = '';
     this.clientWidth = 0; // Canvas layout is outside this unit test harness.
+    this.offsetWidth = this.offsetHeight = 0;
     this.scrollLeft = this.scrollTop = 0;
     this._text = '';
     this.classList = {
@@ -81,13 +82,40 @@ class Element {
     return this.attributes[name] ?? null;
   }
   removeAttribute(name) { delete this.attributes[name]; if (name === 'disabled') this.disabled = false; }
-  addEventListener(type, callback) { (this.listeners[type] ??= []).push(callback); }
-  dispatchEvent(event) {
-    event.target ??= this; event.preventDefault ??= () => {};
-    for (const callback of this.listeners[event.type] ?? []) callback(event);
-    return true;
+  addEventListener(type, callback, options = {}) {
+    const capture = options === true || !!options.capture;
+    (this.listeners[type] ??= []).push({callback, capture});
   }
-  click() { if (!this.disabled) this.dispatchEvent({ type: 'click' }); }
+  dispatchEvent(event) {
+    event.target ??= this; event.defaultPrevented ??= false;
+    let stopped = false, immediate = false;
+    event.preventDefault = () => { if (event.cancelable !== false) event.defaultPrevented = true; };
+    event.stopPropagation = () => { stopped = true; };
+    event.stopImmediatePropagation = () => { stopped = true; immediate = true; };
+    const path = [];
+    for (let node = this.parentElement; node; node = node.parentElement) path.push(node);
+    const invoke = (node, capture, phase) => {
+      event.currentTarget = node; event.eventPhase = phase;
+      for (const listener of node.listeners[event.type] ?? []) {
+        if (listener.capture === capture) listener.callback(event);
+        if (immediate) break;
+      }
+    };
+    for (const node of [...path].reverse()) {
+      invoke(node, true, 1);
+      if (stopped) break;
+    }
+    if (!stopped) {
+      invoke(this, true, 2);
+      if (!immediate) invoke(this, false, 2);
+    }
+    if (event.bubbles && !stopped) {
+      for (const node of path) { invoke(node, false, 3); if (stopped) break; }
+    }
+    event.currentTarget = null; event.eventPhase = 0;
+    return !event.defaultPrevented;
+  }
+  click() { if (!this.disabled) this.dispatchEvent({ type: 'click', bubbles: true, cancelable: true }); }
   focus() { this.ownerDocument.activeElement = this; }
   select() {}
   closest(selector) {
@@ -113,7 +141,7 @@ class Element {
     visit(this); return results;
   }
   querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null; }
-  getBoundingClientRect() { return { left: 0, top: 0, width: 0, height: 0 }; }
+  getBoundingClientRect() { return { left: 0, top: 0, bottom: 0, right: 0, width: 0, height: 0 }; }
   getContext() { return new Proxy({}, { get: () => () => {} }); }
 }
 
@@ -178,7 +206,7 @@ export function loadSignal({ hash = '', boot = false, seed = 12345 } = {}) {
     setTimeout: schedule, clearTimeout: id => timers.delete(id), setInterval: () => 1, matchMedia: () => ({matches:true}), navigator: {},
     performance: { now: () => clock }, requestAnimationFrame: fn => schedule(() => fn(clock), 16),
     addEventListener: () => {}, scrollTo: () => {},
-    innerHeight: 900, devicePixelRatio: 1,
+    innerWidth: 1280, innerHeight: 900, devicePixelRatio: 1,
     ResizeObserver: class { observe() {} },
     Image: class {},
     KidSave: { code: () => null, normalize: value => value },
@@ -198,6 +226,12 @@ export function loadSignal({ hash = '', boot = false, seed = 12345 } = {}) {
     // Direct eval is injected only into the VM copy, inside the production IIFE.
     evaluate: source => context.__signalEval(source),
     random: values => { queued = [...values]; },
+    pressKey: (element, key) => {
+      element.focus();
+      const accepted = element.dispatchEvent({type:'keydown', key, bubbles:true, cancelable:true});
+      if (accepted && element.tagName === 'BUTTON' && (key === 'Enter' || key === ' ')) element.click();
+      element.dispatchEvent({type:'keyup', key, bubbles:true});
+    },
     timers: () => [...timers.values()],
     advance: ms => {
       const target = clock + ms;

@@ -461,6 +461,7 @@ h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
          hints: ["...", "...", "almost the answer"], clue: "added to the notebook" }
        { id, skill, q, answers: ["accepted", ...]  // compared ignoring case, spaces, punctuation
          num: 1.5,                                  // optional: any way of writing this number counts
+         unit: "miles",                             // numeric questions: years, minutes, miles or dollars
          code: "ORRN XS", aid: "wheel",             // optional: a coded message and a helper
          input: "decimal", hints, clue }
      skill is one of the keys in SKILLS. aid is morse, wheel, numbers, grid or keypad.
@@ -524,7 +525,7 @@ const STORY_EN = [
       placeholder: 'like 7:30', hints: ['Start at 9:10 and count up four minutes.', '9:11, 9:12, 9:13, and then...'],
       clue: 'Each broadcast lasts four minutes: 9:10 to 9:14.' },
   ],
-  outro: 'There is only one tower in Larkspur Falls: the old WLRK radio tower on top of Hollow Hill. It has been silent for a long time. So who is sending signals from it? Rosa has a plan. Tomorrow, the club is going to the library to read old newspapers.',
+  outro: 'There is only one tower in Larkspur Falls: the old WLRK radio tower on top of Hollow Hill. It has been silent for a long time. So who is sending signals from it? Rosa has a plan. On Monday, the club is going to the library to read old newspapers.',
 },
 {
   id: 'c2', title: 'Silent Since 1961',
@@ -548,7 +549,7 @@ const STORY_EN = [
     ] },
   ],
   puzzles: [
-    { id: 'p1', skill: 'math', q: 'About how many years was the tower silent before the new signals began?', num: 25, answers: ['25'], input: 'decimal',
+    { id: 'p1', skill: 'math', q: 'About how many years was the tower silent before the new signals began?', num: 25, unit: 'years', answers: ['25'], input: 'decimal',
       hints: ['Find the year printed on each newspaper clipping.', 'Subtract the older year from the newer one: 1986 − 1961.'],
       clue: 'WLRK was silent for about 25 years, from 1961 to 1986.' },
     { id: 'p2', skill: 'inference', q: 'Which clue connects the old radio station to the new signals?',
@@ -563,7 +564,7 @@ const STORY_EN = [
       code: 'ORRN XS', aid: 'wheel', answers: ['look up', 'lookup'],
       hints: ['Tap "Back 1" three times so the wheel says Back 3.', 'Find O on the inside ring. The outside letter next to it is L.', 'Every letter moves three back in the alphabet: O→L, R→O, N→K, X→U, S→P.'],
       clue: 'The voice said: LOOK UP.' },
-    { id: 'p4', skill: 'math', q: 'How many years was WLRK on the air before it went silent?', num: 22, answers: ['22'], input: 'decimal',
+    { id: 'p4', skill: 'math', q: 'How many years was WLRK on the air before it went silent?', num: 22, unit: 'years', answers: ['22'], input: 'decimal',
       hints: ['The 1961 clipping says when WLRK first broadcast.', 'It started in 1939 and stopped in 1961. Subtract: 1961 − 1939.'] },
   ],
   outro: 'Look up. Mrs. Lottie Fern heard the voice too, and her stove clock said 9:14 when it stopped: four minutes, just like your notebook says. Somebody is sending these messages on purpose, every night, at Agnes Pell\'s old time. And the messages are getting longer.',
@@ -607,7 +608,7 @@ const STORY_EN = [
       answers: ['4:15', '415', '4.15', '4:15pm', 'busc', 'c'], placeholder: 'the time it leaves',
       hints: ['Bus D reaches the library at 5:11. Is that too late?', 'Bus C reaches the library at 4:36. How many minutes is that before 5:00?', '4:36 to 5:00 is 24 minutes, which is more than 20. So Bus C works. When does it leave Maple & 3rd?'],
       clue: 'The club takes Bus C at 4:15.' },
-    { id: 'p4', skill: 'math', q: 'On the 4:15 bus, how many minutes is the ride from Maple & 3rd to the library?', num: 21, answers: ['21', '21min', '21minutes'], input: 'decimal',
+    { id: 'p4', skill: 'math', q: 'On the 4:15 bus, how many minutes is the ride from Maple & 3rd to the library?', num: 21, unit: 'minutes', answers: ['21', '21min', '21minutes'], input: 'decimal',
       hints: ['Find when Bus C leaves Maple & 3rd and when it reaches the library.', 'Count up from 4:15 to 4:36.'] },
   ],
   outro: 'The club squeezed onto Bus C at 4:15, with their bikes chained up outside Milo\'s piano teacher\'s house. At 4:36 the doors hissed open in front of the Larkspur Falls Public Library. Twenty-four minutes until closing. Somewhere inside, in a building full of books, was whatever the voice wanted you to find.',
@@ -636,7 +637,7 @@ const STORY_EN = [
       code: 'C2 D3 A3 A3 D3 B5 / C2 D2 A3 A3', aid: 'grid', answers: ['hollow hill', 'hollowhill'],
       hints: ['Find column C, then go down to row 2. That letter is H.', 'The first word starts with H, O, L...', 'The first word is HOLLOW. The second word starts with H too.'],
       clue: 'The grid code names HOLLOW HILL.' },
-    { id: 'p2', skill: 'math', q: 'Walking along the roads, how far is it from the Library to the Hollow Hill tower? Answer in miles.', num: 1.5, answers: ['1.5', '1and1/2', 'oneandahalf', '3/2', '6/4'], input: 'text', placeholder: 'miles',
+    { id: 'p2', skill: 'math', q: 'Walking along the roads, how far is it from the Library to the Hollow Hill tower? Answer in miles.', num: 1.5, unit: 'miles', answers: ['1.5', '1and1/2', 'oneandahalf', '3/2', '6/4'], input: 'text', placeholder: 'miles',
       hints: ['Count the squares you move across from column B to column E. Then count down from row 2 to row 5.', 'That\'s 3 across and 3 down: 6 blocks. Each block is 1/4 mile.', '6 × 1/4 = 6/4, which is 1 1/2 miles.'],
       clue: 'Hollow Hill is 1 1/2 miles from the library.' },
     { id: 'p3', skill: 'inference', q: 'Who most likely wrote the pencil note on the card?',
@@ -691,7 +692,7 @@ const STORY_EN = [
         { t: 'Mr. Grady was stacking paint cans.', why: 'That\'s something Dev saw, not something Mr. Grady said.' } ],
       hints: ['Read the receipt line by line. What did someone buy on September 18?', 'One line is a radio tube. What did Mr. Grady say about radio tubes?'],
       clue: 'Mr. Grady sold a radio tube on September 18, even though he said he hadn\'t in twenty years.' },
-    { id: 'p2', skill: 'math', q: 'The price of the radio tube is smudged. Use the rest of the receipt to work it out. How much did the tube cost?', num: 7, answers: ['7', '7.00', '7dollars'], input: 'decimal', placeholder: 'dollars',
+    { id: 'p2', skill: 'math', q: 'The price of the radio tube is smudged. Use the rest of the receipt to work it out. How much did the tube cost?', num: 7, unit: 'dollars', answers: ['7', '7.00', '7dollars'], input: 'decimal', placeholder: 'dollars',
       hints: ['First find the cost of the batteries: 6 batteries at $6.25 each.', '6 × $6.25 = $37.50. Add the wire: $37.50 + $4.00 = $41.50.', 'The total was $48.50. Subtract: $48.50 − $41.50.'] },
     { id: 'p3', skill: 'keypad', q: 'In this code, the first digit is a phone key and the second digit says which letter on that key. 73 means key 7, third letter. What word is scratched by the phone?',
       code: ['73', '32', '71', '53', '93'], aid: 'keypad', answers: ['reply'],
@@ -735,7 +736,7 @@ const STORY_EN = [
         { t: 'She wanted to sell Walt\'s old radios.', why: 'Neither document says anything about selling.' } ],
       hints: ['Read the last paragraph of Rosa\'s page again.', 'What did Walt and Agnes do every night at 9:10? What happened after he died?'],
       clue: 'Agnes missed her nightly puzzle game with Walt, so she started a new one.' },
-    { id: 'p2', skill: 'math', q: 'The club reached the shed at 7:45 PM. How many minutes did they have until the 9:10 broadcast?', num: 85,
+    { id: 'p2', skill: 'math', q: 'The club reached the shed at 7:45 PM. How many minutes did they have until the 9:10 broadcast?', num: 85, unit: 'minutes',
       answers: ['85', '85min', '85minutes', '1:25', '1hour25minutes', '1hr25min', '1h25m', '1hour25', '1hourand25minutes'], placeholder: 'minutes',
       hints: ['From 7:45 to 8:45 is one hour. How many minutes is one hour?', 'From 8:45 to 9:10 is 25 more minutes.', '60 + 25 = 85 minutes.'] },
     { id: 'p3', skill: 'vocab', q: 'Agnes writes that the town council "approved" the plan. What does "approved" mean here?',
@@ -750,7 +751,7 @@ const STORY_EN = [
       hints: ['Subtract the year numbers: 1986 − 1961 = 25. Turn the wheel to Forward 25.', 'Forward 25 lands in the same place as Back 1, because the alphabet has 26 letters. W becomes V.', 'Every letter goes one back: W→V, E→D, H→G, A→Z, R→Q, Y→X, O→N, U→T.'],
       clue: 'Your reply: VD GDZQ XNT.' },
   ],
-  outro: 'At 9:10 PM, Rosa held down the brass key while you read the letters out loud: V-D, G-D-Z-Q, X-N-T. Agnes closed her eyes and listened to every beep. Then she leaned toward the microphone, the same way she did twenty-five years ago. "Goodnight, Larkspur," she said. "Keep your dial warm." Down the hill on Birch Street, Mrs. Lottie Fern\'s radio crackled. This time, she smiled. Case closed. The Static Club will return.',
+  outro: 'At 9:10 PM, Rosa tapped out the letters on the brass key as you read them out loud: V-D, G-D-Z-Q, X-N-T. Agnes closed her eyes and listened to every beep. Then she leaned toward the microphone, the same way she did twenty-five years ago. "Goodnight, Larkspur," she said. "Keep your dial warm." Down the hill on Birch Street, Mrs. Lottie Fern\'s radio crackled. This time, she smiled. Case closed. The Static Club will return.',
 },
 ];
 
@@ -972,6 +973,7 @@ function applySyncedState(next) {
       retained = true;
     }
   }
+  retainPuzzleSessions(next);
   S = next; saveLocal();
   applyLang();
   if (lang !== oldLanguage) return;
@@ -1053,19 +1055,36 @@ const dits = m => m.replace(/\./g, '•').replace(/-/g, '–').split('').join(' 
 function starText(n, of) { return '★'.repeat(n) + '☆'.repeat(Math.max(0, of - n)); }
 // Compare typed answers ignoring case, spaces, accents (é = e, ñ = n) and most punctuation.
 function norm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\$/g, '').replace(/\s+/g, '').replace(/[^a-z0-9.:/]/g, '').replace(/\.$/, ''); }
-// Read "1.5", "1,5", "1 1/2", "3/2", "$7.00", "7 dollars", "7 dólares" as numbers.
-function parseNum(raw) {
+// Read localized amounts, rejecting explicit units that do not fit this question.
+const NUMBER_UNITS = {
+  years: /^(?:years?|ans?|anos?)$/,
+  minutes: /^(?:minutes?|minutos?|mins?)$/,
+  miles: /^(?:miles?|milles?|millas?)$/,
+  dollars: /^(?:dollars?|dolar(?:es)?)$/,
+  euros: /^euros?$/,
+};
+function parseNum(raw, unit) {
+  const accepts = actual => !unit || unit === actual;
   let s = String(raw ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/−/g, '-').replace(/[$€]/g, '').trim();
+    .replace(/−/g, '-').trim();
+  if ((s.includes('$') && !accepts('dollars')) || (s.includes('€') && !accepts('euros'))) return NaN;
+  s = s.replace(/[$€]/g, '').trim();
   // Duration answers are minutes: 1:25, 1h25, 1 heure 25, 1 hora y 25 minutos.
   let m = s.match(/^([+-]?)(\d+|one|une?|una)\s*(?:hours?|hrs?|h|heures?|horas?)\s*(?:and|et|y)?\s*(\d+)?\s*(?:minutes?|mins?|m|minutos?)?$/);
-  if (m) return (m[1] === '-' ? -1 : 1) * ((/^\d+$/.test(m[2]) ? +m[2] : 1) * 60 + +(m[3] || 0));
+  if (m) return accepts('minutes') ? (m[1] === '-' ? -1 : 1) * ((/^\d+$/.test(m[2]) ? +m[2] : 1) * 60 + +(m[3] || 0)) : NaN;
   m = s.match(/^([+-]?)(\d+):([0-5]\d)$/);
-  if (m) return (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3]);
-  m = s.match(/^([+-]?)(\d+)\s*(?:miles?|milles?|millas?)?\s*(?:and\s*a\s*half|et\s*demi|y\s*media)$/);
-  if (m) return (m[1] === '-' ? -1 : 1) * (+m[2] + .5);
-  s = s.replace(/\s*(?:dollars?|dolares?|euros?|milles?|miles?|millas?|minutes?|minutos?|mins?|years?|ans?|anos?)\.?$/, '').trim()
-    .replace(/(\d)\s*(?:and|et|y)\s*(?=\d+\s*\/)/g, '$1 ');
+  if (m) return accepts('minutes') ? (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3]) : NaN;
+  m = s.match(/^([+-]?)(\d+)\s*(miles?|milles?|millas?)?\s*(?:and\s*a\s*half|et\s*demi|y\s*media)$/);
+  if (m) return !m[3] || accepts('miles') ? (m[1] === '-' ? -1 : 1) * (+m[2] + .5) : NaN;
+  const suffix = s.match(/([a-z]+)\.?$/);
+  if (suffix) {
+    const actual = Object.keys(NUMBER_UNITS).find(key => NUMBER_UNITS[key].test(suffix[1]));
+    if (actual) {
+      if (!accepts(actual)) return NaN;
+      s = s.slice(0, suffix.index).trim();
+    }
+  }
+  s = s.replace(/(\d)\s*(?:and|et|y)\s*(?=\d+\s*\/)/g, '$1 ');
   // Commas are decimal marks unless they form an unambiguous thousands grouping.
   if (/^[+-]?\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
   else if (/^[+-]?\d+,\d+$/.test(s)) s = s.replace(',', '.');
@@ -1116,7 +1135,7 @@ document.addEventListener('click', e => {
 addEventListener('scroll', hideGloss, { passive: true, capture: true });
 function isRight(p, raw) {
   if (p.num !== undefined) {
-    const value = parseNum(raw);
+    const value = parseNum(raw, p.unit);
     if (Number.isFinite(value)) return Math.abs(value - p.num) < 1e-9;
     // Never let punctuation removal turn a wrong number into an accepted alias.
     // Numeric aliases must pass the parser; only written-out numbers use text matching.
@@ -1221,6 +1240,34 @@ function markRead(ch, doc) {
 
 /* ---------------- chapter ---------------- */
 let curCh = 0, curDoc = null, wheelK = {}, wheelSel = {}, renderedPuzzle = null;
+// Keep unfinished work local to the live progress object; resets create a new session.
+const puzzleSessions = new WeakMap();
+function puzzleSession(ps) {
+  if (!puzzleSessions.has(ps)) {
+    puzzleSessions.set(ps, { wrong: new Set(), draft: '', feedback: null });
+  }
+  return puzzleSessions.get(ps);
+}
+// An ACK also replaces progress for chapters and languages that are offscreen.
+// Keep their local sessions attached to the saved puzzle object until a reset.
+function retainPuzzleSessions(next) {
+  for (const language of LANGS) {
+    if (JSON.stringify(S.resets?.[language]) !== JSON.stringify(next.resets?.[language])) continue;
+    const before = language === 'en' ? S.chapters : S.byLang[language];
+    const after = language === 'en' ? next.chapters : next.byLang[language];
+    for (const [chapter, saved] of Object.entries(before || {})) {
+      const target = after?.[chapter]?.puzzles;
+      if (!target) continue;
+      for (const [id, ps] of Object.entries(saved.puzzles || {})) {
+        const incoming = target[id];
+        if (!incoming || incoming === ps || !puzzleSessions.has(ps)) continue;
+        const fields = clone(incoming);
+        Object.keys(ps).forEach(key => { delete ps[key]; }); Object.assign(ps, fields);
+        target[id] = ps;
+      }
+    }
+  }
+}
 function openChapter(i) {
   if (!CHAPTERS[i] || !unlocked(i)) return;
   curCh = i;
@@ -1266,6 +1313,9 @@ function currentPuzzle() { const ch = CHAPTERS[curCh], c = chState(ch); return c
 
 function renderPuzzle() {
   const ch = CHAPTERS[curCh], box = $('puzzle');
+  const previous = renderedPuzzle;
+  const focused = previous?.input && document.activeElement === previous.input;
+  if (previous?.input && !previous.ps.solved) previous.session.draft = previous.input.value;
   box.textContent = '';
   const p = currentPuzzle();
   if (!p) {
@@ -1277,8 +1327,9 @@ function renderPuzzle() {
     return;
   }
   const ps = pState(ch, p), idx = ch.puzzles.indexOf(p), puzzleLang = lang, puzzleView = viewVersion;
-  renderedPuzzle = {ch, p, ps, lang};
-  const active = () => !ps.solved && puzzleLang === lang && puzzleView === viewVersion && !$('chapter').hidden
+  const session = puzzleSession(ps), view = {ch, p, ps, lang, session};
+  renderedPuzzle = view;
+  const active = () => renderedPuzzle === view && !ps.solved && puzzleLang === lang && puzzleView === viewVersion && !$('chapter').hidden
     && CHAPTERS[curCh] === ch && (prog()[ch.id] || {}).puzzles?.[p.id] === ps;
   const top = el('div', 'ptop');
   top.append(el('span', 'lab', L.puzzleOf(idx + 1, ch.puzzles.length)), el('span', 'chip', skillName(p.skill)));
@@ -1297,19 +1348,31 @@ function renderPuzzle() {
   }
   if (p.aid) box.append(renderAid(p));
   const fb = el('div', 'feedback'); fb.hidden = true;
+  if (session.feedback) {
+    fb.className = 'feedback bad'; fb.append(glossed('span', '', session.feedback)); fb.hidden = false;
+  }
   if (p.choices) {
     const wrap = el('div', 'choices');
-    p.choices.forEach(choice => {
+    // Every presentation gets a fresh order; grading and rejected answers stay
+    // attached to the choice itself rather than its position on the screen.
+    const choices = [...p.choices];
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+    choices.forEach(choice => {
       // A div, not a button, so the glossary's word buttons can sit inside it.
       const b = glossed('div', 'choice', choice.t);
+      if (session.wrong.has(choice)) b.classList.add('no');
       b.setAttribute('role', 'button'); b.tabIndex = 0;
-      b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.click(); } });
+      b.addEventListener('keydown', e => { if (e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); b.click(); } });
       b.addEventListener('click', () => {
         if (!active() || b.classList.contains('no') || b.classList.contains('ok')) return;
         ps.tries++;
         if (choice.ok) { b.classList.add('ok'); solve(ch, p, ps, choice.t); return; }
-        b.classList.add('no'); sfx.wrong();
-        fb.className = 'feedback bad'; fb.textContent = ''; fb.append(glossed('span', '', choice.why || L.notQuite)); fb.hidden = false;
+        b.classList.add('no'); session.wrong.add(choice); sfx.wrong();
+        session.feedback = choice.why || L.notQuite;
+        fb.className = 'feedback bad'; fb.textContent = ''; fb.append(glossed('span', '', session.feedback)); fb.hidden = false;
         persist();
       });
       wrap.append(b);
@@ -1317,6 +1380,7 @@ function renderPuzzle() {
     box.append(wrap);
   } else {
     const form = el('form', 'answer'), inp = el('input');
+    view.input = inp; inp.value = session.draft;
     inp.type = 'text'; inp.autocomplete = 'off'; inp.spellcheck = false;
     inp.setAttribute('autocorrect', 'off'); inp.setAttribute('autocapitalize', p.aid ? 'characters' : 'off'); inp.setAttribute('enterkeyhint', 'done');
     if (p.input === 'decimal') inp.inputMode = 'decimal';
@@ -1336,6 +1400,7 @@ function renderPuzzle() {
       persist();
     });
     box.append(form);
+    if (focused && previous.ps === ps) inp.focus();
     if (matchMedia('(pointer:fine)').matches) setTimeout(() => { if (active()) inp.focus(); }, 50);
   }
   box.append(fb);

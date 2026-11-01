@@ -8,6 +8,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"embed"
@@ -25,6 +26,7 @@ import (
 	"os/signal"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"syscall"
@@ -100,9 +102,13 @@ func serve(args []string) error {
 	}
 
 	web, _ := fs.Sub(webFS, "web")
+	assetDir := filepath.Join(*dataDir, "assets")
+	if err := preserveScriptAssets(web, assetDir); err != nil {
+		return fmt.Errorf("preserve release scripts: %w", err)
+	}
 	srv := &http.Server{
 		Addr:              *addr,
-		Handler:           newServer(web, stores),
+		Handler:           newServerWithAssets(web, stores, os.DirFS(assetDir)),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,
@@ -126,36 +132,39 @@ func serve(args []string) error {
 }
 
 type server struct {
-	web     fs.FS
-	stores  map[string]*Store
-	version string
-	sw      []byte
-	misses  *misses
+	web       fs.FS
+	stores    map[string]*Store
+	version   string
+	sw        []byte
+	misses    *misses
+	dmSync    []byte
+	dmSyncErr error
+	assets    fs.FS
 }
 
 func newServer(web fs.FS, stores map[string]*Store) http.Handler {
-	s := &server{web: web, stores: stores, version: contentVersion(web), misses: newMisses(20, 10*time.Minute)}
+	return newServerWithAssets(web, stores, nil)
+}
+
+func newServerWithAssets(web fs.FS, stores map[string]*Store, assets fs.FS) http.Handler {
+	s := &server{web: web, stores: stores, version: contentVersion(web), misses: newMisses(20, 10*time.Minute), assets: assets}
 	s.sw, _ = fs.ReadFile(web, "shared/sw.js")
+	s.dmSync, s.dmSyncErr = dmSyncBundle(web)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "ok\n") })
-	// A new URL lets installed DM workers fetch the conditional-sync upgrade even
-	// when another app has cached an older shared merge.js without DM support.
+	// Keep the original bundle route for installed pages. New HTML pins scripts
+	// to release paths so an older worker cannot supply stale shared code.
 	mux.HandleFunc("GET /shared/dm-sync.js", func(w http.ResponseWriter, r *http.Request) {
-		var bundle []byte
-		for _, name := range []string{"sync-store.js", "merge.js", "sync-storage.js", "sync.js"} {
-			data, err := fs.ReadFile(s.web, "shared/"+name)
-			if err != nil {
-				http.Error(w, "sync unavailable", http.StatusInternalServerError)
-				return
-			}
-			bundle = append(bundle, data...)
-			bundle = append(bundle, '\n', ';', '\n')
+		if s.dmSyncErr != nil {
+			http.Error(w, "sync unavailable", http.StatusInternalServerError)
+			return
 		}
 		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache")
-		w.Write(bundle)
+		w.Write(s.dmSync)
 	})
+	mux.HandleFunc("GET /assets/{version}/{asset...}", s.scriptAsset)
 	for _, a := range apps {
 		a := a
 		st := stores[a.ID]
@@ -175,6 +184,133 @@ func newServer(web fs.FS, stores map[string]*Store) http.Handler {
 	}
 	mux.Handle("GET /", s.static())
 	return mux
+}
+
+// This list is also used by the DM production-script harness, including its
+// IndexedDB path. Keeping it in one place prevents test/production drift.
+func dmSyncBundle(web fs.FS) ([]byte, error) {
+	manifest, err := fs.ReadFile(web, "dm/sync-scripts.json")
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	if err := json.Unmarshal(manifest, &names); err != nil {
+		return nil, err
+	}
+	var bundle []byte
+	for _, name := range names {
+		data, err := fs.ReadFile(web, name)
+		if err != nil {
+			return nil, err
+		}
+		bundle = append(bundle, data...)
+		bundle = append(bundle, '\n', ';', '\n')
+	}
+	return bundle, nil
+}
+
+func (s *server) scriptPath(name string) string {
+	return "/assets/" + s.version + "/" + strings.TrimPrefix(name, "/")
+}
+
+func (s *server) scriptAsset(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("asset")
+	version := r.PathValue("version")
+	if !releaseVersion.MatchString(version) || !fs.ValidPath(name) || !strings.HasSuffix(name, ".js") || name == "shared/sw.js" {
+		http.NotFound(w, r)
+		return
+	}
+	var data []byte
+	var err error
+	if version != s.version {
+		if s.assets == nil {
+			http.NotFound(w, r)
+			return
+		}
+		data, err = fs.ReadFile(s.assets, version+"/"+name)
+	} else if name == "shared/dm-sync.js" {
+		data, err = s.dmSync, s.dmSyncErr
+	} else {
+		data, err = fs.ReadFile(s.web, name)
+	}
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	http.ServeContent(w, r, path.Base(name), time.Time{}, bytes.NewReader(data))
+}
+
+var releaseVersion = regexp.MustCompile(`^[a-f0-9]{12}$`)
+
+// Keep public scripts from prior binaries available across a restart. A page may
+// have received its HTML just before deployment and request its scripts afterward.
+// These files contain no save data and retain the exact code named by the URL.
+func preserveScriptAssets(web fs.FS, directory string) error {
+	versionDir := filepath.Join(directory, contentVersion(web))
+	write := func(name string, data []byte) error {
+		file := filepath.Join(versionDir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(file), 0o750); err != nil {
+			return err
+		}
+		if old, err := os.ReadFile(file); err == nil && bytes.Equal(old, data) {
+			return nil
+		}
+		temp, err := os.CreateTemp(filepath.Dir(file), ".script-")
+		if err != nil {
+			return err
+		}
+		defer os.Remove(temp.Name())
+		if _, err = temp.Write(data); err != nil {
+			temp.Close()
+			return err
+		}
+		if err = temp.Close(); err != nil {
+			return err
+		}
+		return os.Rename(temp.Name(), file)
+	}
+	if err := fs.WalkDir(web, ".", func(name string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !strings.HasSuffix(name, ".js") || name == "shared/sw.js" {
+			return nil
+		}
+		data, err := fs.ReadFile(web, name)
+		if err != nil {
+			return err
+		}
+		return write(name, data)
+	}); err != nil {
+		return err
+	}
+	bundle, err := dmSyncBundle(web)
+	if err != nil {
+		return err
+	}
+	return write("shared/dm-sync.js", bundle)
+}
+
+var scriptSource = regexp.MustCompile(`(<script\b[^>]*\bsrc=["'])([^"']+)(["'])`)
+
+func (s *server) versionScripts(html []byte, document string) []byte {
+	return scriptSource.ReplaceAllFunc(html, func(tag []byte) []byte {
+		parts := scriptSource.FindSubmatch(tag)
+		src := string(parts[2])
+		if strings.ContainsAny(src, ":?#") || !strings.HasSuffix(src, ".js") {
+			return tag
+		}
+		name := strings.TrimPrefix(path.Clean(path.Join(path.Dir(document), src)), "/")
+		if strings.HasPrefix(src, "/") {
+			name = strings.TrimPrefix(path.Clean(src), "/")
+		}
+		if !fs.ValidPath(name) {
+			return tag
+		}
+		return []byte(string(parts[1]) + s.scriptPath(name) + string(parts[3]))
+	})
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -468,7 +604,7 @@ func (s *server) manifest(w http.ResponseWriter, r *http.Request, a App) {
 func (s *server) serviceWorker(w http.ResponseWriter, r *http.Request, a App) {
 	files := []string{"/" + a.ID + "/"}
 	if a.ID == "dm" {
-		files = append(files, "/shared/dm-sync.js")
+		files = append(files, s.scriptPath("shared/dm-sync.js"))
 	}
 	for _, root := range []string{a.ID, "shared"} {
 		fs.WalkDir(s.web, root, func(p string, d fs.DirEntry, err error) error {
@@ -479,7 +615,11 @@ func (s *server) serviceWorker(w http.ResponseWriter, r *http.Request, a App) {
 			if base == "index.html" || base == "sw.js" || strings.HasPrefix(base, ".") || strings.HasPrefix(p, a.ID+"/splash/") {
 				return nil
 			}
-			files = append(files, "/"+p)
+			if strings.HasSuffix(p, ".js") {
+				files = append(files, s.scriptPath(p))
+			} else {
+				files = append(files, "/"+p)
+			}
 			return nil
 		})
 	}
@@ -510,6 +650,18 @@ func (s *server) static() http.Handler {
 		if strings.Contains(p, "/api/") || p == "/shared/sw.js" {
 			http.NotFound(w, r)
 			return
+		}
+		if strings.HasSuffix(p, "/") || strings.HasSuffix(p, ".html") {
+			name := strings.TrimPrefix(p, "/")
+			if strings.HasSuffix(p, "/") {
+				name += "index.html"
+			}
+			if data, err := fs.ReadFile(s.web, name); err == nil {
+				data = s.versionScripts(data, "/"+name)
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				http.ServeContent(w, r, path.Base(name), time.Time{}, bytes.NewReader(data))
+				return
+			}
 		}
 		files.ServeHTTP(w, r)
 	})

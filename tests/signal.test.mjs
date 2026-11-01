@@ -23,6 +23,10 @@ function submit(app, raw) {
 function prepareLastPuzzle(app) {
   app.evaluate(`const ch = CHAPTERS[0]; ch.puzzles.slice(0, -1).forEach(p => Object.assign(pState(ch,p), {solved:true,tries:1,first:true})); openChapter(0);`);
 }
+function choiceButton(app, correct) {
+  const text = app.evaluate(`currentPuzzle().choices.find(c => !!c.ok === ${correct}).t`);
+  return app.element('puzzle').querySelectorAll('.choice').find(button => button.textContent === text);
+}
 
 for (const lang of ['en', 'fr', 'es']) {
   test(`${lang}: numeric grading preserves signs, decimal punctuation and fraction values`, () => {
@@ -38,6 +42,32 @@ for (const lang of ['en', 'fr', 'es']) {
     const app = start(lang);
     for (const raw of ['85', '85 minutes', '1:25', '1h25', '1h25m', '1 hour 25 minutes', '1heure25', '1 heure et 25 minutes', '1hora25', '1 hora y 25 minutos', 'una hora y 25 minutos']) assert.equal(right(app,6,2,raw), true, raw);
     for (const raw of ['-85', '-1h25', '1:26', '1h26', '125', '1:85']) assert.equal(right(app,6,2,raw), false, raw);
+  });
+  test(`${lang}: explicit units must match the numeric question`, () => {
+    const app = start(lang);
+    const quantities = [
+      {chapter:2, puzzle:1, value:25, unit:'years', suffixes:['year','years','an','ans','año','años']},
+      {chapter:2, puzzle:4, value:22, unit:'years', suffixes:['years','ans','años']},
+      {chapter:3, puzzle:4, value:21, unit:'minutes', suffixes:['minute','minutes','min','mins','minuto','minutos']},
+      {chapter:4, puzzle:2, value:1.5, unit:'miles', suffixes:['mile','miles','mille','milles','milla','millas']},
+      {chapter:5, puzzle:2, value:7, unit:'dollars', suffixes:['dollar','dollars','dólar','dólares']},
+      {chapter:6, puzzle:2, value:85, unit:'minutes', suffixes:['minutes','min','minutos']},
+    ];
+    for (const quantity of quantities) {
+      const {chapter,puzzle,value,unit,suffixes} = quantity;
+      assert.equal(app.evaluate(`CHAPTERS[${chapter-1}].puzzles[${puzzle-1}].unit`),unit);
+      for (const suffix of suffixes) {
+        for (const raw of [`${value} ${suffix}`,`${value}${suffix}`]) assert.equal(right(app,chapter,puzzle,raw),true,raw);
+      }
+      for (const [other, suffix] of [['years','años'],['minutes','minutes'],['miles','millas'],['dollars','dollars']]) {
+        if (other !== unit) assert.equal(right(app,chapter,puzzle,`${value}${suffix}`),false,`${unit}: ${value}${suffix}`);
+      }
+      if (unit !== 'dollars') assert.equal(right(app,chapter,puzzle,`$${value}`),false,`${unit}: currency symbol`);
+    }
+    assert.equal(right(app,2,1,'0:25'),false,'clock notation denotes minutes');
+    assert.equal(right(app,2,1,'25minutes'),false);
+    assert.equal(right(app,4,2,'1.5years'),false);
+    assert.equal(right(app,6,2,'85miles'),false);
   });
   test(`${lang}: double-submitting a correct form only records one first-try solve`, () => {
     const app = start(lang); app.evaluate('openChapter(0)');
@@ -70,12 +100,24 @@ test('numeric story aliases agree with numeric answers rather than bypassing ari
   assert.equal(mismatches.length, 0, JSON.stringify(mismatches));
 });
 
+test('all declared answer aliases still grade correctly in every language', () => {
+  const app = start();
+  const failures = app.evaluate(`(() => {
+    const failures = [];
+    for (const [language, story] of Object.entries(STORIES)) for (const ch of story.chapters) for (const p of ch.puzzles) {
+      for (const alias of p.answers || []) if (!isRight(p, alias)) failures.push({language,ch:ch.id,p:p.id,alias});
+    }
+    return failures;
+  })()`);
+  assert.equal(failures.length,0,JSON.stringify(failures));
+});
+
 test('correct choice and stale controls cannot change tries, hints or solve totals after success', () => {
   const app = start();
   app.evaluate('openChapter(0)'); submit(app,'9:10'); app.advance(500);
-  const choices = app.element('puzzle').querySelectorAll('.choice');
+  const correct = choiceButton(app,true), wrong = choiceButton(app,false);
   const hint = app.element('puzzle').querySelector('.pactions').querySelector('button');
-  choices[0].click(); choices[1].click(); hint.click(); choices[0].click();
+  correct.click(); wrong.click(); hint.click(); correct.click();
   assert.equal(app.evaluate('today().solved'), 2);
   assert.equal(app.evaluate('chState(CHAPTERS[0]).puzzles.p2.tries'), 1);
   assert.equal(app.evaluate('chState(CHAPTERS[0]).puzzles.p2.hints'), 0);
@@ -195,6 +237,89 @@ test('updated hints rerender the question while preserving its unfinished typed 
   assert.equal(app.evaluate('chState(CHAPTERS[0]).puzzles.p1.solved'),true);
 });
 
+for (const language of ['en','fr','es']) {
+  test(`${language}: document tabs and local hints preserve the unfinished answer and focus`,()=>{
+    const app = start(language); app.evaluate('openChapter(0)');
+    const originalForm = app.element('puzzle').querySelector('form');
+    const original = originalForm.querySelector('input'); original.value='9:'; original.focus();
+    app.element('docTabs').children[1].click();
+    let input = app.element('puzzle').querySelector('input');
+    assert.equal(input.value,'9:'); assert.equal(app.document.activeElement,input);
+    app.element('puzzle').querySelector('.pactions').querySelector('button').click();
+    input = app.element('puzzle').querySelector('input');
+    assert.equal(input.value,'9:'); assert.equal(app.document.activeElement,input);
+    assert.equal(app.element('puzzle').querySelector('.hints').children.length,1);
+    original.value='9:10'; originalForm.dispatchEvent({type:'submit'});
+    assert.equal(app.evaluate('chState(CHAPTERS[0]).puzzles.p1.tries'),0,'replaced controls are inactive');
+    submit(app,'9:10');
+    assert.equal(app.evaluate('chState(CHAPTERS[0]).puzzles.p1.solved'),true);
+  });
+
+  test(`${language}: all multiple-choice questions reshuffle on each presentation and retain wrong selections`,()=>{
+    const catalog = start(language).evaluate(`CHAPTERS.flatMap((ch,chapter) => ch.puzzles.flatMap((p,puzzle) => p.choices ? [{chapter,puzzle}] : []))`);
+    assert.equal(catalog.length,9);
+    for (const {chapter,puzzle} of catalog) {
+      const app=start(language); app.random(Array(8).fill(0));
+      app.evaluate(`CHAPTERS.slice(0,${chapter}).forEach(ch => chState(ch).done=true);
+        const ch=CHAPTERS[${chapter}];ch.puzzles.slice(0,${puzzle}).forEach(p=>Object.assign(pState(ch,p),{solved:true,tries:1}));openChapter(${chapter});`);
+      const label=`chapter ${chapter+1}, puzzle ${puzzle+1}`;
+      const original=app.element('puzzle').querySelectorAll('.choice').map(button=>button.textContent);
+      const correct=choiceButton(app,true);
+      assert.equal(original.indexOf(correct.textContent),original.length-1,label);
+      assert.equal(app.evaluate('currentPuzzle().choices[0].ok'),true,'rendering must not mutate the story');
+      const wrong=choiceButton(app,false), wrongText=wrong.textContent; wrong.click();
+      assert.equal(app.evaluate('renderedPuzzle.ps.tries'),1,label);
+      app.random(Array(8).fill(.999999));
+      app.element('puzzle').querySelector('.pactions').querySelector('button').click();
+      const hinted=app.element('puzzle').querySelectorAll('.choice').map(button=>button.textContent);
+      assert.equal(hinted.indexOf(choiceButton(app,true).textContent),0,'a hint presents a fresh order');
+      assert.notDeepEqual(hinted,original,label);
+      app.random(Array(8).fill(0));
+      app.element('docTabs').children[1].click();
+      const documentOrder=app.element('puzzle').querySelectorAll('.choice').map(button=>button.textContent);
+      assert.equal(documentOrder.indexOf(choiceButton(app,true).textContent),documentOrder.length-1,'document lookup presents a fresh order');
+      assert.notDeepEqual(documentOrder,hinted,label);
+      app.random(Array(8).fill(.999999));
+      app.evaluate('const next=clone(S);const progress=lang==="en"?next.chapters:next.byLang[lang];progress[CHAPTERS[curCh].id].puzzles[currentPuzzle().id].hints=2;applySyncedState(next)');
+      const after=app.element('puzzle').querySelectorAll('.choice');
+      assert.equal(after.findIndex(button=>button.textContent===choiceButton(app,true).textContent),0,'a remote hint presents a fresh order');
+      assert.deepEqual(after.map(button=>button.textContent).sort(),original.slice().sort(),'every presentation keeps the same answer choices');
+      const stillWrong=after.find(button=>button.textContent===wrongText);
+      assert.equal(stillWrong.classList.contains('no'),true,label);
+      assert.equal(app.element('puzzle').querySelector('.feedback').hidden,false,label);
+      stillWrong.click();
+      assert.equal(app.evaluate('renderedPuzzle.ps.tries'),1,'a previously rejected choice is not counted twice');
+      correct.dispatchEvent({type:'click'});
+      assert.equal(app.evaluate('renderedPuzzle.ps.solved'),false,'controls from an earlier presentation cannot submit an answer');
+      assert.equal(app.evaluate('renderedPuzzle.ps.tries'),1);
+      const currentCorrect=choiceButton(app,true);app.pressKey(currentCorrect,'Enter');
+      assert.equal(app.evaluate('renderedPuzzle.ps.solved'),true,label);
+    }
+  });
+}
+
+for (const language of ['fr','es']) {
+  test(`${language}: Enter and Space on a nested glossary word open its definition without grading the choice`,()=>{
+    for (const key of ['Enter',' ']) {
+      const app=start(language);app.evaluate('openChapter(0)');submit(app,'9:10');app.advance(500);
+      const choice=app.element('puzzle').querySelectorAll('.choice').find(button=>button.querySelector('.gl'));
+      assert.ok(choice,'translated choices include glossary buttons');
+      const word=choice.querySelector('.gl');
+      let bubbled=false;
+      choice.addEventListener('keydown',event=>{if(event.target===word)bubbled=true;});
+      app.pressKey(word,key);
+      assert.equal(bubbled,true,'the key event reaches the choice container');
+      assert.equal(app.evaluate('renderedPuzzle.ps.tries'),0);
+      assert.equal(app.evaluate('renderedPuzzle.ps.solved'),false);
+      assert.equal(app.element('gloss').hidden,false,'the native word-button action opens the definition');
+      assert.equal(app.element('gloss').querySelector('b').textContent,word.textContent);
+      app.pressKey(choiceButton(app,true),key);
+      assert.equal(app.evaluate('renderedPuzzle.ps.tries'),1);
+      assert.equal(app.evaluate('renderedPuzzle.ps.solved'),true,'choice keyboard activation still grades');
+    }
+  });
+}
+
 test('a remote reset invalidates old controls and a pending completion animation',()=>{
   const app=start();prepareLastPuzzle(app);const form=submit(app,'9:14');const stale=app.timers().find(t=>t.delay===500).fn;
   app.evaluate("const next=clone(S);next.chapters={};KidMerge.stampReset(next,'en');applySyncedState(next)");
@@ -216,4 +341,49 @@ test('complementary merged puzzle halves derive chapter completion and unlock th
     assert.equal(app.evaluate('unlocked(1)'),true,language);
     app.evaluate('openChapter(1)');assert.equal(app.evaluate('curCh'),1,language);
   }
+});
+
+for (const screen of ['home','notebook']) {
+  for (const language of ['en','fr','es']) {
+    test(`${language}: an ACK on ${screen} preserves drafts and wrong-answer history while choices reshuffle on return`,()=>{
+      const app=start(language);app.evaluate('openChapter(0)');
+      const oldForm=app.element('puzzle').querySelector('form');
+      oldForm.querySelector('input').value='9:';
+      app.evaluate(`show(${JSON.stringify(screen)});applySyncedState(clone(S));openChapter(0)`);
+      assert.equal(app.element('puzzle').querySelector('input').value,'9:');
+      oldForm.querySelector('input').value='9:10';oldForm.dispatchEvent({type:'submit'});
+      assert.equal(app.evaluate('renderedPuzzle.ps.tries'),0,'offscreen controls remain inactive');
+      submit(app,'9:10');app.random(Array(8).fill(.999999));app.advance(500);
+      const original=app.element('puzzle').querySelectorAll('.choice').map(button=>button.textContent);
+      assert.equal(original.indexOf(choiceButton(app,true).textContent),0);
+      const wrong=choiceButton(app,false),wrongText=wrong.textContent;wrong.click();
+      const feedback=app.element('puzzle').querySelector('.feedback').textContent;
+      app.random(Array(8).fill(0));
+      app.evaluate(`show(${JSON.stringify(screen)});applySyncedState(clone(S));openChapter(0)`);
+      const choices=app.element('puzzle').querySelectorAll('.choice');
+      assert.notDeepEqual(choices.map(button=>button.textContent),original);
+      assert.equal(choices.findIndex(button=>button.textContent===choiceButton(app,true).textContent),choices.length-1);
+      const rejected=choices.find(button=>button.textContent===wrongText);
+      assert.equal(rejected.classList.contains('no'),true);
+      assert.equal(app.element('puzzle').querySelector('.feedback').textContent,feedback);
+      rejected.click();
+      assert.equal(app.evaluate('renderedPuzzle.ps.tries'),1,'a rejected answer stays counted once');
+      const saved=JSON.parse(app.evaluate("localStorage.getItem(LS_KEY)"));
+      const progress=language==='en'?saved.chapters:saved.byLang[language];
+      assert.deepEqual(Object.keys(progress.c1.puzzles.p2).sort(),['first','hints','solved','tries']);
+    });
+  }
+}
+
+test('offscreen ACK sessions stay separate by language and do not survive that language’s reset',()=>{
+  const app=start();app.evaluate('openChapter(0)');
+  app.element('puzzle').querySelector('input').value='English draft';
+  app.evaluate("setLang('fr');openChapter(0)");
+  app.element('puzzle').querySelector('input').value='French draft';
+  app.evaluate("show('notebook');applySyncedState(clone(S));setLang('en');openChapter(0)");
+  assert.equal(app.element('puzzle').querySelector('input').value,'English draft');
+  app.evaluate("show('home');const next=clone(S);next.chapters={};KidMerge.stampReset(next,'en');applySyncedState(next);openChapter(0)");
+  assert.equal(app.element('puzzle').querySelector('input').value,'','a reset creates a new English session');
+  app.evaluate("setLang('fr');openChapter(0)");
+  assert.equal(app.element('puzzle').querySelector('input').value,'French draft','an English reset preserves French work');
 });

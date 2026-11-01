@@ -10,6 +10,8 @@ Live at https://kidapps.exe.xyz/.
 
 Forge creatures take a 5-foot step after each hero move, wait or search, respecting their footprint, walls and closed doors. Combat shows each monster's action, attack roll, damage dice and HP change before Continue. Editing and undo use the same stored choices as testing and sharing.
 
+Signal reshuffles multiple-choice answers each time a puzzle is presented, including when it is reopened. Draft answers and rejected choices survive document lookups, hints and background saves.
+
 ## How saves work
 
 There are no accounts. The first time a device opens an app, the server gives it a **save code** such as `OTTER-4821`. A parent finds it on the app's Parent / Grown-ups screen. Entering the same code on another device puts both devices on one save.
@@ -26,7 +28,9 @@ Apps with `Shares: true` (DM Academy's Forge) can publish an item under its own 
 
 ### Under the hood
 
-The apps were first written as claude.ai artifacts, which save through `window.claude.use('db')`. `web/shared/save.js` provides identity and the compatible document API against this server. The games use `sync-store.js` for ETags and conditional writes, `merge.js` for three-way progress merges, and `sync.js` to persist retryable operations before sending them. DM loads these through a fresh `/shared/dm-sync.js` bundle so installed service workers can upgrade safely. SQLite records applied mutation IDs atomically with each save. After a document has used this protocol, unconditional writes are rejected so an older open app cannot replace merged progress; reloading loads the updated app.
+The apps were first written as claude.ai artifacts, which save through `window.claude.use('db')`. `web/shared/save.js` provides identity and the compatible document API against this server. The games use `sync-store.js` for ETags and conditional writes, `merge.js` for three-way progress merges, and `sync.js` to persist retryable operations before sending them. DM's sync bundle and test harness share the file list in `web/dm/sync-scripts.json`; its map model lives in `web/dm/forge-map.js`. SQLite records applied mutation IDs atomically with each save. After a document has used this protocol, unconditional writes are rejected so an older open app cannot replace merged progress; reloading loads the updated app.
+
+Served HTML pins scripts to release-specific paths. Each app's worker caches its own matching release, and the server preserves earlier public scripts so pages received just before a deployment can finish loading. DM keeps independent tab journals and component receipts to recover partial saves without losing or repeating progress.
 
 ## Layout
 
@@ -72,6 +76,8 @@ ssh exe.dev share set-public kidapps
 ## Operations
 
 Data lives in `/var/lib/kidapps/` on the VM. The server writes a daily snapshot of each database to `/var/lib/kidapps/backups/` and keeps 14 days.
+
+Public script releases are preserved under `/var/lib/kidapps/assets/`. Keep that directory across deployments; it contains application code, not family save data.
 
 Import a save from a JSON file (prints the new code):
 

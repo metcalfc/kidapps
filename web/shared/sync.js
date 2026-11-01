@@ -30,9 +30,9 @@
       catch (_) { throw fail('Could not finish saving on this device.'); }
       pending = null;
     };
-    const confirmed = (remote, ui, adopted = remote) => {
+    const confirmed = (remote, ui, adopted = remote, receipts, covered = false) => {
       const next = {base:clone(remote), migrated:true};
-      if (preserveAdoption) next.adoption = {id:mutationId(), ui:clone(ui), remote:clone(adopted)};
+      if (preserveAdoption) next.adoption = {id:mutationId(), ui:clone(ui), remote:clone(adopted), receipts:clone(receipts), covered};
       write(metaKey, next); meta = next;
     };
     async function flush() {
@@ -52,28 +52,28 @@
     const unpack = snapshot => snapshot && snapshot.exists ? clone(snapshot.data()) : undefined;
     const tag = snapshot => snapshot && snapshot.exists ? snapshot.metadata && snapshot.metadata.etag : '*';
 
-    function reconcile(local, remote) {
+    function reconcile(local, remote, receipts) {
       if (pending || remote === undefined) return clone(local);
       const seed = meta.migrated ? remote : legacy(clone(meta.base), clone(remote));
       const desired = merge(clone(meta.base), clone(local), clone(seed));
-      confirmed(remote, local, desired);
+      confirmed(remote, local, desired, receipts, equal(desired, remote));
       return desired;
     }
 
-    async function prepare(ref, local, ui) {
+    async function prepare(ref, local, ui, receipts) {
       const snapshot = await ref.get(), remote = unpack(snapshot);
       const previousBase = clone(meta.base);
       // Compute without advancing the baseline: until the pending intent is durable,
       // the caller still displays the old local snapshot and must be able to retry it.
       const seed = remote === undefined ? undefined : meta.migrated ? remote : legacy(clone(meta.base), clone(remote));
       const candidate = remote === undefined ? clone(local) : merge(clone(meta.base), clone(local), clone(seed));
-      if (remote !== undefined && equal(candidate, remote)) { confirmed(remote, ui); return remote; }
+      if (remote !== undefined && equal(candidate, remote)) { confirmed(remote, ui, remote, receipts, true); return remote; }
       // For a missing document the first write contains all existing local progress.
       // Keep the original baseline for a race with another device creating the document.
       const record = {mutation:mutationId(), base:remote === undefined ? previousBase : remote,
-        local:clone(candidate), ui:clone(ui), kind:'save', candidate:clone(candidate), etag:tag(snapshot)};
+        local:clone(candidate), ui:clone(ui), receipts:clone(receipts), kind:'save', candidate:clone(candidate), etag:tag(snapshot)};
       storeMeta(); storePending(record);
-      if (remote !== undefined) confirmed(remote, ui);
+      if (remote !== undefined) confirmed(remote, ui, remote, receipts);
       return undefined;
     }
 
@@ -105,19 +105,51 @@
         const saved = unpack(snapshot);
         if (saved === undefined) throw fail('The server did not return the saved document.');
         // Persist the confirmed base before deleting the replayable pending record.
-        confirmed(saved, record.ui); clearPending(); await flush();
+        confirmed(saved, record.ui, saved, record.receipts, true); clearPending(); await flush();
         return {saved, record};
       }
       throw fail('The save changed repeatedly. Please try again.');
     }
 
-    async function save(ref, local) {
+    // Other tabs keep independent baselines and pending slots. Recover their exact
+    // mutation IDs before fresh merges, including after their original tab closed.
+    async function recover(ref) {
+      if (!storage || typeof storage.pendingRecords !== 'function') return;
+      const records = await storage.pendingRecords();
+      for (let record of records) {
+        let complete = false;
+        for (let attempt = 0; attempt < 8; attempt++) {
+          let snapshot;
+          try { snapshot = await ref.commit(clone(record.candidate), {mutation:record.mutation, etag:record.etag}); }
+          catch (error) {
+            if (!error || error.code !== 'conflict') throw error;
+            const current = await ref.get(), remote = unpack(current);
+            let candidate;
+            try { candidate = remote === undefined ? clone(record.local) : merge(clone(record.base), clone(record.local), clone(remote)); }
+            catch (mergeError) {
+              if (mergeError && mergeError.code === 'conflict') { await storage.updatePending(record.mutation, null, remote); mergeError.remote = clone(remote); }
+              throw mergeError;
+            }
+            record = {...record, candidate:clone(candidate), etag:tag(current)};
+            await storage.updatePending(record.mutation, record);
+            continue;
+          }
+          const saved = unpack(snapshot);
+          if (saved === undefined) throw fail('The server did not return the saved document.');
+          await storage.updatePending(record.mutation, null, saved); complete = true; break;
+        }
+        if (!complete) throw fail('Another tab’s save changed repeatedly. Please try again.');
+      }
+    }
+
+    async function save(ref, local, receipts) {
+      await recover(ref);
       // local is the live UI object. Re-read it after each await to preserve practice
       // performed while a request was in flight. Callers serialize save and transact.
       let intent = clone(local), ui = clone(local);
       for (let writeCount = 0; writeCount < 8; writeCount++) {
         if (!pending) {
-          const alreadySaved = await prepare(ref, intent, ui);
+          const alreadySaved = await prepare(ref, intent, ui, receipts);
           if (!pending) {
             const desired = merge(ui, clone(local), alreadySaved);
             if (equal(desired, alreadySaved)) { await flush(); return clone(alreadySaved); }
@@ -155,7 +187,8 @@
       return {state:await save(ref, local), result:clone(result)};
     }
 
-    return Object.freeze({reconcile, save, transact, flush, get adoption() { return clone(meta.adoption || null); }, get hasPending() { return !!pending; }});
+    const rebaseWorking = base => { meta.base = {...meta.base, ...clone(base)}; storeMeta(); };
+    return Object.freeze({reconcile, save, transact, flush, recover, rebaseWorking, get adoption() { return clone(meta.adoption || null); }, get hasPending() { return !!pending; }});
   }
 
   root.KidSync = Object.freeze({create});

@@ -30,7 +30,7 @@ self.addEventListener('fetch', event => {
         if (res.ok && url.pathname === SHELL) (await caches.open(CACHE)).put(SHELL, res.clone());
         return res;
       } catch (e) {
-        return (await caches.match(SHELL)) || Response.error();
+        return (await (await caches.open(CACHE)).match(SHELL)) || Response.error();
       }
     })());
     return;
@@ -38,10 +38,11 @@ self.addEventListener('fetch', event => {
 
   if (url.pathname.endsWith('/manifest.webmanifest')) return;
   event.respondWith((async () => {
-    const hit = await caches.match(req, { ignoreSearch: true });
+    const cache = await caches.open(CACHE);
+    const hit = await cache.match(req);
     if (hit) return hit;
     const res = await fetch(req);
-    if (res.ok) (await caches.open(CACHE)).put(req, res.clone());
+    if (res.ok) cache.put(req, res.clone());
     return res;
   })());
 });

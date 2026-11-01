@@ -151,3 +151,25 @@ test('single-step review requires two new unassisted examples', () => {
     assert.equal(app.evaluate('progress.review.fixture || 0'), remaining);
   }
 });
+
+test('renaming a generator implementation retains its saved review ID and clears the legacy queue', () => {
+  const app=loadDm();
+  app.random(Array(500).fill(.1));
+  app.evaluate(`Object.defineProperty(genEncounterBuild,'name',{value:'buildEncounterLesson'});
+    current.module=MODULES.find(m=>m.id==='encounter');
+    progress.review={genEncounterBuild:2};progress.reviewPrompts={genEncounterBuild:'Legacy missed budget?'};
+  `);
+  assert.equal(app.evaluate('generatorId(genEncounterBuild)'),'genEncounterBuild');
+  assert.equal(app.evaluate('GEN_INDEX.genEncounterBuild.gen.name'),'buildEncounterLesson');
+  for(const remaining of [1,0]) {
+    app.evaluate('nextProblem()');
+    assert.equal(app.evaluate('current.problem.gen'),'genEncounterBuild');
+    assert.equal(app.evaluate('current.problem.review'),true,'the legacy saved key must still be scheduled for review');
+    finishExample(app);
+    assert.equal(app.evaluate('progress.review.genEncounterBuild || 0'),remaining);
+  }
+  const saved=JSON.parse(app.evaluate("localStorage.getItem('pda-progress')"));
+  assert.deepEqual(saved.review,{});
+  assert.deepEqual(saved.reviewPrompts,{});
+  assert.equal(app.evaluate('GEN_INDEX.buildEncounterLesson'),undefined);
+});

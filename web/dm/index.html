@@ -47,6 +47,7 @@
 <link rel="stylesheet" href="/shared/fonts/fonts.css">
 <script src="/shared/save.js"></script>
 <script src="/shared/dm-sync.js"></script>
+<script src="/dm/forge-map.js"></script>
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <style>
 /* Home-screen app polish for iPad and Mac: no long-press callouts or double-tap zoom on controls. */
@@ -761,7 +762,8 @@ details.lesson[open] summary::after{content:"−"}
                   { q: "...", choices: ["Easy","Hard"], answer: "Hard" } ], // ...or a choice
          challenge: true }   // optional: double XP
    - To add a new question type, write a new gen function (copy one of
-     the existing ones) and add it to a module's "gens" list.
+     the existing ones), register its permanent review key in GENERATOR_IDS,
+     and add it to a module's "gens" list.
    ===================================================================== */
 
 // ---------- Rules data (5e-style numbers) ----------
@@ -770,40 +772,85 @@ const DICE_AVG = {4:2.5, 6:3.5, 8:4.5, 10:5.5, 12:6.5, 20:10.5};
 const XP_THRESH = {1:[50,75,100], 2:[100,150,200], 3:[150,225,400], 4:[250,375,500],
                    5:[500,750,1100], 6:[600,1000,1400], 7:[750,1300,1700], 8:[1000,1700,2100]};
 const MONSTERS = [
-  {n:'Kobold',       pl:'Kobolds',       xp:25,   hp:5,  ac:12, hd:'2d6-2',   weapon:'dagger',      atk:'1d4+2'},
-  {n:'Bandit',       pl:'Bandits',       xp:25,   hp:11, ac:12, hd:'2d8+2',   weapon:'scimitar',    atk:'1d6+1'},
-  {n:'Goblin',       pl:'Goblins',       xp:50,   hp:7,  ac:15, hd:'2d6',     weapon:'scimitar',    atk:'1d6+2'},
-  {n:'Wolf',         pl:'Wolves',        xp:50,   hp:11, ac:13, hd:'2d8+2',   weapon:'bite',        atk:'2d4+2'},
-  {n:'Skeleton',     pl:'Skeletons',     xp:50,   hp:13, ac:13, hd:'2d8+4',   weapon:'shortsword',  atk:'1d6+2'},
-  {n:'Zombie',       pl:'Zombies',       xp:50,   hp:22, ac:8,  hd:'3d8+9',   weapon:'slam',        atk:'1d6+1'},
-  {n:'Orc',          pl:'Orcs',          xp:100,  hp:15, ac:13, hd:'2d8+6',   weapon:'greataxe',    atk:'1d12+3'},
-  {n:'Hobgoblin',    pl:'Hobgoblins',    xp:100,  hp:11, ac:18, hd:'2d8+2',   weapon:'longsword',   atk:'1d8+1'},
-  {n:'Giant Spider', pl:'Giant Spiders', xp:200,  hp:26, ac:14, hd:'4d10+4',  weapon:'bite',        atk:'1d8+3'},
-  {n:'Bugbear',      pl:'Bugbears',      xp:200,  hp:27, ac:16, hd:'5d8+5',   weapon:'morningstar', atk:'2d8+2'},
-  {n:'Dire Wolf',    pl:'Dire Wolves',   xp:200,  hp:37, ac:14, hd:'5d10+10', weapon:'bite',        atk:'2d6+3'},
-  {n:'Ghoul',        pl:'Ghouls',        xp:200,  hp:22, ac:12, hd:'5d8',     weapon:'claws',       atk:'2d4+2'},
-  {n:'Ogre',         pl:'Ogres',         xp:450,  hp:59, ac:11, hd:'7d10+21', weapon:'greatclub',   atk:'2d8+4'},
-  {n:'Owlbear',      pl:'Owlbears',      xp:700,  hp:59, ac:13, hd:'7d10+21', weapon:'claws',       atk:'2d8+5'},
-  {n:'Troll',        pl:'Trolls',        xp:1800, hp:84, ac:15, hd:'8d10+40', weapon:'claw',        atk:'2d6+4'},
-  {n:'Minotaur',     pl:'Minotaurs',     xp:700,  hp:76, ac:14, hd:'9d10+27', weapon:'greataxe',    atk:'2d12+4'},
-  {n:'Wight',        pl:'Wights',        xp:700,  hp:45, ac:14, hd:'6d8+18',  weapon:'longsword',   atk:'1d8+2'},
-  {n:'Hill Giant',   pl:'Hill Giants',   xp:1800, hp:105,ac:13, hd:'10d12+40',weapon:'greatclub',   atk:'3d8+5'},
-  {n:'Wyvern',       pl:'Wyverns',       xp:2300, hp:110,ac:13, hd:'13d10+39',weapon:'stinger',     atk:'2d6+4'},
-  {n:'Young Green Dragon', pl:'Young Green Dragons', xp:3900, hp:136, ac:18, hd:'16d10+48', weapon:'bite', atk:'2d10+4'},
+  {n:'Kobold',       pl:'Kobolds',       xp:25,   hp:5,  ac:12, hd:'2d6-2',   weapon:'dagger',      atk:'1d4+2', dex:2, span:1},
+  {n:'Bandit',       pl:'Bandits',       xp:25,   hp:11, ac:12, hd:'2d8+2',   weapon:'scimitar',    atk:'1d6+1', dex:1, span:1},
+  {n:'Goblin',       pl:'Goblins',       xp:50,   hp:7,  ac:15, hd:'2d6',     weapon:'scimitar',    atk:'1d6+2', dex:2, span:1},
+  {n:'Wolf',         pl:'Wolves',        xp:50,   hp:11, ac:13, hd:'2d8+2',   weapon:'bite',        atk:'2d4+2', dex:2, span:1},
+  {n:'Skeleton',     pl:'Skeletons',     xp:50,   hp:13, ac:13, hd:'2d8+4',   weapon:'shortsword',  atk:'1d6+2', dex:2, span:1},
+  {n:'Zombie',       pl:'Zombies',       xp:50,   hp:22, ac:8,  hd:'3d8+9',   weapon:'slam',        atk:'1d6+1', dex:-2, span:1},
+  {n:'Orc',          pl:'Orcs',          xp:100,  hp:15, ac:13, hd:'2d8+6',   weapon:'greataxe',    atk:'1d12+3', dex:1, span:1},
+  {n:'Hobgoblin',    pl:'Hobgoblins',    xp:100,  hp:11, ac:18, hd:'2d8+2',   weapon:'longsword',   atk:'1d8+1', dex:1, span:1},
+  {n:'Giant Spider', pl:'Giant Spiders', xp:200,  hp:26, ac:14, hd:'4d10+4',  weapon:'bite',        atk:'1d8+3', dex:3, span:2},
+  {n:'Bugbear',      pl:'Bugbears',      xp:200,  hp:27, ac:16, hd:'5d8+5',   weapon:'morningstar', atk:'2d8+2', dex:2, span:1},
+  {n:'Dire Wolf',    pl:'Dire Wolves',   xp:200,  hp:37, ac:14, hd:'5d10+10', weapon:'bite',        atk:'2d6+3', dex:2, span:2},
+  {n:'Ghoul',        pl:'Ghouls',        xp:200,  hp:22, ac:12, hd:'5d8',     weapon:'claws',       atk:'2d4+2', dex:2, span:1},
+  {n:'Ogre',         pl:'Ogres',         xp:450,  hp:59, ac:11, hd:'7d10+21', weapon:'greatclub',   atk:'2d8+4', dex:-1, span:2},
+  {n:'Owlbear',      pl:'Owlbears',      xp:700,  hp:59, ac:13, hd:'7d10+21', weapon:'claws',       atk:'2d8+5', dex:1, span:2},
+  {n:'Troll',        pl:'Trolls',        xp:1800, hp:84, ac:15, hd:'8d10+40', weapon:'claw',        atk:'2d6+4', dex:1, span:2},
+  {n:'Minotaur',     pl:'Minotaurs',     xp:700,  hp:76, ac:14, hd:'9d10+27', weapon:'greataxe',    atk:'2d12+4', dex:0, span:2},
+  {n:'Wight',        pl:'Wights',        xp:700,  hp:45, ac:14, hd:'6d8+18',  weapon:'longsword',   atk:'1d8+2', dex:2, span:1},
+  {n:'Hill Giant',   pl:'Hill Giants',   xp:1800, hp:105,ac:13, hd:'10d12+40',weapon:'greatclub',   atk:'3d8+5', dex:-1, span:3},
+  {n:'Wyvern',       pl:'Wyverns',       xp:2300, hp:110,ac:13, hd:'13d10+39',weapon:'stinger',     atk:'2d6+4', dex:0, span:2},
+  {n:'Young Green Dragon', pl:'Young Green Dragons', xp:3900, hp:136, ac:18, hd:'16d10+48', weapon:'bite', atk:'2d10+4', dex:1, span:2},
 ];
-// Each monster's Dexterity modifier, for Initiative.
-const MON_DEX = { Kobold:2, Bandit:1, Goblin:2, Wolf:2, Skeleton:2, Zombie:-2, Orc:1, Hobgoblin:1, 'Giant Spider':3, Bugbear:2, 'Dire Wolf':2, Ghoul:2,
-  Ogre:-1, Owlbear:1, Troll:1, Minotaur:0, Wight:2, 'Hill Giant':-1, Wyvern:0, 'Young Green Dragon':1 };
-const monDex = n => MON_DEX[n] ?? 0;
+// Named rules, initiative and Forge footprints all come from the same creature record.
+const MONSTER_BY_NAME = new Map(MONSTERS.map(m => [m.n, m]));
+const monsterByName = name => MONSTER_BY_NAME.get(name);
+const monDex = name => monsterByName(name)?.dex ?? 0;
+// Large creatures cover 2 × 2 squares; Huge creatures cover 3 × 3.
+const monSpan = name => monsterByName(name)?.span || 1;
 // Monsters unlock as the DM ranks up: the biggest monster XP allowed at each rank (index matches RANKS).
 const UNLOCK_XP = [50, 100, 200, 450, 700, 1800, 99999];
 const DAILY_GOAL = 5, DAILY_BONUS = 25;
 const QUEST_NAMES = ["The Miller's Missing Mule", 'Rats in the Rusty Tankard', 'The Toll Bridge Troll', 'A Letter for the Mayor', 'Lights in the Whispering Pines', 'The Sunken Chapel Bell', "Crow's Hollow at Midnight"];
-const HERO_WEAPONS = [['longsword','1d8+3'],['greataxe','1d12+3'],['shortbow','1d6+2'],['dagger','1d4+2'],['fire bolt','1d10'],['rapier','1d8+3'],['warhammer','1d8+2'],['quarterstaff','1d6+1'],['greatsword','2d6+3']];
-// How each attack is made, so a bow is shot and a spell is cast rather than everything being swung.
-const HERO_VERB = { shortbow:'You shoot your shortbow', 'fire bolt':'You cast fire bolt', dagger:'You stab with your dagger', rapier:'You thrust your rapier' };
-const heroAttack = w => HERO_VERB[w] || `You swing your ${w}`;
-const MELEE_WEAPONS = HERO_WEAPONS.filter(([w]) => w !== 'shortbow' && w !== 'fire bolt');
+// Weapon rules are structured; property text is only a presentation of these fields.
+// attackPractice marks the curated Strength-attack lesson pool, preserving its original weights.
+const WEAPONS = [
+  {name:'Dagger', dice:'1d4', properties:{finesse:true,light:true,thrown:true}, mastery:'Nick', style:'stab', attackPractice:true},
+  {name:'Shortsword', dice:'1d6', properties:{finesse:true,light:true}, mastery:'Vex', attackPractice:true},
+  {name:'Scimitar', dice:'1d6', properties:{finesse:true,light:true}, mastery:'Nick', attackPractice:true},
+  {name:'Rapier', dice:'1d8', properties:{finesse:true}, mastery:'Vex', style:'thrust', attackPractice:true},
+  {name:'Longsword', dice:'1d8', properties:{}, versatileDice:'1d10', mastery:'Sap', attackPractice:true},
+  {name:'Warhammer', dice:'1d8', properties:{}, versatileDice:'1d10', mastery:'Push', attackPractice:true},
+  {name:'Quarterstaff', dice:'1d6', properties:{}, versatileDice:'1d8', mastery:'Topple', attackPractice:true},
+  {name:'Spear', dice:'1d6', properties:{thrown:true}, versatileDice:'1d8', mastery:'Sap', attackPractice:true},
+  {name:'Greatsword', dice:'2d6', properties:{heavy:true,twoHanded:true}, mastery:'Graze', attackPractice:true},
+  {name:'Greataxe', dice:'1d12', properties:{heavy:true,twoHanded:true}, mastery:'Cleave', attackPractice:true},
+  {name:'Maul', dice:'2d6', properties:{heavy:true,twoHanded:true}, mastery:'Topple', attackPractice:true},
+  {name:'Glaive', dice:'1d10', properties:{heavy:true,reach:true,twoHanded:true}, mastery:'Graze', attackPractice:true},
+  {name:'Halberd', dice:'1d10', properties:{heavy:true,reach:true,twoHanded:true}, mastery:'Cleave', attackPractice:true},
+  {name:'Handaxe', dice:'1d6', properties:{light:true,thrown:true}, mastery:'Vex'},
+  {name:'Mace', dice:'1d6', properties:{}, mastery:'Sap'},
+  {name:'Javelin', dice:'1d6', properties:{thrown:true}, mastery:'Slow'},
+  {name:'Shortbow', dice:'1d6', properties:{ammunition:true,twoHanded:true}, mastery:'Vex', category:'ranged'},
+  {name:'Longbow', dice:'1d8', properties:{ammunition:true,heavy:true,twoHanded:true}, mastery:'Slow', category:'ranged'},
+  {name:'Light crossbow', dice:'1d8', properties:{ammunition:true,loading:true,twoHanded:true}, mastery:'Slow', category:'ranged'},
+  {name:'Heavy crossbow', dice:'1d10', properties:{ammunition:true,heavy:true,loading:true,twoHanded:true}, mastery:'Push', category:'ranged'},
+  {name:'Hand crossbow', dice:'1d6', properties:{ammunition:true,light:true,loading:true}, mastery:'Vex', category:'ranged'},
+].map(w => ({category:'melee', versatileDice:null, attackPractice:false,
+  style:w.category === 'ranged' ? 'shoot' : 'swing', ...w,
+  ability:w.properties.finesse ? 'choice' : w.category === 'ranged' ? 'Dexterity' : 'Strength'}));
+const WEAPON_BY_NAME = new Map(WEAPONS.map(w => [w.name.toLowerCase(), w]));
+const weaponByName = name => WEAPON_BY_NAME.get(name.toLowerCase());
+const WEAPON_PROPERTY_NAMES = {ammunition:'Ammunition',finesse:'Finesse',heavy:'Heavy',light:'Light',loading:'Loading',reach:'Reach',thrown:'Thrown',twoHanded:'Two-Handed'};
+const weaponProperties = w => [
+  ...Object.entries(WEAPON_PROPERTY_NAMES).filter(([key]) => w.properties[key]).map(([,label]) => label),
+  ...(w.versatileDice ? [`Versatile (${w.versatileDice})`] : []),
+].join(', ') || '—';
+// Physical presets contain a name and modifier; dice and style come from the armory.
+// Fire bolt is a spell attack and keeps its own dice and casting style.
+const HERO_ATTACKS = [
+  {name:'longsword',modifier:3}, {name:'greataxe',modifier:3}, {name:'shortbow',modifier:2}, {name:'dagger',modifier:2},
+  {name:'fire bolt',modifier:0,spell:{dice:'1d10',category:'spell',ability:'spellcasting',style:'cast'}},
+  {name:'rapier',modifier:3}, {name:'warhammer',modifier:2}, {name:'quarterstaff',modifier:1}, {name:'greatsword',modifier:3},
+];
+const heroAttackRule = preset => preset.spell || weaponByName(preset.name);
+const heroAttackDice = preset => heroAttackRule(preset).dice + (preset.modifier > 0 ? '+' + preset.modifier : preset.modifier < 0 ? preset.modifier : '');
+const HERO_WEAPONS = HERO_ATTACKS.map(preset => [preset.name, heroAttackDice(preset)]);
+const MELEE_WEAPONS = HERO_ATTACKS.filter(preset => heroAttackRule(preset).category === 'melee').map(preset => [preset.name, heroAttackDice(preset)]);
+const HERO_ATTACK_STYLE = {swing:'You swing your',shoot:'You shoot your',stab:'You stab with your',thrust:'You thrust your',cast:'You cast'};
+const HERO_VERB = Object.fromEntries(HERO_ATTACKS.map(preset => [preset.name, `${HERO_ATTACK_STYLE[heroAttackRule(preset).style]} ${preset.name}`]));
+const heroAttack = name => HERO_VERB[name] || `You swing your ${name}`;
 const MON_VERB = { bite:'bites at', claws:'slashes its claws at', claw:'slashes its claw at', slam:'lashes out with a slam at', stinger:'stabs its stinger at' };
 const monAttack = mon => MON_VERB[mon.weapon] || `swings its ${mon.weapon} at`;
 const monHits = mon => mon.weapon === 'claws' ? 'hit' : 'hits';
@@ -867,38 +914,85 @@ const monSlug = n => 'monster-' + n.toLowerCase().replace(/\s+/g, '-');
 function parseDice(s){ const m = s.match(/^(\d+)d(\d+)([+-]\d+)?$/); return {n:+m[1], d:+m[2], m:m[3]?+m[3]:0, text:s}; }
 function diceText(n,d,m){ return n+'d'+d+(m>0?'+'+m:m<0?'-'+(-m):''); }
 function diceAvg(x){ return x.n*DICE_AVG[x.d] + x.m; }
-function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? Object.assign({}, fallback, JSON.parse(v)) : Object.assign({}, fallback); }catch(e){ return Object.assign({}, fallback); } }
+// Store a component's adoption receipt in the same atomic localStorage write as its value.
+// A partial four-component adoption can then be recovered without replaying received XP.
+const dmComponentAdoptions = Object.create(null), dmComponentWriters = Object.create(null), dmComponentSequences = Object.create(null);
+const DM_ADOPTION_TAG = '_kidSyncAdoption', DM_WRITER_TAG = '_kidSyncWriter', DM_SEQUENCE_TAG = '_kidSyncWrite';
+let dmCheckpointPending = false, dmCheckpointFailure = false;
+const dmQueuedComponents = new Map(), dmFailedComponents = new Set();
+const dmDocumentWriter = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+const dmBootReceipt = dmDocumentWriter + ':boot';
+function load(key, fallback){
+  try{
+    const raw = localStorage.getItem(key), value = raw ? JSON.parse(raw) : {};
+    if(typeof value[DM_ADOPTION_TAG] === 'string') dmComponentAdoptions[key] = value[DM_ADOPTION_TAG];
+    if(typeof value[DM_WRITER_TAG] === 'string') dmComponentWriters[key] = value[DM_WRITER_TAG];
+    dmComponentSequences[key] = Number.isSafeInteger(value[DM_SEQUENCE_TAG]) ? value[DM_SEQUENCE_TAG] : 0;
+    delete value[DM_ADOPTION_TAG]; delete value[DM_WRITER_TAG]; delete value[DM_SEQUENCE_TAG]; return Object.assign({}, fallback, value);
+  }catch(e){ return Object.assign({}, fallback); }
+}
+function writeDmComponent(key, serialized){
+  try{ localStorage.setItem(key, serialized); dmFailedComponents.delete(key); return true; }
+  catch(e){ dmFailedComponents.add(key); dmQueuedComponents.set(key, serialized); return false; }
+}
+function drainDmComponents(){
+  for(const [key, serialized] of dmQueuedComponents){
+    if(writeDmComponent(key, serialized)) dmQueuedComponents.delete(key);
+  }
+}
+function storeDmComponent(key, value, adoptionId = dmComponentAdoptions[key]){
+  const sequence = dmComponentWriters[key] === dmDocumentWriter ? (dmComponentSequences[key] || 0) + 1 : 1;
+  // Memory reflects the displayed value even if its write fails. A later retry
+  // must not label an older on-disk component as already containing that value.
+  dmComponentWriters[key] = dmDocumentWriter; dmComponentSequences[key] = sequence;
+  if(adoptionId) dmComponentAdoptions[key] = adoptionId;
+  try{
+    const stored = Object.assign({}, value); stored[DM_WRITER_TAG] = dmDocumentWriter; stored[DM_SEQUENCE_TAG] = sequence;
+    if(adoptionId) stored[DM_ADOPTION_TAG] = adoptionId;
+    const serialized = JSON.stringify(stored);
+    if(dmCheckpointPending){ dmQueuedComponents.set(key, serialized); return false; }
+    dmQueuedComponents.delete(key); return writeDmComponent(key, serialized);
+  }catch(e){ dmFailedComponents.add(key); return false; }
+}
 function save(key, val){
-  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
-  if(SYNC_KEYS.includes(key)){ stampSet('pda-updatedAt', Math.max(Date.now(), stampGet('pda-updatedAt') + 1)); cloudSchedule(); }
+  if(SYNC_KEYS.includes(key)) storeDmComponent(key, val);
+  else try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  if(SYNC_KEYS.includes(key)){ stampSet('pda-updatedAt', Math.max(Date.now(), stampGet('pda-updatedAt') + 1)); cloudSchedule(); renderSyncNote(); }
 }
 
 // ---------- Account backup ----------
-// Everything in SYNC_KEYS is also kept in one private document in the viewer's Claude account
-// (data/users/<id>/pda-save). localStorage stays the working copy; the account copy restores a
-// device whose browser was cleared and keeps two devices in step. Never rename CLOUD_DOC.
+// The save code keeps everything in SYNC_KEYS in one private server document.
+// localStorage stays the working copy; the server copy restores cleared browsers
+// and keeps devices in step. Never rename CLOUD_DOC.
 const SYNC_KEYS = ['pda-settings','pda-progress','pda-tracker','pda-forge'];
 const CLOUD_DOC = 'pda-save';
-const cloud = { ref:null, timer:0, writing:false, dirty:false, state:'connecting', unsub:null, deferred:null };
-let dmSync = null;
-let dmBootState = null, dmStorage = null, dmHadLocalData = false;
-const createDmSync = storage => KidSync.create({key:'pda-save', initial:dmBootState, storage, preserveAdoption:true, merge:KidMerge.dm, legacy:(local, remote) => KidMerge.legacy('dm', local, remote)});
+const cloud = { ref:null, timer:0, writing:false, dirty:false, state:'connecting', unsub:null, deferred:null, adoptionDirty:false };
+let dmSync = null, dmSyncOpening = null, dmConnection = null;
+let dmBootState = null, dmStorage = null, dmHadLocalData = false, dmWorkingBaseLoaded = false;
+const createDmSync = storage => KidSync.create({key:'pda-save', initial:dmBootState, storage, preserveAdoption:true, merge:dmMerge, legacy:dmLegacy});
 async function ensureDmSync(id){
   if(dmSync) return;
-  dmStorage = await KidSyncStorage.open({key:'pda-save', namespace:'dm:'+id});
-  dmSync = createDmSync(dmStorage);
+  if(!dmSyncOpening) dmSyncOpening = (async () => {
+    dmStorage = await KidSyncStorage.open({key:'pda-save', namespace:'dm:'+id, owner:dmDocumentWriter, initial:dmBootState, fresh:true, bootReceipt:dmBootReceipt});
+    dmSync = createDmSync(dmStorage);
+    dmCheckpointPending = false; dmCheckpointFailure = false; drainDmComponents(); renderSyncNote();
+  })().catch(error => { if(dmCheckpointPending) dmCheckpointFailure = true; renderSyncNote(); throw error; }).finally(() => { dmSyncOpening = null; });
+  await dmSyncOpening;
 }
 function stampGet(k){ try{ return +localStorage.getItem(k) || 0; }catch(e){ return 0; } }
 function stampSet(k, v){ try{ localStorage.setItem(k, String(v)); }catch(e){} }
 function hasLocalData(){ try{ return SYNC_KEYS.some(k => localStorage.getItem(k) !== null); }catch(e){ return false; } }
-function activity(p){ p = p || {}; return (p.xp || 0) + Object.values(p.modules || {}).reduce((a,m)=>a+(m.tries||0),0); }
 function snapshotLocal(){ return { settings, progress, tracker: trk, forge, updatedAt: stampGet('pda-updatedAt') || Date.now() }; }
+function dmWorkingReceipts(){
+  return Object.fromEntries([['pda-settings','settings'],['pda-progress','progress'],['pda-tracker','tracker'],['pda-forge','forge']]
+    .map(([key,field]) => [field,{writer:dmComponentWriters[key],adoption:dmComponentAdoptions[key],sequence:dmComponentSequences[key] || 0}]));
+}
 function cloudSchedule(){ cloud.dirty = true; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 1500); }
 function cloudAdopt(base, remote, adoptionId = dmSync && dmSync.adoption && dmSync.adoption.id){
   // A pointer stroke has not stored its cells yet. Merge after it completes or is canceled.
   if(ed.stroke){ cloud.deferred = {base, remote, adoptionId}; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFinish, 100); return; }
-  const desired = KidMerge.dm(base, snapshotLocal(), remote);
-  applyRemote(desired, adoptionId); cloud.dirty = cloud.dirty || !KidMerge.equal(desired, remote);
+  const desired = dmMerge(base, snapshotLocal(), remote);
+  cloud.adoptionDirty = !applyRemote(desired, adoptionId); cloud.dirty = cloud.dirty || cloud.adoptionDirty || !KidMerge.equal(desired, remote);
 }
 function cloudFinish(){
   if(ed.stroke){ cloud.timer = setTimeout(cloudFinish, 100); return; }
@@ -907,25 +1001,37 @@ function cloudFinish(){
   if(!cloud.ref) cloudConnect(); else if(cloud.dirty) cloudFlush();
 }
 async function cloudFlush(){
-  if(!cloud.ref || !cloud.dirty) return;
+  if(!dmCheckpointPending && dmQueuedComponents.size){ drainDmComponents(); renderSyncNote(); }
+  if(!cloud.ref || !cloud.dirty){
+    if(!dmCheckpointPending && dmQueuedComponents.size){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 4000); }
+    return;
+  }
+  // Do not replace the recovery receipt until its working components are durable.
+  if(cloud.adoptionDirty){
+    cloud.adoptionDirty = !storeDmSnapshot(dmSync && dmSync.adoption && dmSync.adoption.id);
+    if(cloud.adoptionDirty){ cloud.state = 'retry'; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 4000); renderSyncNote(); return; }
+  }
   if(cloud.deferred){ cloudFinish(); return; }
   if(ed.stroke){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 100); return; }
   if(cloud.writing){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, 800); return; }
   cloud.writing = true; cloud.dirty = false;
-  const body = JSON.parse(JSON.stringify(snapshotLocal()));
-  try{ const saved = await dmSync.save(cloud.ref, body); cloudAdopt(body, saved); stampSet('pda-syncedAt', saved.updatedAt); cloud.state = 'ok'; }
+  const body = JSON.parse(JSON.stringify(snapshotLocal())), receipts = dmWorkingReceipts();
+  let retryDelay = 0;
+  try{ const saved = await dmSync.save(cloud.ref, body, receipts); cloudAdopt(body, saved); stampSet('pda-syncedAt', saved.updatedAt); cloud.state = 'ok'; }
   catch(e){
     cloud.dirty = true; const code = e && e.code;
     if(['revoked','not_granted','capability_disabled','capability_removed'].includes(code)){ cloud.ref = null; cloud.state = 'local'; }
-    else { cloud.state = 'retry'; cloud.timer = setTimeout(cloudFlush, (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random()*3000); }
+    else { cloud.state = 'retry'; retryDelay = (code === 'unavailable' || code === 'resource_exhausted' ? 4000 : 30000) + Math.random()*3000; }
   }
   cloud.writing = false; renderSyncNote();
-  if(cloud.dirty && cloud.ref && !cloud.deferred){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, cloud.state === 'ok' ? 100 : 10000); }
+  if(cloud.dirty && cloud.ref && !cloud.deferred){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudFlush, retryDelay || (cloud.state === 'ok' ? 100 : 10000)); }
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden'){ clearTimeout(cloud.timer); cloudFlush(); } });
 addEventListener('pagehide', () => { clearTimeout(cloud.timer); cloudFlush(); });
 function renderSyncNote(){
   const el = document.getElementById('sync-note'); if(!el) return;
+  if(dmCheckpointFailure || dmFailedComponents.size){ el.textContent = 'Could not save these changes on this device. Keep this page open and try again.'; return; }
+  if(dmCheckpointPending && dmQueuedComponents.size){ el.textContent = 'Saving changes on this device…'; return; }
   el.textContent = { connecting:'Connecting to the Academy server…',
     ok:'Progress is saved on this device and backed up to the server.',
     retry:'Saved on this device. The server backup will catch up when it reconnects.',
@@ -933,16 +1039,13 @@ function renderSyncNote(){
 }
 // Put an account copy into memory and this browser, then redraw whatever is on screen.
 function applyRemote(r, adoptionId){
+  r = normalizeDmSnapshot(r);
   const nextForge = Object.assign(forgeDefaults(), r.forge || {}), forgeChanged = !KidMerge.equal(forge, nextForge);
   settings = Object.assign({}, DEFAULT_SETTINGS, r.settings || {});
   progress = Object.assign({xp:0, modules:{}, bestStreak:0}, r.progress || {});
   trk = trkNormalize(r.tracker || trkDefaults());
   if(forgeChanged) forge = nextForge;
-  try{
-    localStorage.setItem('pda-forge', JSON.stringify(forge)); localStorage.setItem('pda-settings', JSON.stringify(settings));
-    localStorage.setItem('pda-progress', JSON.stringify(progress)); localStorage.setItem('pda-tracker', JSON.stringify(trk));
-    if(adoptionId) localStorage.setItem('pda-save:adopted', adoptionId);
-  }catch(e){}
+  const stored = storeDmSnapshot(adoptionId);
   stampSet('pda-updatedAt', r.updatedAt || 0); stampSet('pda-syncedAt', r.updatedAt || 0);
   renderRank(); fillSettings();
   if(!$('view-home').hidden){ renderDaily(); renderHall(); }
@@ -950,12 +1053,24 @@ function applyRemote(r, adoptionId){
   else if(!$('view-parent').hidden) renderParent();
   else if(!$('view-boss').hidden && !boss.active) renderBossPick();
   else if(forgeChanged) forgeRefresh();
+  return stored;
+}
+function storeDmSnapshot(adoptionId){
+  if(adoptionId) SYNC_KEYS.forEach(key => { dmComponentAdoptions[key] = adoptionId; });
+  const stored = [storeDmComponent('pda-forge', forge, adoptionId), storeDmComponent('pda-settings', settings, adoptionId),
+    storeDmComponent('pda-progress', progress, adoptionId), storeDmComponent('pda-tracker', trk, adoptionId)];
+  if(adoptionId && stored.every(Boolean)) try{ localStorage.setItem('pda-save:adopted', adoptionId); }catch(e){}
+  return stored.every(Boolean);
 }
 // Started offline: try again when the network or the app comes back.
 function cloudRetry(){ if(!cloud.ref && cloud.state !== 'connecting' && document.visibilityState === 'visible'){ cloud.state = 'connecting'; cloudConnect(); } }
 addEventListener('online', cloudRetry);
 document.addEventListener('visibilitychange', cloudRetry);
-async function cloudConnect(){
+function cloudConnect(){
+  if(!dmConnection){ clearTimeout(cloud.timer); dmConnection = cloudConnectRun().finally(() => { dmConnection = null; }); }
+  return dmConnection;
+}
+async function cloudConnectRun(){
   try{
     const db = window.claude && window.claude.use ? await window.claude.use('db') : null;
     const user = db ? await window.claude.use('user') : null;
@@ -963,28 +1078,48 @@ async function cloudConnect(){
     if(!db || !id){ cloud.state = 'local'; return; }
     await ensureDmSync(id);
     if(ed.stroke){ clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudConnect, 100); return; }
-    const adoption = dmSync.adoption;
-    if(!dmSync.hasPending && adoption && localStorage.getItem('pda-save:adopted') !== adoption.id){
-      cloudAdopt(dmHadLocalData ? adoption.ui : dmBootState, adoption.remote, adoption.id);
-      if(cloud.deferred) return;
+    if(cloud.adoptionDirty){
+      cloud.adoptionDirty = !storeDmSnapshot(dmSync.adoption && dmSync.adoption.id);
+      if(cloud.adoptionDirty){ cloud.state = 'retry'; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudConnect, 4000); return; }
     }
-    const ref = KidSyncStore.doc('dm', id, CLOUD_DOC), before = JSON.parse(JSON.stringify(snapshotLocal()));
+    const adoption = dmSync.adoption;
+    if(!dmStorage.workingBase && !dmSync.hasPending && adoption && localStorage.getItem('pda-save:adopted') !== adoption.id){
+      const base = JSON.parse(JSON.stringify(dmHadLocalData ? adoption.ui : dmBootState));
+      // Each component may have committed before a later component hit quota.
+      // Its stored tag also follows normal edits, so only the new local delta is merged.
+      for(const [key, field] of [['pda-settings','settings'],['pda-progress','progress'],['pda-tracker','tracker'],['pda-forge','forge']]){
+        if(dmComponentAdoptions[key] === adoption.id) base[field] = adoption.remote[field];
+      }
+      cloudAdopt(base, adoption.remote, adoption.id);
+      if(cloud.deferred) return;
+      if(cloud.adoptionDirty){ cloud.state = 'retry'; clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudConnect, 4000); return; }
+    }
+    const ref = KidSyncStore.doc('dm', id, CLOUD_DOC), before = JSON.parse(JSON.stringify(snapshotLocal())), receipts = dmWorkingReceipts();
+    await dmSync.recover(ref);
+    if(!dmWorkingBaseLoaded && dmStorage.workingBase){
+      const components = receipts;
+      const base = dmHadLocalData ? await dmStorage.workingBase(components) : dmBootState;
+      if(dmHadLocalData && adoption) for(const [field,component] of Object.entries(components)){
+        if(!component.writer) base[field] = (localStorage.getItem('pda-save:adopted') === adoption.id ? adoption.remote : adoption.ui)[field];
+      }
+      dmSync.rebaseWorking(base);
+    }
     const snap = await ref.get();
-    cloud.ref = ref;
     const remote = snap.exists ? snap.data() : undefined;
-    const desired = dmSync.reconcile(before, remote);
-    await dmSync.flush();
+    const desired = dmSync.reconcile(before, remote, receipts);
+    await dmSync.flush(); dmWorkingBaseLoaded = true; cloud.ref = ref;
     cloudAdopt(before, desired);
     cloud.dirty = cloud.dirty || dmSync.hasPending || !KidMerge.equal(desired, remote);
     cloud.state = 'ok';
+    if(cloud.unsub) cloud.unsub();
     cloud.unsub = ref.onSnapshot(s => {
-      if(s.metadata.hasPendingWrites || cloud.writing || cloud.dirty || cloud.deferred || ed.stroke) return false;
-      const current = snapshotLocal(), r = s.exists ? s.data() : undefined;
+      if(s.metadata.hasPendingWrites || cloud.writing || cloud.dirty || cloud.adoptionDirty || cloud.deferred || ed.stroke) return false;
+      const current = snapshotLocal(), receipts = dmWorkingReceipts(), r = s.exists ? s.data() : undefined;
       if(!dmSync.hasPending && KidMerge.equal(current, r)) return true;
       cloud.writing = true;
       (async () => {
         try{
-          const merged = dmSync.reconcile(current, r); await dmSync.flush(); cloudAdopt(current, merged);
+          const merged = dmSync.reconcile(current, r, receipts); await dmSync.flush(); cloudAdopt(current, merged);
           cloud.dirty = cloud.dirty || dmSync.hasPending || !KidMerge.equal(merged, r); cloud.state = 'ok';
         }catch(e){ cloud.dirty = true; cloud.state = 'retry'; }
         finally{ cloud.writing = false; if(cloud.dirty && !cloud.deferred) cloudSchedule(); renderSyncNote(); }
@@ -992,7 +1127,7 @@ async function cloudConnect(){
       return false;
     }, () => { cloud.unsub = null; });
     if(cloud.dirty && !cloud.deferred) await cloudFlush();
-  }catch(e){ cloud.state = cloud.ref ? 'retry' : 'local'; if(cloud.ref) cloudSchedule(); }
+  }catch(e){ cloud.state = cloud.ref ? 'retry' : 'local'; if(cloud.ref) cloudSchedule(); else { clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudConnect, 4000); } }
   finally{ renderSyncNote(); }
 }
 
@@ -1197,11 +1332,11 @@ function genRoundsToDrop(){
       hint:`Divide, then round UP. A monster with 1 HP left is still in the fight.`, solution:`${mon.hp} ÷ ${D} = ${fmt(mon.hp/D)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}.` }] };
 }
 function genTrollRegen(){
-  const D = rand(18,34), net = D-10, rounds = Math.ceil(84/net);
-  return { challenge:true, flavor:`A Troll (84 HP) regenerates 10 HP at the start of each of its turns. Your party deals about ${D} damage per round.`,
+  const hp = monsterByName('Troll').hp, D = rand(18,34), net = D-10, rounds = Math.ceil(hp/net);
+  return { challenge:true, flavor:`A Troll (${hp} HP) regenerates 10 HP at the start of each of its turns. Your party deals about ${D} damage per round.`,
     steps:[{ q:`How much HP does the Troll really lose each round?`, answer:net, hint:`${D} dealt, 10 healed back.`, solution:`${D} − 10 = ${net} per round.` },
      { q:`About how many rounds until it drops?`, answer:rounds,
-      hint:`84 ÷ ${net}, rounded up.`, solution:`84 ÷ ${net} = ${fmt(84/net)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}. (Fire or Acid damage stops its regeneration for a turn. Clues can help your players discover this.)` }] };
+      hint:`${hp} ÷ ${net}, rounded up.`, solution:`${hp} ÷ ${net} = ${fmt(hp/net)}, rounded up is ${rounds} ${rounds === 1 ? 'round' : 'rounds'}. (Fire or Acid damage stops its regeneration for a turn. Clues can help your players discover this.)` }] };
 }
 function genHitDiceHp(){
   const mon = pickMon(m=>m.hd), hd = parseDice(mon.hd), avg = diceAvg(hd);
@@ -1249,7 +1384,7 @@ function genPerimeter(){
 // Otherwise the resistance comes from a real spell, Protection from Energy.
 function genResist(){
   const N = rand(5,23), h = hero(), real = rand(0,2) === 0;
-  const mon = real ? MONSTERS.find(m => m.n === 'Wight') : pickMon(), type = real ? 'necrotic' : pick(['acid','cold','fire','lightning','thunder']);
+  const mon = real ? monsterByName('Wight') : pickMon(), type = real ? 'necrotic' : pick(['acid','cold','fire','lightning','thunder']);
   return { flavor: real ? `The Wight is RESISTANT to necrotic damage. ${h} hits it with necrotic damage for ${N}.`
       : `An enemy mage casts Protection from Energy on the ${mon.n}, so it is RESISTANT to ${type} damage. ${h} hits it with ${type} damage for ${N}.`,
     steps:[{ q:`How much damage actually gets through? (round down)`, answer:Math.floor(N/2),
@@ -1312,13 +1447,6 @@ const CLASSES = [ // class, Hit Point Die, fixed HP per level, spellcasting abil
 const ARMOR = [ // name, base AC, Dex rule: 'full' | 2 (max +2) | 0 (none)
   ['no armor',10,'full'],['Leather armor',11,'full'],['Studded leather',12,'full'],['Hide armor',12,2],['Chain shirt',13,2],['Scale mail',14,2],
   ['Breastplate',14,2],['Half plate',15,2],['Ring mail',14,0],['Chain mail',16,0],['Splint armor',17,0],['Plate armor',18,0] ];
-const WEAPONS = [ // name, damage, properties, mastery
-  ['Dagger','1d4','Finesse, Light, Thrown','Nick'],['Shortsword','1d6','Finesse, Light','Vex'],['Scimitar','1d6','Finesse, Light','Nick'],['Rapier','1d8','Finesse','Vex'],
-  ['Longsword','1d8','Versatile (1d10)','Sap'],['Warhammer','1d8','Versatile (1d10)','Push'],['Quarterstaff','1d6','Versatile (1d8)','Topple'],['Spear','1d6','Thrown, Versatile (1d8)','Sap'],
-  ['Greatsword','2d6','Heavy, Two-Handed','Graze'],['Greataxe','1d12','Heavy, Two-Handed','Cleave'],['Maul','2d6','Heavy, Two-Handed','Topple'],['Glaive','1d10','Heavy, Reach, Two-Handed','Graze'],
-  ['Halberd','1d10','Heavy, Reach, Two-Handed','Cleave'],['Handaxe','1d6','Light, Thrown','Vex'],['Mace','1d6','—','Sap'],['Javelin','1d6','Thrown','Slow'],
-  ['Shortbow','1d6','Ammunition, Two-Handed','Vex'],['Longbow','1d8','Ammunition, Heavy, Two-Handed','Slow'],['Light crossbow','1d8','Ammunition, Loading, Two-Handed','Slow'],
-  ['Heavy crossbow','1d10','Ammunition, Heavy, Loading, Two-Handed','Push'],['Hand crossbow','1d6','Ammunition, Light, Loading','Vex'] ];
 const MASTERY = {
   Cleave:'Once per turn after a melee hit, attack a second creature within 5 feet of the first and within your reach; add no ability modifier to the extra damage unless it is negative',
   Graze:'If your attack misses, the target still takes damage equal to your ability modifier',
@@ -1365,7 +1493,7 @@ function genProfBonus(){
       hint:`+2 at levels 1 to 4, +3 at levels 5 to 8, +4 at 9 to 12. It climbs every 4 levels.`, solution:`Level ${L} is in the ${L<=4?'1 to 4':'5 to 8'} band, so the Proficiency Bonus is +${PB(L)}.` }] };
 }
 function genAttackBonus(){
-  const L = level(), S = rand(10,20), [w] = pick(WEAPONS.slice(0,13)), h = hero(), m = mod(S);
+  const L = level(), S = rand(10,20), {name:w} = pick(WEAPONS.filter(w => w.attackPractice)), h = hero(), m = mod(S);
   return { flavor:`${h} is level ${L} with Strength ${S} and is proficient with the ${w.toLowerCase()}.`,
     steps:[{ q:`What's the Strength modifier?`, answer:m, hint:'(score − 10) ÷ 2, rounded down.', solution:`(${S} − 10) ÷ 2 = ${fmt((S-10)/2)} → ${signed(m)}.` },
      { q:`Attack bonus = ability modifier + Proficiency Bonus. What is it at level ${L}?`, answer:m+PB(L), hint:`Proficiency Bonus at level ${L} is +${PB(L)}.`, solution:`${signed(m)} + ${PB(L)} = ${signed(m+PB(L))}. ${h} rolls d20 ${signed(m+PB(L))} to hit.` }] };
@@ -1644,7 +1772,7 @@ function genArmorClass(){
        solution:`${base} ${pm(dexPart)}${rule===2 && m>2 ? ' (Dex capped at +2)' : rule===0 ? ' (no Dex)' : ''}${shield?' + 2':''} = ${ac}.` }] };
 }
 function genFinesse(){
-  const [name, dice] = pick(WEAPONS.filter(w=>w[2].includes('Finesse'))), either = 'Either: the modifiers are equal';
+  const {name, dice} = pick(WEAPONS.filter(w => w.ability === 'choice')), either = 'Either: the modifiers are equal';
   const ab = practicePick('finesse-outcome', ['Strength','Dexterity',either]), pairs = [];
   for(let s=8;s<=20;s++) for(let d=8;d<=20;d++) if((mod(s)===mod(d) ? either : mod(s)>mod(d) ? 'Strength' : 'Dexterity') === ab) pairs.push([s,d]);
   const [S,D] = pick(pairs), h = hero(), dmg = parseDice(dice), r = rand(1,dmg.d), best = Math.max(mod(S), mod(D));
@@ -1653,28 +1781,28 @@ function genFinesse(){
      { q:`The damage die shows ${r}. Total damage?`, answer:r+best, hint:`${r} ${pm(best)}.`, solution:`${r} ${pm(best)} = ${r+best}.` }] };
 }
 function genVersatile(){
-  const [name, dice, props] = pick(WEAPONS.filter(w=>w[2].includes('Versatile'))), big = props.match(/Versatile \((\dd\d+)\)/)[1], h = hero(), m = rand(2,4);
+  const {name, dice, versatileDice:big} = pick(WEAPONS.filter(w => w.versatileDice)), h = hero(), m = rand(2,4);
   const one = parseDice(dice), two = parseDice(big);
   return { flavor:`${h} (Strength ${signed(m)}) has a ${name.toLowerCase()}: ${dice} in one hand, or ${big} in two hands (Versatile).`,
     steps:[{ q:`Average damage one-handed, with the modifier? (decimals are fine)`, answer:diceAvg(one)+m, hint:`A d${one.d} averages ${DICE_AVG[one.d]}.`, solution:`${DICE_AVG[one.d]} + ${m} = ${fmt(diceAvg(one)+m)}.` },
      { q:`Average two-handed?`, answer:diceAvg(two)+m, hint:`A d${two.d} averages ${DICE_AVG[two.d]}.`, solution:`${DICE_AVG[two.d]} + ${m} = ${fmt(diceAvg(two)+m)}. Putting away the shield buys one extra point on average. Worth it? That's a player's choice.` }] };
 }
 function genMastery(){
-  const [name, dice, props, mast] = pick(WEAPONS), h = heroAs('Fighter');
+  const weapon = pick(WEAPONS), {name, dice, mastery:mast} = weapon, props = weaponProperties(weapon), h = heroAs('Fighter');
   return { flavor:`${h} has Weapon Mastery with the ${name.toLowerCase()} (${dice}, ${props}).`,
     steps:[{ q:`Which mastery property does a ${name.toLowerCase()} have?`, choices:choicesFrom(mast, Object.keys(MASTERY), 4), answer:mast, hint:`Heavy two-handers tend to Cleave or Graze. Light blades Nick or Vex. Hammers Push or Topple. Swords and maces Sap.`, solution:`${name}: ${mast}.` },
      { q:`What does ${mast} do?`, choices:choicesFrom(MASTERY[mast], Object.values(MASTERY), 4), answer:MASTERY[mast], hint:`Think about what a ${name.toLowerCase()} would naturally do to someone.`, solution:`${mast}: ${MASTERY[mast]}.` }] };
 }
 function genGraze(){
-  const h = hero(), m = rand(2,5), [name, dice] = pick(WEAPONS.filter(w=>w[3]==='Graze'));
+  const h = hero(), m = rand(2,5), {name, dice} = pick(WEAPONS.filter(w => w.mastery === 'Graze'));
   return { flavor:`${h} (Strength ${signed(m)}) swings a ${name.toLowerCase()} (${dice}, Graze mastery) at a Bugbear and MISSES.`,
     steps:[{ q:`Graze: on a miss you still deal damage equal to your ability modifier. How much?`, answer:m, hint:`Just the modifier, no dice.`, solution:`${m} damage, even on a miss.` }] };
 }
 function genRanged(){
   const kind = practicePick('ranged-kind', ['ammunition','thrown','finesse']), either = 'Either: the modifiers are equal';
-  const pool = WEAPONS.filter(w => kind === 'ammunition' ? w[2].includes('Ammunition') : w[2].includes('Thrown') && w[2].includes('Finesse') === (kind === 'finesse'));
-  const [name,dice,props] = practicePick('ranged-weapon-' + kind, pool), h = hero(), L = level();
-  let S = rand(8,20), D = rand(8,20), ab = kind === 'ammunition' ? 'Dexterity' : 'Strength';
+  const pool = WEAPONS.filter(w => kind === 'ammunition' ? w.properties.ammunition : w.properties.thrown && (w.ability === 'choice') === (kind === 'finesse'));
+  const weapon = practicePick('ranged-weapon-' + kind, pool), {name,dice} = weapon, props = weaponProperties(weapon), h = hero(), L = level();
+  let S = rand(8,20), D = rand(8,20), ab = weapon.ability === 'choice' ? 'Strength' : weapon.ability;
   if(kind === 'finesse'){
     ab = practicePick('ranged-finesse-outcome', ['Strength','Dexterity',either]);
     const pairs = [];
@@ -1743,8 +1871,8 @@ const MODULES = [
   { id:'dice', section:'numbers', sigil:'d6', title:'The Dice Oracle', tag:'Average, biggest and smallest rolls',
     lesson:`<p>A DM needs to know what dice <em>usually</em> do, not just what they can do. The trick:</p>
       <p><span class="rule">average of one die = (sides + 1) ÷ 2</span></p>
-      <div class="tablewrap"><table><tr><th>Die</th><td>d4</td><td>d6</td><td>d8</td><td>d10</td><td>d12</td><td>d20</td></tr>
-      <tr><th>Average</th><td>2.5</td><td>3.5</td><td>4.5</td><td>5.5</td><td>6.5</td><td>10.5</td></tr></table></div>
+      <div class="tablewrap"><table><tr><th>Die</th>${Object.keys(DICE_AVG).map(d => `<td>d${d}</td>`).join('')}</tr>
+      <tr><th>Average</th>${Object.values(DICE_AVG).map(avg => `<td>${avg}</td>`).join('')}</tr></table></div>
       <p>For something like <b>2d8+4</b>: two dice × 4.5 = 9, plus 4 = 13. The Monster Manual rounds down when it prints averages.</p>
       <p><b>Why a DM cares:</b> if an ogre averages 13 damage and your wizard has 12 HP, you just learned something important before the fight started.</p>`,
     gens:[genDiceAverage, genDiceStatBlock, genDiceMaxMin, genDiceCompare, genDiceOverFight] },
@@ -1760,9 +1888,7 @@ const MODULES = [
     lesson:`<p>Every fight has an XP price. Compare it to what your party can handle. (This is the 2024 Dungeon Master's Guide method.)</p>
       <p><b>Step 1.</b> Find the budget. Each hero's level gives an XP number per difficulty; multiply by the number of heroes.</p>
       <div class="tablewrap"><table><tr><th>Hero level</th><th>Low</th><th>Moderate</th><th>High</th></tr>
-      <tr><td>1</td><td>50</td><td>75</td><td>100</td></tr><tr><td>2</td><td>100</td><td>150</td><td>200</td></tr>
-      <tr><td>3</td><td>150</td><td>225</td><td>400</td></tr><tr><td>4</td><td>250</td><td>375</td><td>500</td></tr>
-      <tr><td>5</td><td>500</td><td>750</td><td>1100</td></tr></table></div>
+      ${Object.entries(XP_THRESH).map(([level, thresholds]) => `<tr><td>${level}</td>${thresholds.map(xp => `<td>${xp}</td>`).join('')}</tr>`).join('')}</table></div>
       <p><b>Step 2.</b> Add up the monsters' XP. <b>Step 3.</b> Compare the total to the budgets. <b>Low</b> means the heroes will win but spend some resources. <b>Moderate</b> can knock someone to 0 HP. <b>High</b> can kill a hero if luck goes badly.</p>
       <p>The old 2014 rules multiplied XP for groups of monsters. The 2024 book dropped that, but a DM still knows that six goblins acting together are nastier than their XP suggests.</p>`,
     gens:[genEncounterBuild, genEncounterBuild, genEncounterFit] },
@@ -1864,7 +1990,41 @@ const MODULES = [
     gens:[] },
 ];
 
-const GEN_INDEX = {}; MODULES.forEach(m => m.gens.forEach(g => { GEN_INDEX[g.name] = GEN_INDEX[g.name] || { gen:g, mod:m }; }));
+// These strings are saved review keys. Keep them stable when renaming implementations.
+const GENERATOR_IDS = new WeakMap([
+  ['genDiceAverage', genDiceAverage], ['genDiceStatBlock', genDiceStatBlock],
+  ['genDiceMaxMin', genDiceMaxMin], ['genDiceCompare', genDiceCompare], ['genDiceOverFight', genDiceOverFight],
+  ['genHitChance', genHitChance], ['genNeedRoll', genNeedRoll], ['genAdvantage', genAdvantage],
+  ['genEncounterBuild', genEncounterBuild], ['genEncounterFit', genEncounterFit], ['genLootSplit', genLootSplit],
+  ['genCoinConvert', genCoinConvert], ['genShopping', genShopping], ['genTithe', genTithe],
+  ['genSellLoot', genSellLoot], ['genModifier', genModifier], ['genHpTrack', genHpTrack],
+  ['genRoundsToDrop', genRoundsToDrop], ['genHitDiceHp', genHitDiceHp], ['genTrollRegen', genTrollRegen],
+  ['genRoom', genRoom], ['genBlast', genBlast], ['genTravel', genTravel],
+  ['genSpeed', genSpeed], ['genPerimeter', genPerimeter], ['genResist', genResist],
+  ['genVulnerable', genVulnerable], ['genCrit', genCrit], ['genGroupAttack', genGroupAttack],
+  ['genHeal', genHeal], ['genSaveHalf', genSaveHalf], ['genProfBonus', genProfBonus],
+  ['genAttackBonus', genAttackBonus], ['genStartingHp', genStartingHp], ['genLevelUpHp', genLevelUpHp],
+  ['genCarry', genCarry], ['genPassivePerception', genPassivePerception], ['genSkillBonus', genSkillBonus],
+  ['genSpellAbility', genSpellAbility], ['genCheckVsDc', genCheckVsDc], ['genNeedForDc', genNeedForDc],
+  ['genWhichSkill', genWhichSkill], ['genDcLadder', genDcLadder], ['genAdvRules', genAdvRules],
+  ['genInitiative', genInitiative], ['genDifficultTerrain', genDifficultTerrain], ['genJump', genJump],
+  ['genFall', genFall], ['genCover', genCover], ['genActions', genActions],
+  ['genTurnBudget', genTurnBudget], ['genTwoWeapon', genTwoWeapon], ['genGrapple', genGrapple],
+  ['genInstantDeath', genInstantDeath], ['genDeathSave', genDeathSave], ['genConcentration', genConcentration],
+  ['genTempHp', genTempHp], ['genShortRest', genShortRest], ['genLongRest', genLongRest],
+  ['genCureWounds', genCureWounds], ['genExhaustion', genExhaustion], ['genSlots', genSlots],
+  ['genCantripScale', genCantripScale], ['genMagicMissile', genMagicMissile], ['genSpellDc', genSpellDc],
+  ['genScorchingRay', genScorchingRay], ['genSpellRules', genSpellRules], ['genArmorClass', genArmorClass],
+  ['genFinesse', genFinesse], ['genVersatile', genVersatile], ['genMastery', genMastery],
+  ['genGraze', genGraze], ['genRanged', genRanged], ['genConditionName', genConditionName],
+  ['genConditionEffect', genConditionEffect], ['genProneStand', genProneStand], ['genChair', genChair],
+].map(([id, gen]) => [gen, id]));
+function generatorId(gen){
+  const id = GENERATOR_IDS.get(gen);
+  if(!id) throw new Error('Question generator needs a stable review ID.');
+  return id;
+}
+const GEN_INDEX = {}; MODULES.forEach(m => m.gens.forEach(g => { const id = generatorId(g); GEN_INDEX[id] = GEN_INDEX[id] || { gen:g, mod:m }; }));
 
 // ---------- Rank / XP ----------
 function rankFor(xp){
@@ -1893,6 +2053,9 @@ function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add(
 // ---------- Views ----------
 const VIEWS = ['home','module','boss','forge','tracker','dice-tray','parent'];
 function show(view){
+  forgeCancelJoin();
+  if(view !== 'module' && !(view === 'boss' && boss.active)) cancelLessonQuestion();
+  cancelForgeQuestions();
   if(!$('forge-play').hidden) fpCancel();
   if(view !== 'boss' && boss.active) bossLeave();
   VIEWS.forEach(v => { $('view-'+v).hidden = v !== view; });
@@ -1936,7 +2099,51 @@ function renderHall(){
 }
 
 // ---------- Question flow ----------
-let current = { module:null, problem:null, step:0, tries:0, choice:null };
+// A pure transition: callers own rewards, review bookkeeping and feedback wording.
+function questionAttempt(state, step, given){
+  if(state.phase !== 'answering') return { state, kind:'ignored' };
+  if(step.choices && given === null) return { state, kind:'empty-choice' };
+  const value = step.choices ? given : parseAnswer(given);
+  if(!step.choices && value === null) return { state, kind:'empty-number' };
+  const ok = step.choices ? value === step.answer : Math.abs(value - step.answer) < 0.011;
+  if(!ok && state.tries === 0) return { state:{ phase:'answering', tries:1 }, kind:'hint', ok };
+  return { state:{ phase:'resolved', tries:state.tries }, kind:'resolved', ok,
+    result:ok ? (state.tries === 0 ? 'first' : 'second') : 'missed' };
+}
+
+// The same choices, numeric input and keyboard behavior serve lessons and Forge.
+function questionControls(step, { active, submit, inputId, onChoice }){
+  let choice = null, inp = null;
+  const row = document.createElement('div'); row.className = step.choices ? 'choices' : 'answer';
+  if(step.choices) step.choices.forEach(c => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      if(!active()) return;
+      choice = c; if(onChoice) onChoice(c);
+      row.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    });
+    row.append(b);
+  });
+  else {
+    inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.autocomplete = 'off';
+    if(inputId) inp.id = inputId;
+    inp.setAttribute('aria-label', 'Your answer');
+    inp.addEventListener('keydown', e => { if(e.key === 'Enter' && active()){ e.preventDefault(); submit(); } });
+    row.append(inp); setTimeout(() => { if(active()) inp.focus(); }, 50);
+  }
+  return {
+    row, input:inp, value:() => inp ? inp.value : choice,
+    mark(ok){
+      if(inp){ inp.classList.remove('ok', 'no'); inp.classList.add(ok ? 'ok' : 'no'); }
+      else row.querySelectorAll('button').forEach(b => { if(b.textContent === choice) b.classList.add(ok ? 'ok' : 'no'); });
+    },
+    retry(){ if(inp){ inp.select(); inp.focus(); } },
+    lock(){ if(inp) inp.disabled = true; row.querySelectorAll('button').forEach(b => b.disabled = true); },
+  };
+}
+
+let current = { module:null, problem:null, step:0, tries:0, choice:null, phase:'canceled', render:0, controls:null };
+function cancelLessonQuestion(){ current.phase = 'canceled'; if(current.controls) current.controls.lock(); }
 const recentGenerators = [];
 function openModule(m){
   if(m.special === 'boss'){ history.replaceState(null,'','#boss'); show('boss'); return; }
@@ -1957,19 +2164,19 @@ function nextProblem(){
   const avoid = recentGenerators.length === 2 && recentGenerators[0] === recentGenerators[1] ? recentGenerators[0] : null;
   const lessons = MODULES.filter(x => x.gens.length);
   const available = m.mixed ? lessons.flatMap(x => x.gens) : m.gens;
-  const canVary = available.some(g => g.name !== avoid);
-  const allowed = g => !canVary || g.name !== avoid;
+  const canVary = available.some(g => generatorId(g) !== avoid);
+  const allowed = g => !canVary || generatorId(g) !== avoid;
   // Review is cleared only after two complete, unassisted examples.
-  const pool = m.mixed ? Object.keys(progress.review || {}) : Object.keys(progress.review || {}).filter(k => m.gens.some(g => g.name === k));
+  const pool = m.mixed ? Object.keys(progress.review || {}) : Object.keys(progress.review || {}).filter(k => m.gens.some(g => generatorId(g) === k));
   const due = pool.filter(k => GEN_INDEX[k]);
   if(due.some(k => allowed(GEN_INDEX[k].gen)) && !boss.active && Math.random() < 0.35){ const k = practicePick('review:'+m.id, due, k => allowed(GEN_INDEX[k].gen)); gen = GEN_INDEX[k].gen; src = GEN_INDEX[k].mod; review = true; }
   else {
     if(m.mixed) src = practicePick('lessons:'+m.id, lessons, x => x.gens.some(allowed));
     gen = practicePick('generators:'+m.id+':'+src.id, src.gens, allowed);
   }
-  current.problem = gen(); current.problem.from = src.id; current.problem.gen = gen.name; current.problem.review = review;
+  current.problem = gen(); current.problem.from = src.id; current.problem.gen = generatorId(gen); current.problem.review = review;
   current.problem.reviewClean = true;
-  recentGenerators.push(gen.name); if(recentGenerators.length > 2) recentGenerators.shift();
+  recentGenerators.push(generatorId(gen)); if(recentGenerators.length > 2) recentGenerators.shift();
   current.step = 0; current.tries = 0; current.choice = null;
   $('challenge').hidden = !current.problem.challenge;
   $('review-chip').hidden = !review;
@@ -1980,33 +2187,25 @@ function nextProblem(){
 function renderStreak(){ const q = current.module && current.module.id === 'daily' ? `Quest ${Math.min(DAILY_GOAL, daily().done)} / ${DAILY_GOAL}` : ''; const st = streak >= 2 ? `Streak <b>${streak}</b>` : ''; $('streak').innerHTML = [q, st].filter(Boolean).join(' · '); }
 function renderSteps(){
   const wrap = $('steps'); wrap.textContent = '';
-  const steps = current.problem.steps;
-  steps.forEach((st, i) => {
-    if(i > current.step) return;
-    const div = document.createElement('div'); div.className = 'step' + (i < current.step ? ' done' : '');
+  const problem = current.problem, step = current.step, render = ++current.render;
+  const active = () => current.problem === problem && current.step === step && current.render === render && current.phase === 'answering';
+  current.phase = 'answering'; current.controls = null;
+  problem.steps.forEach((st, i) => {
+    if(i > step) return;
+    const div = document.createElement('div'); div.className = 'step' + (i < step ? ' done' : '');
     const q = document.createElement('p'); q.className = 'q'; q.textContent = st.q; div.append(q);
-    if(i < current.step){
+    if(i < step){
       const a = document.createElement('div'); a.textContent = 'Answer: ' + (typeof st.answer === 'number' ? fmt(st.answer) : st.answer); a.style.fontVariantNumeric = 'tabular-nums'; div.append(a);
     } else {
-      if(st.choices){
-        const ch = document.createElement('div'); ch.className = 'choices';
-        st.choices.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.setAttribute('aria-pressed','false');
-          b.addEventListener('click', () => { current.choice = c; ch.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x===b))); });
-          ch.append(b); });
-        div.append(ch);
-      } else {
-        const row = document.createElement('div'); row.className = 'answer';
-        const inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'answer-input'; inp.autocomplete = 'off'; inp.setAttribute('aria-label','Your answer');
-        inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); check(); } });
-        row.append(inp); div.append(row);
-        setTimeout(() => inp.focus(), 50);
-      }
+      current.controls = questionControls(st, { active, submit:check, inputId:'answer-input', onChoice:c => { current.choice = c; } });
+      div.append(current.controls.row);
     }
     wrap.append(div);
   });
   $('feedback').hidden = true; $('feedback').className = 'feedback';
   const act = $('actions'); act.textContent = '';
-  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.id = 'check-btn'; btn.textContent = 'Check'; btn.addEventListener('click', check);
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.id = 'check-btn'; btn.textContent = 'Check';
+  btn.addEventListener('click', () => { if(active()) check(); });
   act.append(btn);
   renderStreak();
 }
@@ -2040,29 +2239,26 @@ function record(correct){
   save('pda-progress', progress);
 }
 function check(){
-  const st = current.problem.steps[current.step];
-  let given, ok;
-  if(st.choices){
-    if(current.choice === null){ feedback('hint', 'Pick one of the choices first.'); return; }
-    given = current.choice; ok = given === st.answer;
-    document.querySelectorAll('.choices button').forEach(b => { if(b.textContent === given) b.classList.add(ok ? 'ok' : 'no'); });
-  } else {
-    const inp = $('answer-input'); given = parseAnswer(inp.value);
-    if(given === null){ feedback('hint', 'Type a number.', 'Decimals (5.5), fractions (5 1/2) and signs (+3, -2) all work.'); inp.focus(); return; }
-    ok = Math.abs(given - st.answer) < 0.011;
-    inp.classList.remove('ok','no'); inp.classList.add(ok ? 'ok' : 'no');
+  if(current.phase !== 'answering' || !current.controls) return;
+  const st = current.problem.steps[current.step], controls = current.controls;
+  const attempt = questionAttempt(current, st, controls.value());
+  if(attempt.kind === 'empty-choice'){ feedback('hint', 'Pick one of the choices first.'); return; }
+  if(attempt.kind === 'empty-number'){
+    feedback('hint', 'Type a number.', 'Decimals (5.5), fractions (5 1/2) and signs (+3, -2) all work.'); controls.input.focus(); return;
   }
-  if(ok){
+  if(attempt.kind === 'ignored') return;
+  current.phase = attempt.state.phase; current.tries = attempt.state.tries;
+  controls.mark(attempt.ok);
+  if(attempt.ok){
     const base = current.tries === 0 ? 10 : 5, gain = base * (current.problem.challenge ? 2 : 1);
     record(true); addXp(gain);
     feedback('good', pick(PRAISE), st.solution, `+${gain} XP${current.tries===0 && streak>=3 ? ' · streak '+streak : ''}`);
     if(boss.active) bossHit(current.tries === 0);
     advance();
-  } else if(current.tries === 0){
+  } else if(attempt.kind === 'hint'){
     current.problem.reviewClean = false;
-    current.tries = 1;
     feedback('hint', 'Not quite. Hint:', st.hint);
-    if(!st.choices){ const inp = $('answer-input'); inp.select(); inp.focus(); }
+    controls.retry();
   } else {
     record(false);
     feedback('bad', 'Here is how the Guildmaster works it out:', st.solution);
@@ -2071,9 +2267,9 @@ function check(){
   }
 }
 function advance(){
+  const problem = current.problem, step = current.step, render = current.render;
   const act = $('actions'); act.textContent = '';
-  const inp = $('answer-input'); if(inp) inp.disabled = true;
-  document.querySelectorAll('.choices button').forEach(b => b.disabled = true);
+  current.controls.lock();
   renderStreak();
   if(boss.active && boss.over) return;   // the fight is decided; the arena shows the ending
   const last = current.step >= current.problem.steps.length - 1;
@@ -2081,6 +2277,8 @@ function advance(){
   const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.id = 'next-btn';
   btn.textContent = last ? (questDone ? 'Quest complete → Guild Hall' : 'Next question →') : 'Next step →';
   btn.addEventListener('click', () => {
+    if(current.problem !== problem || current.step !== step || current.render !== render || current.phase !== 'resolved') return;
+    current.phase = 'advancing';
     if(!last){ current.step++; current.tries = 0; current.choice = null; renderSteps(); }
     else if(questDone){ history.replaceState(null,'','#home'); show('home'); }
     else nextProblem();
@@ -2189,6 +2387,7 @@ function bossEnd(won){
 }
 function restoreQuest(){ const panel = $('view-module').querySelector('.panel'); $('quest').hidden = false; if($('quest').parentElement !== panel) panel.append($('quest')); }
 function bossLeave(){
+  cancelLessonQuestion();
   boss.active = false; boss.over = false;
   restoreQuest();
   $('boss-arena').hidden = true; $('boss-pick').hidden = false;
@@ -2265,9 +2464,6 @@ function trapSummary(t){
   return `A Dexterity saving throw (${dc}), or ${T.damage} damage. Half damage, rounded down, on a successful save.`;
 }
 const CHESTS = { s:{ name:'Small chest', cost:10, gold:20 }, m:{ name:'Medium chest', cost:25, gold:50 }, l:{ name:'Large chest', cost:50, gold:100 } };
-// Large monsters stand on 2 × 2 squares (10 ft), Huge ones on 3 × 3 (15 ft). The rest take one square.
-const MON_SPAN = { 'Giant Spider':2, 'Dire Wolf':2, Ogre:2, Owlbear:2, Troll:2, Minotaur:2, Wyvern:2, 'Young Green Dragon':2, 'Hill Giant':3 };
-const monSpan = n => MON_SPAN[n] || 1;
 const TOOLS = [
   ['room','Room','▭','free floor'], ['hall','Hall','┅','free floor'], ['wall','Wall','┃','1–3 gp / 5 ft'], ['door','Door','⊓','3–10 gp'],
   ['S','Start','★',''], ['E','Exit','▼',''], ['k','Key','⚷','5 gp'], ['m','Monster','☠','XP ÷ 5'], ['t','Trap','✶','5–25 gp'],
@@ -2284,122 +2480,21 @@ const TOOL_TIPS = {
 };
 const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
 const forgeBudget = d => (200 + 100 * rankFor(progress.xp).idx) * (SIZES[d && d.size] || SIZES.small).mult;
-const monCost = n => { const m = MONSTERS.find(x => x.n === n); return m ? Math.max(5, m.xp / 5) : 10; };
+const monCost = n => { const m = monsterByName(n); return m ? Math.max(5, m.xp / 5) : 10; };
 function forgeMonster(name){
-  const mon = MONSTERS.find(m => m.n === name) || MONSTERS.find(m => m.n === 'Goblin');
+  const mon = monsterByName(name) || monsterByName('Goblin');
   return { ...mon, hp:Math.max(4, Math.round(mon.hp / 3)), bonus:4, span:monSpan(mon.n) };
 }
 const forgeDefaults = () => ({ dungeons:[], board:[], played:{}, stats:{ right:0, tries:0, commissions:0 } });
 
-// ----- The map: squares, and walls on the lines between them -----
-// A wall key is "hX,Y" for the line along the top of square X,Y, or "vX,Y" for the line down its left side.
-const parseKey = k => { const c = k.indexOf(','); return [k[0], +k.slice(1, c), +k.slice(c + 1)]; };
-const wallSides = (t, x, y) => t === 'h' ? [[x, y - 1], [x, y]] : [[x - 1, y], [x, y]];
-const wallCount = (W, H) => W * (H + 1) + (W + 1) * H;
-function wallKey(W, H, i){ if(i < W * (H + 1)) return 'h' + (i % W) + ',' + Math.floor(i / W); i -= W * (H + 1); return 'v' + (i % (W + 1)) + ',' + Math.floor(i / (W + 1)); }
-function wallIndex(W, H, k){ const [t, x, y] = parseKey(k); return t === 'h' ? y * W + x : W * (H + 1) + y * (W + 1) + x; }
-// One character per wall: what it is made of, the door in it, and whether it was drawn by hand.
-// Hand-drawn walls stay when there is floor on both sides; the automatic ones come down.
-const WALL_M = ['stone','cave','wood','bars'], DOOR_K = ['','door','locked','portcullis','secret'];
-const WALL_CH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn';
-function decodeWalls(W, H, s){
-  const m = new Map();
-  for(let i = 0; i < s.length; i++){
-    const n = WALL_CH.indexOf(s[i]);
-    if(n >= 0) m.set(wallKey(W, H, i), { m: WALL_M[Math.floor(n / 10)], door: DOOR_K[Math.floor(n % 10 / 2)] || null, manual: n % 2 === 1 });
-  }
-  return m;
-}
-function encodeWalls(M){
-  const out = new Array(wallCount(M.W, M.H)).fill('.');
-  M.edges.forEach((e, k) => { out[wallIndex(M.W, M.H, k)] = WALL_CH[WALL_M.indexOf(e.m) * 10 + Math.max(0, DOOR_K.indexOf(e.door || '')) * 2 + (e.manual ? 1 : 0)]; });
-  return out.join('');
-}
-// A working copy of a dungeon's map: { W, H, cells:[], ground:[], edges:Map, things }.
-function mapOf(d){ const S = SIZES[d.size] || SIZES.small; return { W:S.w, H:S.h, cells:[...d.cells], ground:[...d.ground], edges:decodeWalls(S.w, S.h, d.walls || ''), things:d.things }; }
-function mapStore(d, M){ d.cells = M.cells.join(''); d.ground = M.ground.join(''); d.walls = encodeWalls(M); }
-const inMap = (M, x, y) => x >= 0 && y >= 0 && x < M.W && y < M.H;
-const isFloor = (M, x, y) => inMap(M, x, y) && M.cells[y * M.W + x] !== ' ';
-const cellWalls = (x, y) => ['h' + x + ',' + y, 'h' + x + ',' + (y + 1), 'v' + x + ',' + y, 'v' + (x + 1) + ',' + y];
-// The squares beside square i, each with the wall line between them: [[j, key]].
-function steps(M, i){
-  const x = i % M.W, y = Math.floor(i / M.W), out = [];
-  if(y > 0) out.push([i - M.W, 'h' + x + ',' + y]);
-  if(x < M.W - 1) out.push([i + 1, 'v' + (x + 1) + ',' + y]);
-  if(y < M.H - 1) out.push([i + M.W, 'h' + x + ',' + (y + 1)]);
-  if(x > 0) out.push([i - 1, 'v' + x + ',' + y]);
-  return out;
-}
-function edgeBetween(M, a, b){ const s = steps(M, a).find(([j]) => j === b); return s ? s[1] : null; }
-// Floor beside rock always has a wall, made of what the floor is. A wall between two floors stays
-// only if it was drawn by hand, and a wall with no floor on either side goes.
-function normalize(M){
-  const one = (t, x, y) => {
-    const k = t + x + ',' + y, [[ax, ay], [bx, by]] = wallSides(t, x, y), a = isFloor(M, ax, ay), b = isFloor(M, bx, by), e = M.edges.get(k);
-    if(a && b){ if(e && !e.manual) M.edges.delete(k); }
-    else if(a || b){ if(!e){ const [fx, fy] = a ? [ax, ay] : [bx, by]; M.edges.set(k, { m:(GROUNDS[M.ground[fy * M.W + fx]] || GROUNDS.s).wall, door:null, manual:false }); } }
-    else if(e) M.edges.delete(k);
-  };
-  for(let y = 0; y <= M.H; y++) for(let x = 0; x < M.W; x++) one('h', x, y);
-  for(let y = 0; y < M.H; y++) for(let x = 0; x <= M.W; x++) one('v', x, y);
-}
-// Rooms are floor squares with no wall between them. Walls and doors split them apart.
-function forgeRooms(M){
-  const roomOf = new Array(M.cells.length).fill(-1), rooms = [];
-  for(let i = 0; i < M.cells.length; i++){
-    if(roomOf[i] >= 0 || M.cells[i] === ' ') continue;
-    const r = { cells:[], walls:0, wallKeys:new Set(), doors:[], mats:new Set(), minX:M.W, maxX:-1, minY:M.H, maxY:-1 }, stack = [i];
-    roomOf[i] = rooms.length;
-    while(stack.length){
-      const j = stack.pop(), x = j % M.W, y = Math.floor(j / M.W);
-      r.cells.push(j); r.minX = Math.min(r.minX, x); r.maxX = Math.max(r.maxX, x); r.minY = Math.min(r.minY, y); r.maxY = Math.max(r.maxY, y);
-      steps(M, j).forEach(([n, k]) => { if(roomOf[n] < 0 && M.cells[n] !== ' ' && !M.edges.has(k)){ roomOf[n] = rooms.length; stack.push(n); } });
-      cellWalls(x, y).forEach(k => { const e = M.edges.get(k); if(e && !r.wallKeys.has(k)){ r.wallKeys.add(k); r.walls++; r.mats.add(e.m); if(e.door) r.doors.push(e.door); } });
-    }
-    r.w = r.maxX - r.minX + 1; r.h = r.maxY - r.minY + 1; r.rect = r.cells.length === r.w * r.h;
-    const floor = new Set(r.cells);
-    r.perimeter = r.cells.reduce((sum, j) => sum + 4 - steps(M, j).filter(([n]) => floor.has(n)).length, 0);
-    rooms.push(r);
-  }
-  return { rooms, roomOf };
-}
-// The squares a monster covers when it stands with its top-left corner on square i, or null unless
-// they are all floor with no walls running between them.
-function footprint(M, i, n, opened){
-  const x0 = i % M.W, y0 = Math.floor(i / M.W), out = [];
-  for(let y = y0; y < y0 + n; y++) for(let x = x0; x < x0 + n; x++){
-    if(!isFloor(M, x, y)) return null;
-    if(x > x0 && M.edges.has('v' + x + ',' + y) && !(opened && opened.has('v' + x + ',' + y))) return null;
-    if(y > y0 && M.edges.has('h' + x + ',' + y) && !(opened && opened.has('h' + x + ',' + y))) return null;
-    out.push(y * M.W + x);
-  }
-  return out;
-}
-// Which monster is on each square: Map(square → the square its monster is listed on).
-function monsterSquares(M){
-  const occ = new Map();
-  M.cells.forEach((c, i) => { if(c === 'm') (footprint(M, i, monSpan((M.things[i] || {}).mon)) || [i]).forEach(j => occ.set(j, i)); });
-  return occ;
-}
-// Replacement may reuse its own footprint, but cannot cover another piece or monster.
-function monsterFits(M, i, name, replacing = -1){
-  const f = footprint(M, i, monSpan(name)), occ = monsterSquares(M);
-  return !!f && f.every(j => (M.cells[j] === '.' || j === replacing) && (!occ.has(j) || occ.get(j) === replacing));
-}
-// A pit can cover several squares; stepping on any of them opens all of it.
-function pitGroup(M, i){
-  const seen = new Set([i]), stack = [i], trap = M.things[i];
-  while(stack.length){ const j = stack.pop(); steps(M, j).forEach(([n, k]) => {
-    const next = M.things[n];
-    if(!seen.has(n) && M.cells[n] === 't' && isPit(next) && next.trap === trap.trap && next.depth === trap.depth && !M.edges.has(k)){ seen.add(n); stack.push(n); }
-  }); }
-  return [...seen];
-}
+// Map rules are independent of the editor, player and persistence adapters.
+const { parseKey, wallSides, wallCount, wallKey, wallIndex, WALL_M, DOOR_K, WALL_CH, decodeWalls, encodeWalls, mapRead, mapOf, mapStore, inMap, isFloor, cellWalls, steps, edgeBetween, normalize, forgeRooms, footprint, monsterSquares, monsterFits, pitGroup, forgeUpgrade } =
+  KidForgeMap.create({ SIZES, GROUNDS, PIECES, TRAPS, monSpan, isPit });
 
 // ----- Rules every dungeon follows -----
 // What the budget panel lists: [label, count, each, total].
 function forgeCosts(d){
-  const M = mapOf(d), lines = [], add = (label, n, each) => { if(n) lines.push([label, n, each, n * each]); };
+  const M = mapRead(d), lines = [], add = (label, n, each) => { if(n) lines.push([label, n, each, n * each]); };
   const count = ch => M.cells.filter(c => c === ch).length;
   add('Floor squares', M.cells.filter(c => c !== ' ').length, 0);
   const walls = {}, doors = {};
@@ -2415,12 +2510,12 @@ function forgeCosts(d){
     if(c === '$'){ const s = t.size || 's'; chests[s] = (chests[s] || 0) + 1; }
   });
   Object.keys(traps).forEach(l => add(l, traps[l][0], traps[l][1]));
-  Object.keys(mons).sort((a, b) => monCost(a) - monCost(b)).forEach(n => add(mons[n] === 1 ? n : (MONSTERS.find(m => m.n === n) || { pl:n }).pl, mons[n], monCost(n)));
+  Object.keys(mons).sort((a, b) => monCost(a) - monCost(b)).forEach(n => add(mons[n] === 1 ? n : (monsterByName(n) || { pl:n }).pl, mons[n], monCost(n)));
   ['s','m','l'].forEach(s => add(CHESTS[s].name + 's', chests[s] || 0, CHESTS[s].cost));
   return { lines, total: lines.reduce((a, l) => a + l[3], 0) };
 }
 function forgeLayoutProblems(d){
-  const M = mapOf(d), out = [], n = ch => M.cells.filter(c => c === ch).length;
+  const M = mapRead(d), out = [], n = ch => M.cells.filter(c => c === ch).length;
   if(n('S') !== 1) out.push('Put a Start square on the map.');
   if(n('E') !== 1) out.push('Put an Exit square on the map.');
   M.cells.forEach((c, i) => {
@@ -2437,30 +2532,35 @@ function forgeProblems(d){
   return out;
 }
 function chestGold(d){ return [...d.cells].reduce((a, c, i) => a + (c === '$' ? CHESTS[(d.things[i] || {}).size || 's'].gold : 0), 0); }
-function roomXp(M, room){ return room.cells.reduce((a, i) => { if(M.cells[i] !== 'm') return a; const m = MONSTERS.find(x => x.n === (M.things[i] || {}).mon); return a + (m ? m.xp : 0); }, 0); }
+function roomXp(M, room){ return room.cells.reduce((a, i) => { if(M.cells[i] !== 'm') return a; const m = monsterByName((M.things[i] || {}).mon); return a + (m ? m.xp : 0); }, 0); }
 // "4", "4 and 5", "4, 5 and 2": dice the way a person reads them out.
 function saidList(xs){ return xs.length < 2 ? String(xs[0]) : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1]; }
 function sentences(t){ return (String(t).match(/[^.!?]*[a-z][^.!?]*[.!?]+/gi) || []).length; }
 
-// A version 1 dungeon: 12 × 9 squares, rock squares as walls and locked doors on squares of their
-// own. Its floor becomes stone, and each door square becomes floor with a locked door on the line
-// that splits the two rooms it joined.
-function forgeUpgrade(d){
-  if(d.v === 2 && SIZES[d.size]) return d;
-  const W = 12, H = 9, cells = [...String(d.cells || '').slice(0, W * H).padEnd(W * H, ' ')], things = d.things || {}, doors = [];
-  cells.forEach((c, i) => { if(c === 'D'){ cells[i] = '.'; doors.push(i); } else if(!PIECES[c]) cells[i] = ' '; });
-  const M = { W, H, cells, ground:new Array(W * H).fill('s'), edges:new Map(), things };
-  normalize(M);
-  doors.forEach(i => {
-    const x = i % W, y = Math.floor(i / W), f = (a, b) => isFloor(M, a, b);
-    const k = f(x - 1, y) && f(x + 1, y) ? 'v' + x + ',' + y : f(x, y - 1) && f(x, y + 1) ? 'h' + x + ',' + y
-      : f(x - 1, y) ? 'v' + x + ',' + y : f(x + 1, y) ? 'v' + (x + 1) + ',' + y : f(x, y - 1) ? 'h' + x + ',' + y : 'h' + x + ',' + (y + 1);
-    M.edges.set(k, { m:'stone', door:'locked', manual:true });
+// Normalize every side of a merge before comparing authored content. A local
+// migration must not look like an independent edit to the same legacy map.
+function normalizeDmSnapshot(value){
+  if(!value) return value;
+  // A still-open older page may have mirrored our local receipts to the server.
+  // They describe this browser's storage and never belong to shared game state.
+  for(const field of ['settings','progress','tracker','forge']) {
+    const component = value[field];
+    if(!component || !['_kidSyncAdoption','_kidSyncWriter','_kidSyncWrite'].some(key => Object.prototype.hasOwnProperty.call(component,key))) continue;
+    const clean = {...component};
+    delete clean._kidSyncAdoption; delete clean._kidSyncWriter; delete clean._kidSyncWrite;
+    value = {...value,[field]:clean};
+  }
+  if(!value.forge || !Array.isArray(value.forge.dungeons)) return value;
+  let changed = false;
+  const dungeons = value.forge.dungeons.map(d => {
+    if(!d || typeof d !== 'object' || (d.v === 2 && SIZES[d.size])) return d;
+    changed = true;
+    return forgeUpgrade(JSON.parse(JSON.stringify(d)));
   });
-  cells.forEach((c, i) => { if(c === 't' && !(things[i] && TRAPS[things[i].trap])) things[i] = { trap:'spike' }; });
-  return Object.assign(d, { v:2, size:'small', cells:cells.join(''), ground:M.ground.join(''), walls:encodeWalls(M), things });
+  return changed ? { ...value, forge:{ ...value.forge, dungeons } } : value;
 }
-function forgeUpgradeAll(){ (forge.dungeons || []).forEach(forgeUpgrade); }
+function dmMerge(base, local, remote){ return KidMerge.dm(normalizeDmSnapshot(base), normalizeDmSnapshot(local), normalizeDmSnapshot(remote)); }
+function dmLegacy(local, remote){ return KidMerge.legacy('dm', normalizeDmSnapshot(local), normalizeDmSnapshot(remote)); }
 // A dungeon that came from someone else's device: keep only what the rules allow.
 function forgeClean(raw){
   const d = raw && typeof raw === 'object' ? raw : {}, v2 = d.v === 2 && SIZES[d.size];
@@ -2469,7 +2569,7 @@ function forgeClean(raw){
   const things = {};
   [...cells].forEach((c, i) => {
     const t = (d.things && d.things[i]) || {};
-    if(c === 'm') things[i] = { mon: MONSTERS.some(m => m.n === t.mon) ? t.mon : 'Goblin' };
+    if(c === 'm') things[i] = { mon: monsterByName(t.mon) ? t.mon : 'Goblin' };
     if(c === '$') things[i] = { size: CHESTS[t.size] ? t.size : 's' };
     if(c === 's') things[i] = { text: String(t.text || '').slice(0, 160) };
     if(c === 't'){ const trap = TRAPS[t.trap] ? t.trap : 'spike'; things[i] = isPit({ trap }) ? { trap, depth: PIT_DEPTHS.includes(t.depth) ? t.depth : 10 } : { trap }; }
@@ -2483,8 +2583,7 @@ function forgeClean(raw){
   return out;
 }
 
-let forge = load('pda-forge', forgeDefaults());
-forgeUpgradeAll();
+let forge = normalizeDmSnapshot({forge:load('pda-forge', forgeDefaults())}).forge;
 function forgeSave(){ save('pda-forge', forge); }
 
 // ----- Drawing a map -----
@@ -2732,44 +2831,50 @@ function forgeRedraw(){
 }
 
 // ----- Asking a question (used by commissions and by play) -----
-// Resolves 'first', 'second' or 'missed'. Two tries, with a hint after the first, like the lessons.
+// Resolves 'first', 'second', 'missed', or 'canceled' when its screen is replaced.
+const forgeQuestions = new Map();
+function cancelForgeQuestions(box){
+  if(box){ const cancel = forgeQuestions.get(box); if(cancel) cancel(); }
+  else for(const cancel of [...forgeQuestions.values()]) cancel();
+}
 function forgeAsk(box, st){
+  cancelForgeQuestions(box);
   return new Promise(resolve => {
     box.textContent = ''; box.hidden = false;
     box.append(mk('p', 'q', st.q));
-    let tries = 0, choice = null, inp = null;
-    const row = mk('div', st.choices ? 'choices' : 'answer'); box.append(row);
-    if(st.choices) st.choices.forEach(c => {
-      const b = mk('button', '', c); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
-      b.addEventListener('click', () => { choice = c; row.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
-      row.append(b);
-    });
-    else {
-      inp = mk('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.autocomplete = 'off'; inp.setAttribute('aria-label', 'Your answer');
-      inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); check(); } });
-      row.append(inp); setTimeout(() => inp.focus(), 50);
-    }
+    let state = { phase:'answering', tries:0 };
+    const active = () => state.phase === 'answering' && forgeQuestions.get(box) === cancel;
+    const controls = questionControls(st, { active, submit:check });
     const fb = mk('div', 'feedback'); fb.hidden = true;
-    const act = mk('div', 'actions'), btn = mk('button', 'btn', 'Check'); btn.type = 'button'; btn.addEventListener('click', check); act.append(btn);
-    box.append(fb, act);
+    const act = mk('div', 'actions'), btn = mk('button', 'btn', 'Check'); btn.type = 'button';
+    btn.addEventListener('click', check); act.append(btn);
+    function cancel(){
+      if(state.phase === 'canceled' || state.phase === 'complete') return;
+      state = { ...state, phase:'canceled' }; controls.lock();
+      act.querySelectorAll('button').forEach(b => b.disabled = true);
+      forgeQuestions.delete(box); resolve('canceled');
+    }
+    forgeQuestions.set(box, cancel);
+    box.append(controls.row, fb, act);
     function say(kind, title, body){ fb.hidden = false; fb.className = 'feedback ' + kind; fb.textContent = ''; fb.append(mk('b', '', title)); if(body) fb.append(mk('div', 'sol', body)); }
     function check(){
-      let ok;
-      if(st.choices){ if(choice === null){ say('hint', 'Pick one of the choices first.'); return; } ok = choice === st.answer; }
-      else {
-        const v = parseAnswer(inp.value);
-        if(v === null){ say('hint', 'Type a number.'); inp.focus(); return; }
-        ok = Math.abs(v - st.answer) < 0.011; inp.classList.remove('ok', 'no'); inp.classList.add(ok ? 'ok' : 'no');
-      }
-      if(st.choices) row.querySelectorAll('button').forEach(b => { if(b.textContent === choice) b.classList.add(ok ? 'ok' : 'no'); });
-      if(!ok && tries === 0){ tries = 1; say('hint', 'Not quite. Hint:', st.hint); if(inp){ inp.select(); inp.focus(); } return; }
-      forge.stats.tries++; if(ok) forge.stats.right++;
-      if(ok){ const gain = tries === 0 ? 5 : 2; addXp(gain); say('good', pick(PRAISE), st.solution + ` +${gain} XP`); }
+      if(!active()) return;
+      const attempt = questionAttempt(state, st, controls.value());
+      if(attempt.kind === 'empty-choice'){ say('hint', 'Pick one of the choices first.'); return; }
+      if(attempt.kind === 'empty-number'){ say('hint', 'Type a number.'); controls.input.focus(); return; }
+      if(attempt.kind === 'ignored') return;
+      state = attempt.state; controls.mark(attempt.ok);
+      if(attempt.kind === 'hint'){ say('hint', 'Not quite. Hint:', st.hint); controls.retry(); return; }
+      forge.stats.tries++; if(attempt.ok) forge.stats.right++;
+      if(attempt.ok){ const gain = attempt.result === 'first' ? 5 : 2; addXp(gain); say('good', pick(PRAISE), st.solution + ` +${gain} XP`); }
       else say('bad', 'Here is how the Guildmaster works it out:', st.solution);
-      if(inp) inp.disabled = true; row.querySelectorAll('button').forEach(b => b.disabled = true);
-      act.textContent = ''; forgeSave();
+      controls.lock(); act.textContent = ''; forgeSave();
       const next = mk('button', 'btn', st.next || 'Continue'); next.type = 'button';
-      next.addEventListener('click', () => resolve(ok ? (tries === 0 ? 'first' : 'second') : 'missed'));
+      next.addEventListener('click', () => {
+        if(state.phase !== 'resolved' || forgeQuestions.get(box) !== cancel) return;
+        state = { ...state, phase:'complete' }; next.disabled = true;
+        forgeQuestions.delete(box); resolve(attempt.result);
+      });
       act.append(next); next.focus();
     }
   });
@@ -2779,7 +2884,7 @@ function forgeAsk(box, st){
 // Each one is built to a spec; claiming it asks a second question about what was built, so
 // knowing the spec is not enough to answer.
 const COMMISSION_XP = 40;
-const findRoom = test => { for(const d of forge.dungeons){ const M = mapOf(d), r = forgeRooms(M).rooms.find(r => test(r, M)); if(r) return { d, r }; } return null; };
+const findRoom = test => { for(const d of forge.dungeons){ const M = mapRead(d), r = forgeRooms(M).rooms.find(r => test(r, M)); if(r) return { d, r }; } return null; };
 const COMMISSIONS = {
   area: {
     make: () => ({ n: pick([12, 15, 16, 18, 20, 24, 28, 30]) }),
@@ -2894,7 +2999,9 @@ function forgeBoard(){
   return changed;
 }
 function renderBoard(){
-  const box = $('forge-board'); box.textContent = '';
+  const box = $('forge-board');
+  box.querySelectorAll('.ask').forEach(cancelForgeQuestions);
+  box.textContent = '';
   if(forgeBoard()) forgeSave();
   forge.board.forEach(c => {
     const C = COMMISSIONS[c.kind], card = mk('div', 'commission');
@@ -2904,8 +3011,10 @@ function renderBoard(){
     btn.addEventListener('click', async () => {
       const found = C.find(c);
       if(!found){ ask.textContent = ''; ask.append(mk('div', 'forge-note', C.miss(c))); return; }
-      act.hidden = true;
-      if(C.ask) await forgeAsk(ask, Object.assign({ next:'Collect the reward' }, C.ask(c, found)));
+      if(btn.disabled) return;
+      btn.disabled = true; act.hidden = true;
+      if(C.ask && await forgeAsk(ask, Object.assign({ next:'Collect the reward' }, C.ask(c, found))) === 'canceled') return;
+      if(!forge.board.some(x => x.id === c.id)) return;
       forge.board = forge.board.filter(x => x.id !== c.id); forge.stats.commissions = (forge.stats.commissions || 0) + 1;
       forgeSave(); addXp(COMMISSION_XP); toast(`Commission done! +${COMMISSION_XP} XP.`);
       renderBoard();
@@ -2920,7 +3029,8 @@ function forgeStatus(d){
   return `${S.name} · ${cost} gold · ` + (d.share ? (d.publishedRev === d.rev ? 'Shared' : d.publishedRev == null ? 'Shared, share again to confirm the latest version' : 'Shared, changed since') : d.tested === d.rev ? 'Tested, ready to share' : 'Not tested yet');
 }
 function renderForge(){
-  forgeUpgradeAll();
+  forgeCancelJoin();
+  cancelForgeQuestions();
   ['forge-home','forge-edit','forge-play'].forEach(id => $(id).hidden = id !== 'forge-home');
   const list = $('forge-list'); list.textContent = '';
   if(!forge.dungeons.length) list.append(mk('p', 'help', 'No dungeons yet. Start one!'));
@@ -2949,17 +3059,24 @@ Object.keys(SIZES).forEach(size => $('forge-new-' + size).addEventListener('clic
   forge.dungeons.push(d); forgeSave(); forgeEdit(d.id);
   forgeNote(`A ${S.name.toLowerCase()} map: ${S.w} × ${S.h} squares. Every square is 5 feet, so the whole map is ${S.w * 5} ft × ${S.h * 5} ft. Pick Room and drag from corner to corner to dig your first room. Then add a Start and an Exit.`);
 }));
+let forgeJoinVersion = 0;
+function forgeCancelJoin(){ forgeJoinVersion++; }
 async function forgeJoin(raw){
+  const version = ++forgeJoinVersion, active = () => version === forgeJoinVersion;
   const code = KidSave.normalize(raw), msg = $('forge-join-msg');
   if(!code){ msg.textContent = 'Dungeon codes look like OTTER-4821.'; return; }
   msg.textContent = 'Opening…';
   let res;
   try{ res = await fetch('api/shares/' + encodeURIComponent(code), { cache:'no-store' }); }
-  catch(e){ msg.textContent = 'Could not reach the Academy. Try again when online.'; return; }
+  catch(e){ if(active()) msg.textContent = 'Could not reach the Academy. Try again when online.'; return; }
+  if(!active()) return;
   if(res.status === 404){ msg.textContent = 'No dungeon has that code. Check it with your friend.'; return; }
   if(res.status === 429){ msg.textContent = 'Too many wrong codes. Wait a few minutes and try again.'; return; }
   if(!res.ok){ msg.textContent = 'Something went wrong. Try again.'; return; }
-  const d = forgeClean(await res.json());
+  let d;
+  try{ d = forgeClean(await res.json()); }
+  catch(e){ if(active()) msg.textContent = 'That dungeon could not be read. Ask its builder to share it again.'; return; }
+  if(!active()) return;
   if(forgeLayoutProblems(d).length){ msg.textContent = 'That dungeon needs a repair. Ask its builder to check the map, test it and share it again.'; return; }
   msg.textContent = '';
   forge.played = forge.played || {};
@@ -2982,7 +3099,8 @@ function forgeNote(text, kind){ const n = $('fe-note'); n.hidden = !text; n.clas
 // The line under the map: what the tool in hand does, and live sizes while drawing. Only ever our own text.
 function feRead(html, bad){ const r = $('fe-read'); r.className = 'forge-note' + (bad ? ' bad' : ''); r.innerHTML = html; }
 function forgeEdit(id){
-  forgeUpgradeAll();
+  forgeCancelJoin();
+  cancelForgeQuestions();
   ed.d = forge.dungeons.find(d => d.id === id); if(!ed.d) return renderForge();
   Object.assign(ed, { M: mapOf(ed.d), sel:-1, measure:null, preview:null, hover:null, stroke:null, undo:[] });
   forgeNote('');
@@ -3370,7 +3488,7 @@ const CHECK_HINT = 'Add your bonus to the roll. You succeed if the total is the 
 const FP_CANCELED = Symbol('Forge play canceled');
 const fpPending = new Set();
 const forgeRunData = d => ({v:d.v,size:d.size,title:d.title,intro:d.intro || '',cells:d.cells,ground:d.ground,walls:d.walls,things:d.things});
-function fpCancel(){ fp.session++; for(const cancel of fpPending) cancel(); fpPending.clear(); fp.busy = false; $('fp-enc').hidden = true; }
+function fpCancel(){ cancelForgeQuestions(); fp.session++; for(const cancel of fpPending) cancel(); fpPending.clear(); fp.busy = false; $('fp-enc').hidden = true; }
 function fpCheck(session){ if(session !== fp.session) throw FP_CANCELED; }
 async function fpDuring(promise){
   const session = fp.session; let cancel;
@@ -3378,7 +3496,11 @@ async function fpDuring(promise){
   try { const value = await Promise.race([promise, canceled]); fpCheck(session); return value; }
   finally { fpPending.delete(cancel); }
 }
-const fpAsk = (box, st) => fpDuring(forgeAsk(box, st));
+async function fpAsk(box, st){
+  const result = await fpDuring(forgeAsk(box, st));
+  if(result === 'canceled') throw FP_CANCELED;
+  return result;
+}
 let fpTap = null;
 const fpView = mapView($('fp-map'), $('fp-wrap'), {
   map: () => fp.M,
@@ -3393,9 +3515,9 @@ const fpView = mapView($('fp-map'), $('fp-wrap'), {
   },
 });
 function forgePlay(d, mode, code){
+  forgeCancelJoin();
   fpCancel();
   const M = mapOf(d), monsters = new Map();
-  M.things = JSON.parse(JSON.stringify(M.things));
   M.cells.forEach((ch, i) => { if(ch === 'm'){ monsters.set(i, { id:i, name:(M.things[i] || {}).mon || 'Goblin', pos:i }); M.cells[i] = '.'; } });
   Object.assign(fp, { d, M, rev:d.rev, built:JSON.parse(JSON.stringify(forgeRunData(d))), mode, code: code || null, keys:0, gold:0, kills:0, seen:new Set(), opened:new Set(), found:new Set(), pits:new Set(), monsters, turn:0, busy:false, over:false });
   fpTap = null; fpOccupancy();
@@ -3801,7 +3923,6 @@ document.addEventListener('keydown', e => {
 $('fp-leave').addEventListener('click', () => { fpCancel(); fp.mode === 'test' ? forgeEdit(fp.d.id) : renderForge(); });
 // Another device's progress arrived: point the editor at the fresh copy, and redraw unless mid-game.
 function forgeRefresh(){
-  forgeUpgradeAll();
   if($('view-forge').hidden || !$('forge-play').hidden) return;
   if(!$('forge-edit').hidden && ed.d){
     const d = forge.dungeons.find(x => x.id === ed.d.id);
@@ -3996,7 +4117,7 @@ $('trk-add-party').addEventListener('click', () => {
   trkSort(); trkSave(); renderTracker();
 });
 $('trk-add-monster').addEventListener('click', () => {
-  const mon = MONSTERS.find(m => m.n === $('trk-monster').value); if(!mon) return;
+  const mon = monsterByName($('trk-monster').value); if(!mon) return;
   trkAdd({ name:mon.n, init: rand(1,20) + monDex(mon.n), hp: mon.hp, ac: mon.ac, kind:'monster' });
   trkNote(`${mon.n} added with ${mon.hp} HP, AC ${mon.ac}, and a rolled Initiative.`);
   trkSort(); trkSave(); renderTracker();
@@ -4181,7 +4302,14 @@ $('reset-btn').addEventListener('click', () => {
 });
 
 dmHadLocalData = hasLocalData(); dmBootState = JSON.parse(JSON.stringify(snapshotLocal()));
+SYNC_KEYS.forEach(key => { if(!dmComponentAdoptions[key]) dmComponentAdoptions[key] = dmBootReceipt; });
 if(!window.indexedDB){ dmStorage = localStorage; dmSync = createDmSync(dmStorage); }
+else {
+  // Preserve the boot baseline before a known family's working copy can name
+  // this writer. This needs only local IndexedDB, including while offline.
+  const code = KidSave.code && KidSave.code();
+  if(code){ dmCheckpointPending = true; ensureDmSync(code).catch(() => {}); }
+}
 
 // ---------- Boot ----------
 setArt($('crest'), 'crest', 'PDA'); renderRank(); fillSettings(); renderLab();
